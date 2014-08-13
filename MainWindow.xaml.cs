@@ -233,15 +233,15 @@ namespace LabRun
             {
                 foreach (string computerName in computerNames)
                 {
-                    string line = @"C:\PSTools\PsExec.exe -i \\" + computerName + @" -u asb\labclient -p kPu$27mLi python " + testExePath;
+                    string line = @"C:\PSTools\PsExec.exe -d -i \\" + computerName + @" -u asb\labclient -p kPu$27mLi python " + testExePath;
                     file.WriteLine(line);
                  }
             }
 
-            //MessageBox.Show("will try to run");
-            //string strCmdText;
-            //strCmdText = @"C:\Users\donatas\Desktop\testRun.bat";
-            //ExecuteCommand(strCmdText);
+            MessageBox.Show("will try to run");
+            string strCmdText;
+            strCmdText = @"C:\Users\donatas\Desktop\testRun.bat";
+            ExecuteCommand(strCmdText);
         }
 
         private void ExecuteCommand(string command)
