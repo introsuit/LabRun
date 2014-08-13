@@ -174,9 +174,17 @@ namespace LabRun
             return newDir;
         }
 
-        private void xcopy(string srcDir, string dstDir)
+        private void xcopy(List<string> computerNames, string srcDir, string dstDir)
         {
-
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Users\donatas\Desktop\testCopy.bat"))
+            {
+                file.WriteLine("@echo off");
+                foreach (string computerName in computerNames)
+                {
+                    string line = @"xcopy """ + srcDir + @""" ""\\" + computerName+@"\test\" + dstDir + @""" /V /E /Y /Q /I";
+                    file.WriteLine(line);
+                }
+            }
         }
 
         private void button2_Click(object sender, RoutedEventArgs e)
@@ -186,30 +194,35 @@ namespace LabRun
             {
                 computerNames.Add(computerName);
             }
+            string newDir = Path.GetDirectoryName(testfilepath);
+            newDir = newDir.Remove(0, newDir.LastIndexOf('\\') + 1);
 
-            string newDirName = "";
-            foreach (string client in computerNames)
-            {
-                try
-                {
-                    string src = testfilepath;
-                    string dst = @"\\" + client + "\\test\\";
+            xcopy(computerNames, testfilepath, newDir);
 
-                    
-                  
+            //foreach (string client in computerNames)
+            //{
+            //    try
+            //    {
+            //        string src = testfilepath;
+            //        string dst = @"\\" + client + "\\test\\";
 
-                    //newDirName = copyTestDir(src, dst);
-                    MessageBox.Show(newDirName);
-                    //File.Copy(@src, dst);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-            }
 
-            MessageBox.Show(testfilename);
-            runTests(computerNames, @"C:\test\" + newDirName + @"\" + testfilename);
+
+
+            //        //newDirName = copyTestDir(src, dst);
+            //        MessageBox.Show(newDirName);
+            //        //File.Copy(@src, dst);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        MessageBox.Show(ex.Message);
+            //    }
+            //}
+
+            
+
+            MessageBox.Show(@"C:\test\" + newDir + @"\" + testfilename);
+            runTests(computerNames, @"C:\test\" + newDir + @"\" + testfilename);
         }
 
         private void runTests(List<string> computerNames, string testExePath){
@@ -222,15 +235,13 @@ namespace LabRun
                 {
                     string line = @"C:\PSTools\PsExec.exe -i \\" + computerName + @" -u asb\labclient -p kPu$27mLi python " + testExePath;
                     file.WriteLine(line);
-
-
                  }
             }
 
-            MessageBox.Show("will try to run");
-            string strCmdText;
-            strCmdText = @"C:\Users\donatas\Desktop\testRun.bat";
-            ExecuteCommand(strCmdText);
+            //MessageBox.Show("will try to run");
+            //string strCmdText;
+            //strCmdText = @"C:\Users\donatas\Desktop\testRun.bat";
+            //ExecuteCommand(strCmdText);
         }
 
         private void ExecuteCommand(string command)
