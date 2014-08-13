@@ -111,68 +111,7 @@ namespace LabRun
                 label1.Content = filename;
                 button2.IsEnabled = true;
             }
-        }
-
-        private void testRun()
-        {
-            string strCmdText;
-            strCmdText = "\"C:\\PsTools\\PsExec.exe\" -i -d  \\YLGW036496 -u asb\\labclient -p kPu$27mLi python \"C:\\Cobe Lab\\Psychopy\\Price\\Price1AI.py\"";
-            
-            System.Diagnostics.Process.Start("CMD.exe", strCmdText);
-
-           // System.Diagnostics.Process.Start("c:\\run.bat");
-
-            //System.Diagnostics.Process process = new System.Diagnostics.Process();
-            //System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-            //startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            //startInfo.FileName = "cmd.exe";
-            //startInfo.Arguments = "\"C:\\PsTools\\PsExec.exe\" -i -d  \\YLGW036496 -u asb\\labclient -p kPu$27mLi python \"C:\\Cobe Lab\\Psychopy\\Price\\Price1AI.py\"";
-            //process.StartInfo = startInfo;
-            //System.Diagnostics.Process.Start("\"C:\\PsTools\\PsExec.exe\" -i -d  \\YLGW036496 -u asb\\labclient -p kPu$27mLi python \"C:\\Cobe Lab\\Psychopy\\Price\\Price1AI.py\"");
-        }
-
-        private string copyTestDir(string srcDir, string dstDir)
-        {
-            // create new dst dir
-            string newDir = Path.GetDirectoryName(srcDir);
-            newDir = newDir.Remove(0, newDir.LastIndexOf('\\') + 1);         
-            Directory.CreateDirectory(dstDir + "\\" + newDir);
-
-            
-
-            // update dst with new dir
-            dstDir = dstDir + "\\" + newDir + "\\";
-
-            // substring is to remove destination_dir absolute path (E:\).
-            // Create subdirectory structure in destination    
-            foreach (string dir in Directory.GetDirectories(srcDir, "*", System.IO.SearchOption.AllDirectories))
-            {
-                Directory.CreateDirectory(dstDir + dir.Substring(srcDir.Length));
-                // Example:
-                //     > C:\sources (and not C:\E:\sources)
-            }
-
-
-            
-            foreach (string file_name in Directory.GetFiles(srcDir, "*.*", System.IO.SearchOption.AllDirectories))
-            {
-
-                File.Copy(file_name, file_name+"_backup", true);
-               File.Move(file_name, dstDir + file_name.Substring(srcDir.Length));
-               File.Move(file_name + "_backup", file_name);
-               
-                    //File.Copy(file_name, dstDir + file_name.Substring(srcDir.Length), true);
-                 
-            }
-            
-            //System.IO.FileStream; 
-            //   System.IO.FileStream.Dispose(Boolean disposing) ;
-            //   System.IO.FileStream.Close();
-           
-           
-
-            return newDir;
-        }
+        }     
 
         private void xcopy(List<string> computerNames, string srcDir, string dstDir)
         {
@@ -197,38 +136,14 @@ namespace LabRun
             string newDir = Path.GetDirectoryName(testfilepath);
             newDir = newDir.Remove(0, newDir.LastIndexOf('\\') + 1);
 
-            xcopy(computerNames, testfilepath, newDir);
-
-            //foreach (string client in computerNames)
-            //{
-            //    try
-            //    {
-            //        string src = testfilepath;
-            //        string dst = @"\\" + client + "\\test\\";
-
-
-
-
-            //        //newDirName = copyTestDir(src, dst);
-            //        MessageBox.Show(newDirName);
-            //        //File.Copy(@src, dst);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        MessageBox.Show(ex.Message);
-            //    }
-            //}
-
-            
+            xcopy(computerNames, testfilepath, newDir);          
 
             MessageBox.Show(@"C:\test\" + newDir + @"\" + testfilename);
             runTests(computerNames, @"C:\test\" + newDir + @"\" + testfilename);
         }
 
         private void runTests(List<string> computerNames, string testExePath){
-           
-
-            
+         
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Users\donatas\Desktop\testRun.bat"))
             {
                 foreach (string computerName in computerNames)
