@@ -96,7 +96,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClassLibrary1\ServiceLibrary.csproj">
+    <ProjectReference Include="ServiceLibrary\ServiceLibrary.csproj">
       <Project>{50B9C0FD-1F57-404A-98A2-F29D5510DA71}</Project>
       <Name>ServiceLibrary</Name>
     </ProjectReference>
