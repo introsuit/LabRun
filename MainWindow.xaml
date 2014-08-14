@@ -8,5 +8,6 @@
         <ListBox Height="196" SelectionMode="Multiple" HorizontalAlignment="Left" Margin="12,15,0,0" Name="listBox1" VerticalAlignment="Top" Width="131" />
         <Button IsEnabled='False' Content="Run" Height="28" HorizontalAlignment="Left" Margin="156,57,0,0" Name="button2" VerticalAlignment="Top" Width="75" Click="button2_Click" />
         <Button IsEnabled='True' Content="Kill" Height="28" HorizontalAlignment="Left" Margin="265,57,0,0" Name="btnKill" VerticalAlignment="Top" Width="75" Click="btnKill_Click" />
+        <Button Content="Get Results" HorizontalAlignment="Left" Margin="155,186,0,0" VerticalAlignment="Top" Width="75" Name="btnGetResults" Height="24"/>
     </Grid>
 </Window>
