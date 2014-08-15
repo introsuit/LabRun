@@ -80,16 +80,6 @@ namespace LabRun
                 label1.Content = filename;
                 button2.IsEnabled = true;
             }
-
-            foreach (string file in service.GetFiles(testfilepath))
-            {
-                Debug.WriteLine(file);
-                //check for result types. also make sure it is case insensitive
-                if (file.EndsWith(".psydat", true, null) || file.EndsWith(".log", true, null) || file.EndsWith(".csv", true, null))
-                {
-
-                }
-            }
         }
 
         private void robocopy(string srcDir, string dstDir)
@@ -208,6 +198,19 @@ namespace LabRun
             foreach (string computerName in getComputerNamesList())
             {
                 service.killRemoteProcess(computerName, "python.exe");
+            }
+        }
+
+        private void btnGetResults_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (string file in service.GetFiles(testfilepath))
+            {
+                Debug.WriteLine(file);
+                //check for result types. also make sure it is case insensitive
+                if (file.EndsWith(".psydat", true, null) || file.EndsWith(".log", true, null) || file.EndsWith(".csv", true, null))
+                {
+                    File.Copy(file, );
+                }
             }
         }
     }
