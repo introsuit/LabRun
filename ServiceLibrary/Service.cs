@@ -8,6 +8,7 @@ using System.Management.Automation;
 using System.Management;
 using System.IO;
 using System.Threading;
+using System.Reflection;
 
 namespace ServiceLibrary
 {
@@ -27,12 +28,27 @@ namespace ServiceLibrary
 
         }
 
+        public List<string> GetLabComputersFromFile()
+        {
+            List<string> clients = new List<string>();
+
+            string path = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.txt");
+            System.IO.StreamReader file = new System.IO.StreamReader(path);
+
+            string line;
+            while ((line = file.ReadLine()) != null)
+            {
+                clients.Add(line);
+            }
+            return clients;
+        }
+
         //domain eg.: asb.local
-        public static List<string> GetComputers(string domain, string username, string password)
+        public List<string> GetLabComputers()
         {
             List<string> ComputerNames = new List<string>();
 
-            DirectoryEntry entry = new DirectoryEntry("LDAP://" + domain, username, password);
+            DirectoryEntry entry = new DirectoryEntry("LDAP://OU=BSS Lab,OU=BSS Lab,OU=Computers,OU=Public,OU=Staff,DC=asb,DC=local");
             DirectorySearcher mySearcher = new DirectorySearcher(entry);
             mySearcher.Filter = ("(objectClass=computer)");
             mySearcher.SizeLimit = int.MaxValue;

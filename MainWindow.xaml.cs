@@ -29,26 +29,22 @@ namespace LabRun
 
         private string testfilepath = "";
         private string testfilename = "";
+        private string testDirName = "";
 
         private string tempPath = System.IO.Path.GetTempPath();
         private string labClientSharedFolder = @"C:\test\";
+        private string labClientSharedFolderName = "test";
 
         public MainWindow()
         {
             InitializeComponent();
             initClients();
         }
-
         public void initClients()
         {
-            string path = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.txt");
-            System.IO.StreamReader file = new System.IO.StreamReader(path);
-
-            List<string> clients = new List<string>();
-            string line;
-            while ((line = file.ReadLine()) != null)
+            foreach (string client in service.GetLabComputers())
             {
-                listBox1.Items.Add(line);
+                listBox1.Items.Add(client);
             }
         }
 
@@ -77,6 +73,10 @@ namespace LabRun
                     testfilename = filename.Substring(index + 1, filename.Length - (index + 1)); // or index + 1 to keep slash
                 }
 
+
+                string newDir = Path.GetDirectoryName(testfilepath);
+                testDirName = newDir.Remove(0, newDir.LastIndexOf('\\') + 1);
+
                 label1.Content = filename;
                 button2.IsEnabled = true;
             }
@@ -88,7 +88,7 @@ namespace LabRun
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
                 file.WriteLine("@echo off");
-                foreach (string computerName in getComputerNamesList())
+                foreach (string computerName in getSelectedClients())
                 {
                     file.WriteLine(@"NET USE \\" + computerName + @"\test /USER:labclient@asb kPu$27mLi");
                     file.WriteLine(@"robocopy """ + srcDir + @""" ""\\" + computerName + @"\test\" + dstDir + @""" /S");
@@ -105,13 +105,46 @@ namespace LabRun
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
                 file.WriteLine("@echo off");
-                foreach (string computerName in getComputerNamesList())
+                foreach (string computerName in getSelectedClients())
                 {
                     file.WriteLine(@"net use ""\\" + computerName + @"\test"" kPu$27mLi /user:asb\labclient");
 
                     file.WriteLine(":copy");
                     string line = @"xcopy """ + srcDir + @""" ""\\" + computerName + @"\test\" + dstDir + @""" /V /E /Y /Q /I";
                     file.WriteLine(line);
+                    file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
+                    file.WriteLine("goto end");
+
+                    file.WriteLine(":disconnect");
+                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" /delete");
+                    file.WriteLine("goto end");
+                    file.WriteLine(":end");
+                }
+            }
+            //MessageBox.Show(copyPath);
+            service.ExecuteCommandNoOutput(copyPath, true);
+        }
+
+        private void xcopyResults(string dstDir)
+        {
+            string copyPath = tempPath + "testCopyResults.bat";
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                foreach (string computerName in getSelectedClients())
+                {
+                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" kPu$27mLi /user:asb\labclient");
+
+                    file.WriteLine(":copy");
+                    string path = @"\\" + computerName + @"\" + labClientSharedFolderName + @"\" + testDirName;
+
+                    string line = @"xcopy """ + path + @"\*.psydat"" """ + dstDir + @"\" + testDirName + @""" /V /E /Y /Q /I";
+                    file.WriteLine(line);
+                    line = @"xcopy """ + path + @"\*.csv"" """ + dstDir + @"\" + testDirName + @""" /V /E /Y /Q /I";
+                    file.WriteLine(line);
+                    line = @"xcopy """ + path + @"\*.log"" """ + dstDir + @"\" + testDirName + @""" /V /E /Y /Q /I";
+                    file.WriteLine(line);
+
                     file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
                     file.WriteLine("goto end");
 
@@ -139,11 +172,10 @@ namespace LabRun
                 return;
             }
 
-            string newDir = Path.GetDirectoryName(testfilepath);
-            newDir = newDir.Remove(0, newDir.LastIndexOf('\\') + 1);
+          
 
-            xcopy(testfilepath.Substring(0, testfilepath.Length - 1), newDir);
-            runTests(computerNames, labClientSharedFolder + newDir + @"\" + testfilename);
+            xcopy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName);
+            runTests(computerNames, labClientSharedFolder + testDirName + @"\" + testfilename);
             btnKill.IsEnabled = true;
             //MessageBox.Show("Request done");
         }
@@ -171,7 +203,7 @@ namespace LabRun
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(runPath))
                 {
 
-                    string line = @"C:\PSTools\PsExec.exe -i 1 \\" + computerName + @" -u asb\labclient -p kPu$27mLi python " + testExePath;
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u asb\labclient -p kPu$27mLi python " + testExePath;
                    // string line = @"C:\PSTools\PsExec.exe -d -i \\" + computerName + @" -u mano.local\Administrator -p Mandrass1 python " + testExePath;
                     file.WriteLine(line);
                 }
@@ -183,7 +215,7 @@ namespace LabRun
             }
         }
 
-        private List<string> getComputerNamesList()
+        private List<string> getSelectedClients()
         {
             List<string> computerNames = new List<string>();
             foreach (string computerName in listBox1.SelectedItems)
@@ -195,7 +227,7 @@ namespace LabRun
 
         private void btnKill_Click(object sender, RoutedEventArgs e)
         {
-            foreach (string computerName in getComputerNamesList())
+            foreach (string computerName in getSelectedClients())
             {
                 service.killRemoteProcess(computerName, "python.exe");
             }
@@ -203,15 +235,22 @@ namespace LabRun
 
         private void btnGetResults_Click(object sender, RoutedEventArgs e)
         {
-            foreach (string file in service.GetFiles(testfilepath))
-            {
-                Debug.WriteLine(file);
-                //check for result types. also make sure it is case insensitive
-                if (file.EndsWith(".psydat", true, null) || file.EndsWith(".log", true, null) || file.EndsWith(".csv", true, null))
-                {
-                    File.Copy(file, );
-                }
-            }
+            
+            xcopyResults(@"C:\Dump");
+            //foreach (string computerName in getSelectedClients())
+            //{
+            //    string path = @"\\" + computerName + @"\" + labClientSharedFolderName + @"\" + testDirName;
+            //    Debug.WriteLine(path);
+            //    foreach (string file in service.GetFiles(path))
+            //    {
+            //        //check for result types. also make sure it is case insensitive
+            //        if (file.EndsWith(".psydat", true, null) || file.EndsWith(".log", true, null) || file.EndsWith(".csv", true, null))
+            //        {
+            //            Debug.WriteLine(file);
+            //            //File.Copy(file, );
+            //        }
+            //    }
+            //}
         }
     }
 }
