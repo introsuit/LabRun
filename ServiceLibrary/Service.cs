@@ -17,6 +17,9 @@ namespace ServiceLibrary
         private const string domainName = "";
         private const string userName = "";
         private const string userPassword = "";
+        private const string resultFolder = @"C:\Dump\";
+
+        private string tempPath = System.IO.Path.GetTempPath();
 
         private static Service service;
 
@@ -241,6 +244,98 @@ namespace ServiceLibrary
             process.Close();
         }
 
+        public void xcopyPsychoPy(string srcDir, string dstDir, List<string> selectedClients)
+        {
+            string copyPath = tempPath + "testCopy.bat";
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                foreach (string computerName in selectedClients)
+                {
+                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" kPu$27mLi /user:asb\labclient");
+
+                    file.WriteLine(":copy");
+                    string line = @"xcopy """ + srcDir + @""" ""\\" + computerName + @"\test\" + dstDir + @""" /V /E /Y /Q /I";
+                    file.WriteLine(line);
+                    file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
+                    file.WriteLine("goto end");
+
+                    file.WriteLine(":disconnect");
+                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" /delete");
+                    file.WriteLine("goto end");
+                    file.WriteLine(":end");
+                }
+            }
+            //MessageBox.Show(copyPath);
+            service.ExecuteCommandNoOutput(copyPath, true);
+        }
+
+        public void runPsychoPyTests(List<string> computerNames, string testExePath)
+        {
+            int i = 0;
+            foreach (string computerName in computerNames)
+            {
+                string runPath = tempPath + "testRun" + i + ".bat";
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(runPath))
+                {
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u asb\labclient -p kPu$27mLi python " + testExePath;            
+                    file.WriteLine(line);
+                }
+
+                //MessageBox.Show(runPath);
+                StartNewCmdThread(runPath);
+
+                i++;
+            }
+        }
+
+        public void xcopyPsychoPyResults(string srcWithoutComputerName, string dstFolderName, List<string> selectedClients)
+        {
+            string copyPath = tempPath + "testCopyResults.bat";
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                foreach (string computerName in selectedClients)
+                {
+                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" kPu$27mLi /user:asb\labclient");
+
+                    file.WriteLine(":copy");
+                    string src = @"\\" + computerName + srcWithoutComputerName;
+                    string dst = resultFolder + dstFolderName;
+                    string line = @"xcopy """ + src + @"\*.psydat"" """ + dst + @""" /V /E /Y /Q /I";
+                    file.WriteLine(line);
+                    line = @"xcopy """ + src + @"\*.csv"" """ + dst + @""" /V /E /Y /Q /I";
+                    file.WriteLine(line);
+                    line = @"xcopy """ + src + @"\*.log"" """ + dst + @""" /V /E /Y /Q /I";
+                    file.WriteLine(line);
+
+                    file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
+                    file.WriteLine("goto end");
+
+                    file.WriteLine(":disconnect");
+                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" /delete");
+                    file.WriteLine("goto end");
+                    file.WriteLine(":end");
+                }
+            }
+            //MessageBox.Show(copyPath);
+            service.ExecuteCommandNoOutput(copyPath, true);
+        }
+
+        public Thread StartNewCmdThread(string cmd)
+        {
+            var t = new Thread(() => RealStart(cmd));
+            t.Start();
+            return t;
+        }
+
+        private void RealStart(string cmd)
+        {
+            string strCmdText = @cmd;
+            //MessageBox.Show(strCmdText);
+            service.runCmd(strCmdText);
+        }
+
         private void KillProcThread(string computerName, string processName)
         {
             Debug.WriteLine(computerName + " " + processName);
@@ -281,19 +376,20 @@ namespace ServiceLibrary
         public void ShutdownComputer(List<string> computerNames)
         {
             Debug.WriteLine("Shutting begins >:)");
-            var LocalPassword = "Mandrass1";
+            var LocalPassword = "kPu$27mLi";
             var ssLPassword = new System.Security.SecureString();
             foreach (char c in LocalPassword)
                 ssLPassword.AppendChar(c);
 
-            PSCredential Credential = new PSCredential("Administrator@mano", ssLPassword);
-            string compName = "Win2008";
+            PSCredential Credential = new PSCredential("labclient@asb", ssLPassword);
 
             string compList = "";
-            //foreach(string comp in computerNames){
-            //    compList += comp + ", ";
-            //}
-            //compList = compList.Substring(0, compList.Length-2);
+            foreach (string comp in computerNames)
+            {
+                compList += comp + ", ";
+            }
+            compList = compList.Substring(0, compList.Length - 2);
+            Debug.WriteLine(compList);
 
             using (PowerShell powershell = PowerShell.Create())
             {
@@ -301,14 +397,14 @@ namespace ServiceLibrary
                 powershell.AddParameter("Name", "cred");
                 powershell.AddParameter("Value", Credential);
 
-                powershell.AddScript(@"$s = New-PSSession -ComputerName '" + compName + "' -Credential $cred");
+                powershell.AddScript(@"$s = New-PSSession -ComputerName '" + compList + "' -Credential $cred");
 
-                string cmdlet = @"shutdown.exe -t 10 -f -s -c 'My comments'";
-                powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdlet + " }");
-                
-                cmdlet = @"Start-Sleep 5";
+                //string cmdlet = @"shutdown.exe -t 10 -f -s -c 'My comments'";
                 //powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdlet + " }");
-                //powershell.AddScript(@"$a = Stop-Computer -ComputerName Win2008 -Force -Credential $cred");
+                
+                //cmdlet = @"Start-Sleep 5";
+                //powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdlet + " }");
+                powershell.AddScript(@"$a = Stop-Computer -ComputerName YLGW036496 -Force -Credential $cred");
 
                 powershell.AddScript(@"Remove-PSSession -Session $s");
                 powershell.AddScript(@"echo $a");

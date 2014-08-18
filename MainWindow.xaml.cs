@@ -31,7 +31,7 @@ namespace LabRun
         private string testfilename = "";
         private string testDirName = "";
 
-        private string tempPath = System.IO.Path.GetTempPath();
+        
         private string labClientSharedFolder = @"C:\test\";
         private string labClientSharedFolderName = "test";
 
@@ -80,91 +80,11 @@ namespace LabRun
                 label1.Content = filename;
                 button2.IsEnabled = true;
             }
-        }
-
-        private void robocopy(string srcDir, string dstDir)
-        {
-            string copyPath = tempPath + "testCopy.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                foreach (string computerName in getSelectedClients())
-                {
-                    file.WriteLine(@"NET USE \\" + computerName + @"\test /USER:labclient@asb kPu$27mLi");
-                    file.WriteLine(@"robocopy """ + srcDir + @""" ""\\" + computerName + @"\test\" + dstDir + @""" /S");
-                    file.WriteLine(@"NET USE \\" + computerName + @"\test /D");
-                }
-            }
-            //MessageBox.Show(copyPath);
-            service.ExecuteCommandNoOutput(copyPath, true);
-        }
-
-        private void xcopy(string srcDir, string dstDir)
-        {
-            string copyPath = tempPath + "testCopy.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                foreach (string computerName in getSelectedClients())
-                {
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" kPu$27mLi /user:asb\labclient");
-
-                    file.WriteLine(":copy");
-                    string line = @"xcopy """ + srcDir + @""" ""\\" + computerName + @"\test\" + dstDir + @""" /V /E /Y /Q /I";
-                    file.WriteLine(line);
-                    file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
-                    file.WriteLine("goto end");
-
-                    file.WriteLine(":disconnect");
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" /delete");
-                    file.WriteLine("goto end");
-                    file.WriteLine(":end");
-                }
-            }
-            //MessageBox.Show(copyPath);
-            service.ExecuteCommandNoOutput(copyPath, true);
-        }
-
-        private void xcopyResults(string dstDir)
-        {
-            string copyPath = tempPath + "testCopyResults.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                foreach (string computerName in getSelectedClients())
-                {
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" kPu$27mLi /user:asb\labclient");
-
-                    file.WriteLine(":copy");
-                    string path = @"\\" + computerName + @"\" + labClientSharedFolderName + @"\" + testDirName;
-
-                    string line = @"xcopy """ + path + @"\*.psydat"" """ + dstDir + @"\" + testDirName + @""" /V /E /Y /Q /I";
-                    file.WriteLine(line);
-                    line = @"xcopy """ + path + @"\*.csv"" """ + dstDir + @"\" + testDirName + @""" /V /E /Y /Q /I";
-                    file.WriteLine(line);
-                    line = @"xcopy """ + path + @"\*.log"" """ + dstDir + @"\" + testDirName + @""" /V /E /Y /Q /I";
-                    file.WriteLine(line);
-
-                    file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
-                    file.WriteLine("goto end");
-
-                    file.WriteLine(":disconnect");
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" /delete");
-                    file.WriteLine("goto end");
-                    file.WriteLine(":end");
-                }
-            }
-            //MessageBox.Show(copyPath);
-            service.ExecuteCommandNoOutput(copyPath, true);
-        }
+        }     
 
         private void button2_Click(object sender, RoutedEventArgs e)
         {
-            List<string> computerNames = new List<string>();
-            foreach (string computerName in listBox1.SelectedItems)
-            {
-                computerNames.Add(computerName);
-            }
+            List<string> computerNames = getSelectedClients();
 
             if (computerNames.Count == 0)
             {
@@ -172,48 +92,11 @@ namespace LabRun
                 return;
             }
 
-          
-
-            xcopy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName);
-            runTests(computerNames, labClientSharedFolder + testDirName + @"\" + testfilename);
+            service.xcopyPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, computerNames);
+            service.runPsychoPyTests(computerNames, labClientSharedFolder + testDirName + @"\" + testfilename);
             btnKill.IsEnabled = true;
             //MessageBox.Show("Request done");
-        }
-
-        public Thread StartNewCmdThread(string cmd)
-        {
-            var t = new Thread(() => RealStart(cmd));
-            t.Start();
-            return t;
-        }
-
-        private void RealStart(string cmd)
-        {
-            string strCmdText = @cmd;
-            //MessageBox.Show(strCmdText);
-            service.runCmd(strCmdText);
-        }
-
-        private void runTests(List<string> computerNames, string testExePath)
-        {
-            int i = 0;
-            foreach (string computerName in computerNames)
-            {
-                string runPath = tempPath + "testRun" + i + ".bat";
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(runPath))
-                {
-
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u asb\labclient -p kPu$27mLi python " + testExePath;
-                   // string line = @"C:\PSTools\PsExec.exe -d -i \\" + computerName + @" -u mano.local\Administrator -p Mandrass1 python " + testExePath;
-                    file.WriteLine(line);
-                }
-
-                //MessageBox.Show(runPath);
-                StartNewCmdThread(runPath);
-
-                i++;
-            }
-        }
+        }     
 
         private List<string> getSelectedClients()
         {
@@ -235,8 +118,9 @@ namespace LabRun
 
         private void btnGetResults_Click(object sender, RoutedEventArgs e)
         {
-            
-            xcopyResults(@"C:\Dump");
+            string srcWithoutComputerName = @"\" + labClientSharedFolderName + @"\" + testDirName;
+            string dstFolderName = testDirName;
+            service.xcopyPsychoPyResults(srcWithoutComputerName, dstFolderName, getSelectedClients());
             //foreach (string computerName in getSelectedClients())
             //{
             //    string path = @"\\" + computerName + @"\" + labClientSharedFolderName + @"\" + testDirName;
@@ -255,7 +139,7 @@ namespace LabRun
 
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
         {
-            service.ShutdownComputer(null);
+            service.ShutdownComputer(getSelectedClients());
         }
     }
 }
