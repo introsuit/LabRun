@@ -17,6 +17,8 @@ using System.Reflection;
 using System.Threading;
 using System.Net;
 using ServiceLibrary;
+using System.Collections;
+using System.Data;
 
 namespace LabRun
 {
@@ -42,10 +44,7 @@ namespace LabRun
         }
         public void initClients()
         {
-            foreach (string client in service.GetLabComputersFromFile())
-            {
-                listBox1.Items.Add(client);
-            }
+            dgrClients.ItemsSource = service.GetLabComputersNew();
         }
 
         private void button1_Click(object sender, RoutedEventArgs e)
@@ -100,10 +99,12 @@ namespace LabRun
 
         private List<string> getSelectedClients()
         {
+            List<LabClient> clients = dgrClients.SelectedItems.Cast<LabClient>().ToList(); ;
+            
             List<string> computerNames = new List<string>();
-            foreach (string computerName in listBox1.SelectedItems)
+            foreach (LabClient client in clients)
             {
-                computerNames.Add(computerName);
+                computerNames.Add(client.ComputerName);
             }
             return computerNames;
         }
@@ -140,6 +141,35 @@ namespace LabRun
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
         {
             service.ShutdownComputer(getSelectedClients());
+        }
+
+        public IEnumerable<DataGridRow> GetDataGridRows(DataGrid grid)
+        {
+            var itemsSource = grid.ItemsSource as IEnumerable;
+            if (null == itemsSource) yield return null;
+            foreach (var item in itemsSource)
+            {
+                var row = grid.ItemContainerGenerator.ContainerFromItem(item) as DataGridRow;
+                if (null != row) yield return row;
+            }
+        }
+
+        private void btnEven_Click(object sender, RoutedEventArgs e)
+        {
+           var rows= GetDataGridRows(dgrClients);
+
+           foreach (DataGridRow r in rows)
+           {
+               DataRowView rv = (DataRowView)r.Item;
+               foreach (DataGridColumn column in dgrClients.Columns)
+               {
+                   if (column.GetCellContent(r) is TextBlock)
+                   {
+                       TextBlock cellContent = column.GetCellContent(r) as TextBlock;
+                       MessageBox.Show(cellContent.Text);
+                   }
+               }
+           }
         }
     }
 }
