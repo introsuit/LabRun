@@ -42,7 +42,7 @@ namespace LabRun
         }
         public void initClients()
         {
-            foreach (string client in service.GetLabComputers())
+            foreach (string client in service.GetLabComputersFromFile())
             {
                 listBox1.Items.Add(client);
             }
@@ -251,6 +251,11 @@ namespace LabRun
             //        }
             //    }
             //}
+        }
+
+        private void btnShutdown_Click(object sender, RoutedEventArgs e)
+        {
+            service.ShutdownComputer(null);
         }
     }
 }

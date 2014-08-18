@@ -14,6 +14,10 @@ namespace ServiceLibrary
 {
     public class Service
     {
+        private const string domainName = "";
+        private const string userName = "";
+        private const string userPassword = "";
+
         private static Service service;
 
         public static Service getInstance()
@@ -270,6 +274,111 @@ namespace ServiceLibrary
                 if (powershell.Streams.Error.Count > 0)
                 {
                     Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
+                }
+            }
+        }
+
+        public void ShutdownComputer(List<string> computerNames)
+        {
+            Debug.WriteLine("Shutting begins >:)");
+            var LocalPassword = "Mandrass1";
+            var ssLPassword = new System.Security.SecureString();
+            foreach (char c in LocalPassword)
+                ssLPassword.AppendChar(c);
+
+            PSCredential Credential = new PSCredential("Administrator@mano", ssLPassword);
+            string compName = "Win2008";
+
+            string compList = "";
+            //foreach(string comp in computerNames){
+            //    compList += comp + ", ";
+            //}
+            //compList = compList.Substring(0, compList.Length-2);
+
+            using (PowerShell powershell = PowerShell.Create())
+            {
+                powershell.AddCommand("Set-Variable");
+                powershell.AddParameter("Name", "cred");
+                powershell.AddParameter("Value", Credential);
+
+                powershell.AddScript(@"$s = New-PSSession -ComputerName '" + compName + "' -Credential $cred");
+
+                string cmdlet = @"shutdown.exe -t 10 -f -s -c 'My comments'";
+                powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdlet + " }");
+                
+                cmdlet = @"Start-Sleep 5";
+                //powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdlet + " }");
+                //powershell.AddScript(@"$a = Stop-Computer -ComputerName Win2008 -Force -Credential $cred");
+
+                powershell.AddScript(@"Remove-PSSession -Session $s");
+                powershell.AddScript(@"echo $a");
+
+                var results = powershell.Invoke();
+
+                foreach (var item in results)
+                {
+                    Debug.WriteLine(item);
+                }
+
+                if (powershell.Streams.Error.Count > 0)
+                {
+                    Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
+                }
+
+                foreach (ErrorRecord err in powershell.Streams.Error)
+                {
+                    Debug.WriteLine(err.ErrorDetails);
+                }
+            }
+        }
+
+        private void RunPSRemote(List<string> computerNames, List<string> commandList)
+        {
+            var LocalPassword = "Mandrass1";
+            var ssLPassword = new System.Security.SecureString();
+            foreach (char c in LocalPassword)
+                ssLPassword.AppendChar(c);
+
+            PSCredential Credential = new PSCredential("Administrator@mano", ssLPassword);
+            string compName = "Win2008";
+
+            string compList = "";
+            foreach (string comp in computerNames)
+            {
+                compList += comp + ", ";
+            }
+            compList = compList.Substring(0, compList.Length - 2);
+
+            using (PowerShell powershell = PowerShell.Create())
+            {
+                powershell.AddCommand("Set-Variable");
+                powershell.AddParameter("Name", "cred");
+                powershell.AddParameter("Value", Credential);
+
+                powershell.AddScript(@"$s = New-PSSession -ComputerName '" + compList + "' -Credential $cred");
+
+                foreach (string command in commandList){
+                    powershell.AddParameter(@command);
+                }
+
+                powershell.AddScript(@"Remove-PSSession -Session $s");
+                //powershell.AddScript(@"echo $a");
+
+                var results = powershell.Invoke();
+
+                foreach (var item in results)
+                {
+                    Debug.WriteLine(item);
+                }
+
+                if (powershell.Streams.Error.Count > 0)
+                {
+                    Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
+                }
+
+                foreach (ErrorRecord err in powershell.Streams.Error)
+                {
+                    Debug.WriteLine(err.ErrorDetails);
                 }
             }
         }
