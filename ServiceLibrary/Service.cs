@@ -14,11 +14,14 @@ namespace ServiceLibrary
 {
     public class Service
     {
-        private static readonly string domainName = "";
-        private static readonly string userName = "";
-        private static readonly string userPassword = "";
+        private readonly string domainName;
+        private readonly string userName;
+        private readonly string userPassword;
+        private readonly string domainSlashUser;
+        private readonly string userAtDomain;
         private static readonly string resultFolder = @"C:\Dump\";
         private static readonly string clientsFile = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
+        private static readonly string authFile = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
 
         private static readonly string tempPath = System.IO.Path.GetTempPath();
 
@@ -33,32 +36,40 @@ namespace ServiceLibrary
 
         private Service()
         {
+            using (System.IO.StreamReader file = new System.IO.StreamReader(authFile))
+            {
+                domainName = file.ReadLine();
+                userName = file.ReadLine();
+                userPassword = file.ReadLine();
 
+                domainSlashUser = domainName + @"\" + userName;
+                userAtDomain = userName + @"@" + domainName;
+            }
         }
 
         //domain eg.: asb.local
         //can throw exception
         public List<LabClient> GetLabComputersNew()
         {
-            DirectoryEntry entry = new DirectoryEntry("LDAP://OU=BSS Lab,OU=BSS Lab,OU=Computers,OU=Public,OU=Staff,DC=asb,DC=local");
-            DirectorySearcher mySearcher = new DirectorySearcher(entry);
-            mySearcher.Filter = ("(objectClass=computer)");
-            mySearcher.SizeLimit = int.MaxValue;
-            mySearcher.PageSize = int.MaxValue;
+            //DirectoryEntry entry = new DirectoryEntry("LDAP://OU=BSS Lab,OU=BSS Lab,OU=Computers,OU=Public,OU=Staff,DC=asb,DC=local");
+            //DirectorySearcher mySearcher = new DirectorySearcher(entry);
+            //mySearcher.Filter = ("(objectClass=computer)");
+            //mySearcher.SizeLimit = int.MaxValue;
+            //mySearcher.PageSize = int.MaxValue;
 
             List<LabClient> computerNames = new List<LabClient>();
 
-            foreach (SearchResult resEnt in mySearcher.FindAll())
-            {
-                //"CN=SGSVG007DC"
-                string ComputerName = resEnt.GetDirectoryEntry().Name;
-                if (ComputerName.StartsWith("CN="))
-                    ComputerName = ComputerName.Remove(0, "CN=".Length);
-                computerNames.Add(new LabClient(ComputerName, null));
-            }
+            //foreach (SearchResult resEnt in mySearcher.FindAll())
+            //{
+            //    //"CN=SGSVG007DC"
+            //    string ComputerName = resEnt.GetDirectoryEntry().Name;
+            //    if (ComputerName.StartsWith("CN="))
+            //        ComputerName = ComputerName.Remove(0, "CN=".Length);
+            //    computerNames.Add(new LabClient(ComputerName, null));
+            //}
 
-            mySearcher.Dispose();
-            entry.Dispose();
+            //mySearcher.Dispose();
+            //entry.Dispose();
 
             //----------
             HashSet<LabClient> computers = new HashSet<LabClient>();
@@ -165,8 +176,8 @@ namespace ServiceLibrary
             {
                 object[] theProcessToRun = { "notepad.exe" };
                 ConnectionOptions theConnection = new ConnectionOptions();
-                theConnection.Username = "labclient@asb";
-                theConnection.Password = "kPu$27mLi";
+                theConnection.Username = userName + @"@" + domainName;
+                theConnection.Password = userPassword;
                 ManagementScope theScope = new ManagementScope("\\YLGW036496\\root\\cimv2", theConnection);
                 ManagementClass theClass = new ManagementClass(theScope, new ManagementPath("Win32_Process"), new ObjectGetOptions());
                 theClass.InvokeMethod("Create", theProcessToRun);
@@ -175,11 +186,6 @@ namespace ServiceLibrary
             {
                 Debug.WriteLine(ex.Message);
             }
-        }
-
-        public void bbdRun()
-        {
-            runCmd(@"C:\Users\donatas\AppData\Local\Temp\bbd.bat");
         }
 
         public void newRunCmd(string target)
@@ -301,7 +307,7 @@ namespace ServiceLibrary
                 file.WriteLine("@echo off");
                 foreach (string computerName in selectedClients)
                 {
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" kPu$27mLi /user:asb\labclient");
+                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" " + userPassword + @" /user:" + @domainSlashUser);
 
                     file.WriteLine(":copy");
                     string line = @"xcopy """ + srcDir + @""" ""\\" + computerName + @"\test\" + dstDir + @""" /V /E /Y /Q /I";
@@ -327,7 +333,7 @@ namespace ServiceLibrary
                 string runPath = tempPath + "testRun" + i + ".bat";
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(runPath))
                 {
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u asb\labclient -p kPu$27mLi python " + testExePath;
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword +@" python " + testExePath;
                     file.WriteLine(line);
                 }
 
@@ -346,7 +352,7 @@ namespace ServiceLibrary
                 file.WriteLine("@echo off");
                 foreach (string computerName in selectedClients)
                 {
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" kPu$27mLi /user:asb\labclient");
+                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" " + userPassword + @" /user:" + @domainSlashUser);
 
                     file.WriteLine(":copy");
                     string src = @"\\" + computerName + srcWithoutComputerName;
@@ -389,12 +395,12 @@ namespace ServiceLibrary
         {
             Debug.WriteLine(computerName + " " + processName);
             Debug.WriteLine("Killing begins >:)");
-            var LocalPassword = "kPu$27mLi";
+            var LocalPassword = userPassword;
             var ssLPassword = new System.Security.SecureString();
             foreach (char c in LocalPassword)
                 ssLPassword.AppendChar(c);
 
-            PSCredential Credential = new PSCredential("labclient@asb", ssLPassword);
+            PSCredential Credential = new PSCredential(userAtDomain, ssLPassword);
             string serverName = computerName;
             string cmdlet = "Taskkill /IM " + processName + " /F";
             using (PowerShell powershell = PowerShell.Create())
@@ -425,12 +431,12 @@ namespace ServiceLibrary
         public void ShutdownComputer(List<string> computerNames)
         {
             Debug.WriteLine("Shutting begins >:)");
-            var LocalPassword = "kPu$27mLi";
+            var LocalPassword = userPassword;
             var ssLPassword = new System.Security.SecureString();
             foreach (char c in LocalPassword)
                 ssLPassword.AppendChar(c);
 
-            PSCredential Credential = new PSCredential("labclient@asb", ssLPassword);
+            PSCredential Credential = new PSCredential(userAtDomain, ssLPassword);
 
             string compList = "";
             foreach (string comp in computerNames)
@@ -475,59 +481,7 @@ namespace ServiceLibrary
                     Debug.WriteLine(err.ErrorDetails);
                 }
             }
-        }
-
-        private void RunPSRemote(List<string> computerNames, List<string> commandList)
-        {
-            var LocalPassword = "Mandrass1";
-            var ssLPassword = new System.Security.SecureString();
-            foreach (char c in LocalPassword)
-                ssLPassword.AppendChar(c);
-
-            PSCredential Credential = new PSCredential("Administrator@mano", ssLPassword);
-            string compName = "Win2008";
-
-            string compList = "";
-            foreach (string comp in computerNames)
-            {
-                compList += comp + ", ";
-            }
-            compList = compList.Substring(0, compList.Length - 2);
-
-            using (PowerShell powershell = PowerShell.Create())
-            {
-                powershell.AddCommand("Set-Variable");
-                powershell.AddParameter("Name", "cred");
-                powershell.AddParameter("Value", Credential);
-
-                powershell.AddScript(@"$s = New-PSSession -ComputerName '" + compList + "' -Credential $cred");
-
-                foreach (string command in commandList)
-                {
-                    powershell.AddParameter(@command);
-                }
-
-                powershell.AddScript(@"Remove-PSSession -Session $s");
-                //powershell.AddScript(@"echo $a");
-
-                var results = powershell.Invoke();
-
-                foreach (var item in results)
-                {
-                    Debug.WriteLine(item);
-                }
-
-                if (powershell.Streams.Error.Count > 0)
-                {
-                    Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
-                }
-
-                foreach (ErrorRecord err in powershell.Streams.Error)
-                {
-                    Debug.WriteLine(err.ErrorDetails);
-                }
-            }
-        }
+        }   
 
         public void killRemoteProcess(string computerName, string processName)
         {
