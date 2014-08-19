@@ -93,8 +93,6 @@ namespace LabRun
 
             service.xcopyPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, computerNames);
             service.runPsychoPyTests(computerNames, labClientSharedFolder + testDirName + @"\" + testfilename);
-            btnKill.IsEnabled = true;
-            //MessageBox.Show("Request done");
         }     
 
         private List<string> getSelectedClients()

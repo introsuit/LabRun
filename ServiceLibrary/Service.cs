@@ -19,7 +19,9 @@ namespace ServiceLibrary
         private readonly string userPassword;
         private readonly string domainSlashUser;
         private readonly string userAtDomain;
+        private readonly string adminComputerName = "2CE92433Z9";
         private static readonly string resultFolder = @"C:\Dump\";
+        private static readonly string testFolder = @"C:\test\";
         private static readonly string clientsFile = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
         private static readonly string authFile = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
 
@@ -51,25 +53,25 @@ namespace ServiceLibrary
         //can throw exception
         public List<LabClient> GetLabComputersNew()
         {
-            //DirectoryEntry entry = new DirectoryEntry("LDAP://OU=BSS Lab,OU=BSS Lab,OU=Computers,OU=Public,OU=Staff,DC=asb,DC=local");
-            //DirectorySearcher mySearcher = new DirectorySearcher(entry);
-            //mySearcher.Filter = ("(objectClass=computer)");
-            //mySearcher.SizeLimit = int.MaxValue;
-            //mySearcher.PageSize = int.MaxValue;
+            DirectoryEntry entry = new DirectoryEntry("LDAP://OU=BSS Lab,OU=BSS Lab,OU=Computers,OU=Public,OU=Staff,DC=asb,DC=local");
+            DirectorySearcher mySearcher = new DirectorySearcher(entry);
+            mySearcher.Filter = ("(objectClass=computer)");
+            mySearcher.SizeLimit = int.MaxValue;
+            mySearcher.PageSize = int.MaxValue;
 
             List<LabClient> computerNames = new List<LabClient>();
 
-            //foreach (SearchResult resEnt in mySearcher.FindAll())
-            //{
-            //    //"CN=SGSVG007DC"
-            //    string ComputerName = resEnt.GetDirectoryEntry().Name;
-            //    if (ComputerName.StartsWith("CN="))
-            //        ComputerName = ComputerName.Remove(0, "CN=".Length);
-            //    computerNames.Add(new LabClient(ComputerName, null));
-            //}
+            foreach (SearchResult resEnt in mySearcher.FindAll())
+            {
+                //"CN=SGSVG007DC"
+                string ComputerName = resEnt.GetDirectoryEntry().Name;
+                if (ComputerName.StartsWith("CN="))
+                    ComputerName = ComputerName.Remove(0, "CN=".Length);
+                computerNames.Add(new LabClient(ComputerName, null));
+            }
 
-            //mySearcher.Dispose();
-            //entry.Dispose();
+            mySearcher.Dispose();
+            entry.Dispose();
 
             //----------
             HashSet<LabClient> computers = new HashSet<LabClient>();
@@ -299,6 +301,73 @@ namespace ServiceLibrary
             process.Close();
         }
 
+        public void xcopyPsychoNewWay(string srcDir, string dstDir, List<string> selectedClients)
+        {
+            //-----local copy
+            string copyPath = tempPath + "localCopy.bat";
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                string line = @"xcopy """ + srcDir + @""" " + @"""" + testFolder + dstDir + @""" /V /E /Y /Q /I";
+                file.WriteLine(line);
+            }
+            //MessageBox.Show(copyPath);
+            service.ExecuteCommandNoOutput(copyPath, true);
+            //-----end
+
+            //----remote .bat copy consctruction
+
+            string copyPathRemote = tempPath + "remoteCopy.bat";
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
+            {
+                file.WriteLine("@echo off");
+
+                //file.WriteLine(@"net use ""\\" + adminComputerName + @"\test"" " + userPassword + @" /user:" + @domainSlashUser);
+
+                //file.WriteLine(":copy");
+                string line = @"xcopy ""\\" + adminComputerName + @"\test\" + dstDir + @""" """ +testFolder + dstDir + @""" /V /E /Y /Q /I";
+                file.WriteLine(line);
+                //file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
+                //file.WriteLine("goto end");
+
+                //file.WriteLine(":disconnect");
+                //file.WriteLine(@"net use ""\\" + adminComputerName + @"\test"" /delete");
+                //file.WriteLine("goto end");
+                //file.WriteLine(":end");
+            }
+            //----end
+
+            //----copy .remoteCopy to shared network folder
+            copyPath = tempPath + "transferRemote.bat";
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                string line = @"xcopy """ +copyPathRemote+ @""" ""\\asb.local\staff\users\labclient\test""" + @" /Y";
+                file.WriteLine(line);
+            }
+
+            service.ExecuteCommandNoOutput(copyPath, true);
+            //----end
+
+            //----tell labclients to copy test files
+            int i = 0;
+            foreach (string computerName in selectedClients)
+            {
+                string runPath = tempPath + "testRemoteCopy" + i + ".bat";
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(runPath))
+                {
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" cmd /c (""\\asb.local\staff\users\labclient\test\remoteCopy.bat"")";
+                    file.WriteLine(line);
+                }
+
+                //MessageBox.Show(runPath);
+                StartNewCmdThread(runPath);
+
+                i++;
+            }
+            //----end
+        }
+
         public void xcopyPsychoPy(string srcDir, string dstDir, List<string> selectedClients)
         {
             string copyPath = tempPath + "testCopy.bat";
@@ -333,7 +402,7 @@ namespace ServiceLibrary
                 string runPath = tempPath + "testRun" + i + ".bat";
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(runPath))
                 {
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword +@" python " + testExePath;
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" python " + testExePath;
                     file.WriteLine(line);
                 }
 
@@ -481,7 +550,7 @@ namespace ServiceLibrary
                     Debug.WriteLine(err.ErrorDetails);
                 }
             }
-        }   
+        }
 
         public void killRemoteProcess(string computerName, string processName)
         {
