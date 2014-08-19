@@ -156,20 +156,32 @@ namespace LabRun
 
         private void btnEven_Click(object sender, RoutedEventArgs e)
         {
-           var rows= GetDataGridRows(dgrClients);
+            List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
 
-           foreach (DataGridRow r in rows)
-           {
-               DataRowView rv = (DataRowView)r.Item;
-               foreach (DataGridColumn column in dgrClients.Columns)
-               {
-                   if (column.GetCellContent(r) is TextBlock)
-                   {
-                       TextBlock cellContent = column.GetCellContent(r) as TextBlock;
-                       MessageBox.Show(cellContent.Text);
-                   }
-               }
-           }
+            IEnumerable<LabClient> emp = (from i in clients
+                       where i.BoothNo % 2 == 0
+                       select i);
+
+            dgrClients.SelectedItems.Clear();
+            foreach (LabClient es in emp)
+            {
+                dgrClients.SelectedItems.Add(es);
+            }
+        }
+
+        private void btnOdd_Click(object sender, RoutedEventArgs e)
+        {
+            List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
+
+            IEnumerable<LabClient> emp = (from i in clients
+                                          where i.BoothNo % 2 != 0
+                                          select i);
+
+            dgrClients.SelectedItems.Clear();
+            foreach (LabClient es in emp)
+            {
+                dgrClients.SelectedItems.Add(es);
+            }
         }
     }
 }

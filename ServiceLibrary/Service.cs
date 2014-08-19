@@ -63,8 +63,11 @@ namespace ServiceLibrary
             //----------
             HashSet<LabClient> computers = new HashSet<LabClient>();
             List<LabClient> clientsInFile = new List<LabClient>();
-
-            using (System.IO.StreamReader file = new System.IO.StreamReader(clientsFile))
+            string cc = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "clients.ini");
+            Debug.WriteLine(Assembly.GetExecutingAssembly().Location);
+            string dd = @"D:\Documents\Visual Studio 2010\Projects\LabRun\LabRun\bin\Debug\clients.ini";
+            Debug.WriteLine(dd);
+            using (System.IO.StreamReader file = new System.IO.StreamReader(cc))
             {
                 string line;
                 while ((line = file.ReadLine()) != null)
@@ -102,7 +105,7 @@ namespace ServiceLibrary
             //gets undefined clients from domain and adds to .ini file
             List<LabClient> differenceQuery =
                 clients.Except(clientsInFile).ToList<LabClient>();
-            updateClientsFile(differenceQuery);
+            //updateClientsFile(differenceQuery);
             return clients;
         }
 
