@@ -174,7 +174,7 @@ namespace LabRun
             List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
 
             IEnumerable<LabClient> emp = (from i in clients
-                                          where (i.BoothNo % 2 != 0)
+                                          where ((i.BoothNo % 2 != 0) && i.BoothNo != null)
                                           select i);
 
             dgrClients.SelectedItems.Clear();
