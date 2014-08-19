@@ -204,9 +204,7 @@ namespace LabRun
                     else
                         odd = true;
                 }
-            }
-            foreach (LabClient client in clients)
-            {    
+
                 //Selecting every first even
                 if ((client.BoothNo % 2 != 0) && client.BoothNo != null)
                 {
@@ -231,7 +229,6 @@ namespace LabRun
         {
             List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
             List<LabClient> clientsSelected = new List<LabClient>();
-            //clientsSelected.Clear();
             Boolean even = false;
             Boolean odd = true;
 
