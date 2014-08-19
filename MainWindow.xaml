@@ -5,7 +5,14 @@
     <Grid>
 
         <Button Content="Shutdown" Height="20" HorizontalAlignment="Left" Margin="10,321,0,0" Name="btnShutdown" VerticalAlignment="Top" Width="75" Click="btnShutdown_Click" />
-        <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="10,24,0,0" VerticalAlignment="Top" Height="246" Width="168">           
+        <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="10,24,0,0" VerticalAlignment="Top" Height="246" Width="168" >
+            <DataGrid.Resources>
+                <Style TargetType="DataGridRow">
+                    <Style.Resources>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="DarkGray"/>
+                    </Style.Resources>
+                </Style>
+            </DataGrid.Resources>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Comp. Name" Binding="{Binding ComputerName}"/>
                 <DataGridTextColumn Header="Booth No"  Binding="{Binding BoothNo}"/>

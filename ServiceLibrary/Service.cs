@@ -116,7 +116,7 @@ namespace ServiceLibrary
             //gets undefined clients from domain and adds to .ini file
             List<LabClient> differenceQuery =
                 clients.Except(clientsInFile).ToList<LabClient>();
-            //updateClientsFile(differenceQuery);
+            updateClientsFile(differenceQuery);
             return clients;
         }
 
