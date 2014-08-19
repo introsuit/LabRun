@@ -38,14 +38,21 @@ namespace ServiceLibrary
 
         private Service()
         {
-            using (System.IO.StreamReader file = new System.IO.StreamReader(authFile))
+            try
             {
-                domainName = file.ReadLine();
-                userName = file.ReadLine();
-                userPassword = file.ReadLine();
+                using (System.IO.StreamReader file = new System.IO.StreamReader(authFile))
+                {
+                    domainName = file.ReadLine();
+                    userName = file.ReadLine();
+                    userPassword = file.ReadLine();
 
-                domainSlashUser = domainName + @"\" + userName;
-                userAtDomain = userName + @"@" + domainName;
+                    domainSlashUser = domainName + @"\" + userName;
+                    userAtDomain = userName + @"@" + domainName;
+                }
+            }
+            catch (FileNotFoundException ex)
+            {
+                throw new FileNotFoundException("auth.ini", ex);
             }
         }
 

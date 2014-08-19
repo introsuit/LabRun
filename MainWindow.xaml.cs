@@ -27,7 +27,7 @@ namespace LabRun
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Service service = Service.getInstance();
+        private Service service;
 
         private string testfilepath = "";
         private string testfilename = "";
@@ -40,6 +40,21 @@ namespace LabRun
         public MainWindow()
         {
             InitializeComponent();
+            try
+            {
+                service = Service.getInstance();
+            }
+            catch (FileNotFoundException ex)
+            {
+                string message = ex.Message;
+                if (message == "auth.ini")
+                {
+                    string msg = "\n\nauth.ini file must be created and set with data in order:\n\nDomain\nUserName\nPassword";
+                    MessageBox.Show(ex.InnerException.Message + msg);
+                    this.Close();
+                    return;
+                }
+            }
             initClients();
         }
         public void initClients()
