@@ -184,6 +184,92 @@ namespace LabRun
             }
         }
 
+        private void btnzigzag_Click(object sender, RoutedEventArgs e)
+        {
+            List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
+            List<LabClient> clientsSelected = new List<LabClient>();
+            Boolean even = true;
+            Boolean odd = false;
+
+            foreach (LabClient client in clients){
+                
+                //Selecting every second odd
+                if (client.BoothNo % 2 == 0)
+                {
+                    if (odd)
+                    {
+                        odd = false;
+                        clientsSelected.Add(client);
+                    }
+                    else
+                        odd = true;
+                }
+            }
+            foreach (LabClient client in clients)
+            {    
+                //Selecting every first even
+                if ((client.BoothNo % 2 != 0) && client.BoothNo != null)
+                {
+                    if (even)
+                    {
+                        even = false;
+                        clientsSelected.Add(client);
+                    }
+                    else
+                        even = true;
+                }
+            }
+
+            dgrClients.SelectedItems.Clear();
+            foreach (LabClient es in clientsSelected)
+            {
+                dgrClients.SelectedItems.Add(es);
+            }
+        }
+
+        private void btnzagzig_Click(object sender, RoutedEventArgs e)
+        {
+            List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
+            List<LabClient> clientsSelected = new List<LabClient>();
+            //clientsSelected.Clear();
+            Boolean even = false;
+            Boolean odd = true;
+
+            foreach (LabClient client in clients){
+                
+                //Selecting every first odd
+                if (client.BoothNo % 2 == 0)
+                {
+                    if (odd)
+                    {
+                        odd = false;
+                        clientsSelected.Add(client);
+                    }
+                    else
+                        odd = true;
+                }
+                
+                //Selecting every second even
+                if ((client.BoothNo % 2 != 0) && client.BoothNo != null)
+                {
+                    if (even)
+                    {
+                        even = false;
+                        clientsSelected.Add(client);
+                    }
+                    else
+                        even = true;
+                }
+            }
+
+            dgrClients.SelectedItems.Clear();
+            foreach (LabClient es in clientsSelected)
+            {
+                dgrClients.SelectedItems.Add(es);
+            }
+        }
+        
+
 
 
 
