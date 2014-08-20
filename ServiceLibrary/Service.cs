@@ -308,7 +308,7 @@ namespace ServiceLibrary
             process.Close();
         }
 
-        public void xcopyPsychoNewWay(string srcDir, string dstDir, List<string> selectedClients)
+        public void xcopyPsychoNewWay(string srcDir, string dstDir, string testExePath, List<string> selectedClients)
         {
             //-----local copy
             string copyPath = tempPath + "localCopy.bat";
@@ -322,57 +322,87 @@ namespace ServiceLibrary
             service.ExecuteCommandNoOutput(copyPath, true);
             //-----end
 
-            //----remote .bat copy consctruction
-
-            string copyPathRemote = tempPath + "remoteCopy.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
-            {
-                file.WriteLine("@echo off");
-
-                //file.WriteLine(@"net use ""\\" + adminComputerName + @"\test"" " + userPassword + @" /user:" + @domainSlashUser);
-
-                //file.WriteLine(":copy");
-                string line = @"xcopy ""\\" + adminComputerName + @"\test\" + dstDir + @""" """ +testFolder + dstDir + @""" /V /E /Y /Q /I";
-                file.WriteLine(line);
-                //file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
-                //file.WriteLine("goto end");
-
-                //file.WriteLine(":disconnect");
-                //file.WriteLine(@"net use ""\\" + adminComputerName + @"\test"" /delete");
-                //file.WriteLine("goto end");
-                //file.WriteLine(":end");
-            }
-            //----end
-
-            //----copy .remoteCopy to shared network folder
-            copyPath = tempPath + "transferRemote.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                string line = @"xcopy """ +copyPathRemote+ @""" ""\\asb.local\staff\users\labclient\test""" + @" /Y";
-                file.WriteLine(line);
-            }
-
-            service.ExecuteCommandNoOutput(copyPath, true);
-            //----end
-
-            //----tell labclients to copy test files
+            //---onecall
             int i = 0;
             foreach (string computerName in selectedClients)
             {
-                string runPath = tempPath + "testRemoteCopy" + i + ".bat";
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(runPath))
+                string copyPathRemote = tempPath + "remoteCopyOne" + i + ".bat";
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                 {
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" cmd /c (""\\asb.local\staff\users\labclient\test\remoteCopy.bat"")";
+                    file.WriteLine("@echo off");
+
+                    //file.WriteLine(@"net use ""\\" + adminComputerName + @"\test"" " + userPassword + @" /user:" + @domainSlashUser);
+
+                    //file.WriteLine(":copy");
+                    string copyCmd = @"xcopy ""\\" + adminComputerName + @"\test\" + dstDir + @""" """ + testFolder + dstDir + @""" /V /E /Y /Q /I";
+                    string runCmd = @" python " + testExePath;
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+
                     file.WriteLine(line);
+                    //file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
+                    //file.WriteLine("goto end");
+
+                    //file.WriteLine(":disconnect");
+                    //file.WriteLine(@"net use ""\\" + adminComputerName + @"\test"" /delete");
+                    //file.WriteLine("goto end");
+                    //file.WriteLine(":end");
                 }
-
-                //MessageBox.Show(runPath);
-                StartNewCmdThread(runPath);
-
-                i++;
+                StartNewCmdThread(copyPathRemote);
             }
-            //----end
+
+            //---
+
+            ////----remote .bat copy consctruction
+
+            //string copyPathRemote = tempPath + "remoteCopy.bat";
+            //using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
+            //{
+            //    file.WriteLine("@echo off");
+
+            //    //file.WriteLine(@"net use ""\\" + adminComputerName + @"\test"" " + userPassword + @" /user:" + @domainSlashUser);
+
+            //    //file.WriteLine(":copy");
+            //    string line = @"xcopy ""\\" + adminComputerName + @"\test\" + dstDir + @""" """ +testFolder + dstDir + @""" /V /E /Y /Q /I";
+            //    file.WriteLine(line);
+            //    //file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
+            //    //file.WriteLine("goto end");
+
+            //    //file.WriteLine(":disconnect");
+            //    //file.WriteLine(@"net use ""\\" + adminComputerName + @"\test"" /delete");
+            //    //file.WriteLine("goto end");
+            //    //file.WriteLine(":end");
+            //}
+            ////----end
+
+            ////----copy .remoteCopy to shared network folder
+            //copyPath = tempPath + "transferRemote.bat";
+            //using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            //{
+            //    file.WriteLine("@echo off");
+            //    string line = @"xcopy """ +copyPathRemote+ @""" ""\\asb.local\staff\users\labclient\test""" + @" /Y";
+            //    file.WriteLine(line);
+            //}
+
+            //service.ExecuteCommandNoOutput(copyPath, true);
+            ////----end
+
+            ////----tell labclients to copy test files
+            //int i = 0;
+            //foreach (string computerName in selectedClients)
+            //{
+            //    string runPath = tempPath + "testRemoteCopy" + i + ".bat";
+            //    using (System.IO.StreamWriter file = new System.IO.StreamWriter(runPath))
+            //    {
+            //        string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" cmd /c (""\\asb.local\staff\users\labclient\test\remoteCopy.bat"")";
+            //        file.WriteLine(line);
+            //    }
+
+            //    //MessageBox.Show(runPath);
+            //    StartNewCmdThread(runPath);
+
+            //    i++;
+            //}
+            ////----end
         }
 
         public void xcopyPsychoPy(string srcDir, string dstDir, List<string> selectedClients)

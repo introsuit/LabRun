@@ -59,7 +59,7 @@ namespace LabRun
         }
         public void initClients()
         {
-            dgrClients.ItemsSource = service.GetLabComputersNew();
+            dgrClients.ItemsSource = service.GetLabComputersNew().OrderBy(o=>o.BoothNo).ToList();
         }
 
         private void button1_Click(object sender, RoutedEventArgs e)
@@ -87,7 +87,6 @@ namespace LabRun
                     testfilename = filename.Substring(index + 1, filename.Length - (index + 1)); // or index + 1 to keep slash
                 }
 
-
                 string newDir = Path.GetDirectoryName(testfilepath);
                 testDirName = newDir.Remove(0, newDir.LastIndexOf('\\') + 1);
 
@@ -107,6 +106,7 @@ namespace LabRun
             }
 
             service.xcopyPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, computerNames);
+            //service.xcopyPsychoNewWay(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, labClientSharedFolder + testDirName + @"\" + testfilename, computerNames);
             service.runPsychoPyTests(computerNames, labClientSharedFolder + testDirName + @"\" + testfilename);
         }     
 
