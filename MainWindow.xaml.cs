@@ -59,6 +59,7 @@ namespace LabRun
         }
         public void initClients()
         {
+            //get clients sorted by Booth no
             dgrClients.ItemsSource = service.GetLabComputersNew().OrderBy(o=>o.BoothNo).ToList();
         }
 
@@ -105,9 +106,9 @@ namespace LabRun
                 return;
             }
 
-            service.xcopyPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, computerNames);
-            //service.xcopyPsychoNewWay(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, labClientSharedFolder + testDirName + @"\" + testfilename, computerNames);
-            service.runPsychoPyTests(computerNames, labClientSharedFolder + testDirName + @"\" + testfilename);
+            //service.xcopyPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, computerNames);
+            service.xcopyPsychoNewWay(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, labClientSharedFolder + @"PsychoPy\" + testDirName + @"\" + testfilename, computerNames);
+            //service.runPsychoPyTests(computerNames, labClientSharedFolder + testDirName + @"\" + testfilename);
         }     
 
         private List<string> getSelectedClients()
@@ -134,7 +135,7 @@ namespace LabRun
         {
             string srcWithoutComputerName = @"\" + labClientSharedFolderName + @"\" + testDirName;
             string dstFolderName = testDirName;
-            service.xcopyPsychoPyResults(srcWithoutComputerName, dstFolderName, getSelectedClients());
+            service.xcopyPsychoPyResultsNew(srcWithoutComputerName, dstFolderName, getSelectedClients());
             //foreach (string computerName in getSelectedClients())
             //{
             //    string path = @"\\" + computerName + @"\" + labClientSharedFolderName + @"\" + testDirName;
