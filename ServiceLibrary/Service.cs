@@ -22,8 +22,8 @@ namespace ServiceLibrary
         private static readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
         private static readonly string resultFolder = @"C:\Dump\";
         private static readonly string testFolder = @"C:\test\";
-        private static readonly string clientsFile = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
-        private static readonly string authFile = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
+        private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
+        private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
 
         private static readonly string tempPath = System.IO.Path.GetTempPath();
 
@@ -56,38 +56,36 @@ namespace ServiceLibrary
             }
         }
 
-        //domain eg.: asb.local
-        //can throw exception
-        public List<LabClient> GetLabComputersNew()
+        //should be called before mergeClientsFromFile()
+        public void addClientsFromAD(List<LabClient> computerNames)
         {
-            DirectoryEntry entry = new DirectoryEntry("LDAP://OU=BSS Lab,OU=BSS Lab,OU=Computers,OU=Public,OU=Staff,DC=asb,DC=local");
-            DirectorySearcher mySearcher = new DirectorySearcher(entry);
-            mySearcher.Filter = ("(objectClass=computer)");
-            mySearcher.SizeLimit = int.MaxValue;
-            mySearcher.PageSize = int.MaxValue;
-
-            List<LabClient> computerNames = new List<LabClient>();
-
-            foreach (SearchResult resEnt in mySearcher.FindAll())
+            using (DirectoryEntry entry = new DirectoryEntry("LDAP://OU=BSS Lab,OU=BSS Lab,OU=Computers,OU=Public,OU=Staff,DC=asb,DC=local"))
             {
-                //"CN=SGSVG007DC"
-                string ComputerName = resEnt.GetDirectoryEntry().Name;
-                if (ComputerName.StartsWith("CN="))
-                    ComputerName = ComputerName.Remove(0, "CN=".Length);
-                computerNames.Add(new LabClient(ComputerName, null));
+                using (DirectorySearcher mySearcher = new DirectorySearcher(entry))
+                {
+                    mySearcher.Filter = ("(objectClass=computer)");
+                    mySearcher.SizeLimit = int.MaxValue;
+                    mySearcher.PageSize = int.MaxValue;
+
+                    foreach (SearchResult resEnt in mySearcher.FindAll())
+                    {
+                        //"CN=SGSVG007DC"
+                        string ComputerName = resEnt.GetDirectoryEntry().Name;
+                        if (ComputerName.StartsWith("CN="))
+                            ComputerName = ComputerName.Remove(0, "CN=".Length);
+                        computerNames.Add(new LabClient(ComputerName, null));
+                    }
+                }
             }
+        }
 
-            mySearcher.Dispose();
-            entry.Dispose();
-
-            //----------
+        //should be called after addClientsFromAD()
+        public List<LabClient> mergeClientsFromFile(List<LabClient> computerNames)
+        {
             HashSet<LabClient> computers = new HashSet<LabClient>();
             List<LabClient> clientsInFile = new List<LabClient>();
-            string cc = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "clients.ini");
-            Debug.WriteLine(Assembly.GetExecutingAssembly().Location);
-            string dd = @"D:\Documents\Visual Studio 2010\Projects\LabRun\LabRun\bin\Debug\clients.ini";
-            Debug.WriteLine(dd);
-            using (System.IO.StreamReader file = new System.IO.StreamReader(cc))
+
+            using (System.IO.StreamReader file = new System.IO.StreamReader(clientsFile))
             {
                 string line;
                 while ((line = file.ReadLine()) != null)
@@ -308,7 +306,7 @@ namespace ServiceLibrary
             process.Close();
         }
 
-        public void xcopyPsychoNewWay(string srcDir, string dstDir, string testExePath, List<string> selectedClients)
+        public void xcopyPsychoPy(string srcDir, string dstDir, string testExePath, List<string> selectedClients)
         {
             //-----local copy
             string copyPath = tempPath + "localCopy.bat";
@@ -344,53 +342,39 @@ namespace ServiceLibrary
 
         }
 
-        public void xcopyPsychoPy(string srcDir, string dstDir, List<string> selectedClients)
+        private bool transferDone(List<string> selectedClients, string resultPath)
         {
-            string copyPath = tempPath + "testCopy.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            foreach (string client in selectedClients)
             {
-                file.WriteLine("@echo off");
-                foreach (string computerName in selectedClients)
-                {
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" " + userPassword + @" /user:" + @domainSlashUser);
-
-                    file.WriteLine(":copy");
-                    string line = @"xcopy """ + srcDir + @""" ""\\" + computerName + @"\test\" + dstDir + @""" /V /E /Y /Q /I";
-                    file.WriteLine(line);
-                    file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
-                    file.WriteLine("goto end");
-
-                    file.WriteLine(":disconnect");
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" /delete");
-                    file.WriteLine("goto end");
-                    file.WriteLine(":end");
-                }
+                string path = resultPath + client;
+                if (!File.Exists(path))
+                    return false;
             }
-            //MessageBox.Show(copyPath);
-            service.ExecuteCommandNoOutput(copyPath, true);
+            return true;
         }
 
-        public void runPsychoPyTests(List<string> computerNames, string testExePath)
+        private void waitForTransferCompletion(List<string> selectedClients, string resultPath)
         {
-            int i = 0;
-            foreach (string computerName in computerNames)
+            long timeoutPeriod = 5000;
+            int sleepTime = 500;
+
+            bool timedOut = false;
+            Stopwatch watch = Stopwatch.StartNew();
+            while (!transferDone(selectedClients, resultPath) && !timedOut)
             {
-                string runPath = tempPath + "testRun" + i + ".bat";
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(runPath))
-                {
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" python " + testExePath;
-                    file.WriteLine(line);
-                }
-
-                //MessageBox.Show(runPath);
-                StartNewCmdThread(runPath);
-
-                i++;
+                Thread.Sleep(sleepTime);
+                if (watch.ElapsedMilliseconds > timeoutPeriod)
+                    timedOut = true;
             }
+            watch.Stop();
+
+            if (timedOut)
+                throw new TimeoutException();
         }
 
-        public void xcopyPsychoPyResultsNew(string srcWithoutComputerName, string dstFolderName, List<string> selectedClients)
+        public void xcopyPsychoPyResults(string srcWithoutComputerName, string dstFolderName, List<string> selectedClients)
         {
+            //----copy results from client computers to shared network folder
             int i = 0;
             foreach (string computerName in selectedClients)
             {
@@ -399,12 +383,17 @@ namespace ServiceLibrary
                 {
                     file.WriteLine("@echo off");
                     string copyCmd = @"xcopy """ + testFolder + @"PsychoPy\" + dstFolderName + @"\*.psydat""" + @" """ + sharedNetworkTempFolder + @"Results\PsychoPy\" + computerName + @"\" + dstFolderName + @""" /V /E /Y /Q /I";
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" cmd /c (" + copyCmd + @")";
+                    string completionNotifyFile = @"type NUL > " + sharedNetworkTempFolder + @"Results\PsychoPy\" + computerName;
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" cmd /c (" + copyCmd + @" ^& " + completionNotifyFile + @")";
                     file.WriteLine(line);
                 }
                 StartNewCmdThread(copyPathRemote);
                 i++;
             }
+            //----end
+
+            //check to make sure transfer is completed from all clients
+            waitForTransferCompletion(selectedClients, sharedNetworkTempFolder + @"Results\PsychoPy\");
 
             //-----copy from network to local
             string copyPath = tempPath + "networkResultsCopy.bat";
@@ -414,43 +403,9 @@ namespace ServiceLibrary
                 string line = @"xcopy """ + sharedNetworkTempFolder + @"Results\PsychoPy"" """ + testFolder + @"Results"" /V /E /Y /Q /I";
                 file.WriteLine(line);
             }
-            //MessageBox.Show(copyPath);
             service.ExecuteCommandNoOutput(copyPath, true);
             //-----end
-        }
-
-        public void xcopyPsychoPyResults(string srcWithoutComputerName, string dstFolderName, List<string> selectedClients)
-        {
-            string copyPath = tempPath + "testCopyResults.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                foreach (string computerName in selectedClients)
-                {
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" " + userPassword + @" /user:" + @domainSlashUser);
-
-                    file.WriteLine(":copy");
-                    string src = @"\\" + computerName + srcWithoutComputerName;
-                    string dst = resultFolder + computerName + @"\" + dstFolderName;
-                    string line = @"xcopy """ + src + @"\*.psydat"" """ + dst + @""" /V /E /Y /Q /I";
-                    file.WriteLine(line);
-                    line = @"xcopy """ + src + @"\*.csv"" """ + dst + @""" /V /E /Y /Q /I";
-                    file.WriteLine(line);
-                    line = @"xcopy """ + src + @"\*.log"" """ + dst + @""" /V /E /Y /Q /I";
-                    file.WriteLine(line);
-
-                    file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
-                    file.WriteLine("goto end");
-
-                    file.WriteLine(":disconnect");
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" /delete");
-                    file.WriteLine("goto end");
-                    file.WriteLine(":end");
-                }
-            }
-            //MessageBox.Show(copyPath);
-            service.ExecuteCommandNoOutput(copyPath, true);
-        }
+        }     
 
         public Thread StartNewCmdThread(string cmd)
         {

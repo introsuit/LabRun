@@ -32,10 +32,11 @@ namespace LabRun
         private string testfilepath = "";
         private string testfilename = "";
         private string testDirName = "";
-
-        
+   
         private string labClientSharedFolder = @"C:\test\";
         private string labClientSharedFolderName = "test";
+
+        List<LabClient> clients = new List<LabClient>();
 
         public MainWindow()
         {
@@ -50,7 +51,7 @@ namespace LabRun
                 if (message == "auth.ini")
                 {
                     string msg = "\n\nauth.ini file must be created and set with data in order:\n\nDomain\nUserName\nPassword";
-                    MessageBox.Show(ex.InnerException.Message + msg);
+                    MessageBox.Show(ex.InnerException.Message + msg, "File not found", MessageBoxButton.OK, MessageBoxImage.Error);
                     this.Close();
                     return;
                 }
@@ -59,8 +60,26 @@ namespace LabRun
         }
         public void initClients()
         {
-            //get clients sorted by Booth no
-            dgrClients.ItemsSource = service.GetLabComputersNew().OrderBy(o=>o.BoothNo).ToList();
+            try
+            {
+                service.addClientsFromAD(clients);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Connection Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
+            try
+            {
+                clients = service.mergeClientsFromFile(clients);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "File not found", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
+            //set clients sorted by Booth no
+            dgrClients.ItemsSource = clients.OrderBy(o => o.BoothNo).ToList();
         }
 
         private void button1_Click(object sender, RoutedEventArgs e)
@@ -107,7 +126,7 @@ namespace LabRun
             }
 
             //service.xcopyPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, computerNames);
-            service.xcopyPsychoNewWay(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, labClientSharedFolder + @"PsychoPy\" + testDirName + @"\" + testfilename, computerNames);
+            service.xcopyPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, labClientSharedFolder + @"PsychoPy\" + testDirName + @"\" + testfilename, computerNames);
             //service.runPsychoPyTests(computerNames, labClientSharedFolder + testDirName + @"\" + testfilename);
         }     
 
@@ -135,21 +154,14 @@ namespace LabRun
         {
             string srcWithoutComputerName = @"\" + labClientSharedFolderName + @"\" + testDirName;
             string dstFolderName = testDirName;
-            service.xcopyPsychoPyResultsNew(srcWithoutComputerName, dstFolderName, getSelectedClients());
-            //foreach (string computerName in getSelectedClients())
-            //{
-            //    string path = @"\\" + computerName + @"\" + labClientSharedFolderName + @"\" + testDirName;
-            //    Debug.WriteLine(path);
-            //    foreach (string file in service.GetFiles(path))
-            //    {
-            //        //check for result types. also make sure it is case insensitive
-            //        if (file.EndsWith(".psydat", true, null) || file.EndsWith(".log", true, null) || file.EndsWith(".csv", true, null))
-            //        {
-            //            Debug.WriteLine(file);
-            //            //File.Copy(file, );
-            //        }
-            //    }
-            //}
+            try
+            {
+                service.xcopyPsychoPyResults(srcWithoutComputerName, dstFolderName, getSelectedClients());
+            }
+            catch (TimeoutException ex)
+            {
+                MessageBox.Show("Transfer timed out: " + ex.Message, "Transfer Failure", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
