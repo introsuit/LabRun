@@ -43,5 +43,6 @@
         <Button Content="Startup" HorizontalAlignment="Left" Margin="10,365,0,0" VerticalAlignment="Top" Width="75" IsEnabled="False"/>
         <Button Content="Zig-zag" Name="btnzigzag" HorizontalAlignment="Left" Margin="195,294,0,0" VerticalAlignment="Top" Width="75" Click="btnzigzag_Click"/>
         <Button Content="Zag-zig" Name="btnzagzig" HorizontalAlignment="Left" Margin="292,294,0,0" VerticalAlignment="Top" Width="75" Click="btnzagzig_Click"/>
+        <Label x:Name="lblStatus" Content="Idle" HorizontalAlignment="Left" Margin="195,362,0,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

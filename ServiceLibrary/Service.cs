@@ -28,6 +28,7 @@ namespace ServiceLibrary
         private static readonly string tempPath = System.IO.Path.GetTempPath();
 
         private static Service service;
+        public event EventHandler ProgressUpdate;
 
         public static Service getInstance()
         {
@@ -35,6 +36,7 @@ namespace ServiceLibrary
                 service = new Service();
             return service;
         }
+
 
         private Service()
         {
@@ -236,7 +238,7 @@ namespace ServiceLibrary
                 proc.StartInfo.FileName = testFileName;
                 proc.StartInfo.Arguments = string.Format("10");//this is argument
                 proc.StartInfo.CreateNoWindow = false;
-                //proc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                proc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 proc.Start();
                 proc.BeginOutputReadLine();
                 proc.WaitForExit();
@@ -306,7 +308,14 @@ namespace ServiceLibrary
             process.Close();
         }
 
-        public void xcopyPsychoPy(string srcDir, string dstDir, string testExePath, List<string> selectedClients)
+        public Thread TransferAndRunPsychoPy(string srcDir, string dstDir, string testExePath, List<string> selectedClients)
+        {
+            var t = new Thread(() => xcopyPsychoPy(srcDir, dstDir, testExePath, selectedClients));
+            t.Start();
+            return t;
+        }
+
+        private void xcopyPsychoPy(string srcDir, string dstDir, string testExePath, List<string> selectedClients)
         {
             //-----local copy
             string copyPath = tempPath + "localCopy.bat";
@@ -340,23 +349,29 @@ namespace ServiceLibrary
                 i++;
             }
 
+            //-----notify ui
+            if (ProgressUpdate != null)
+                ProgressUpdate(this, new StatusEventArgs("Request Sent"));
+            //-----end
         }
 
         private bool transferDone(List<string> selectedClients, string resultPath)
         {
             foreach (string client in selectedClients)
             {
-                string path = resultPath + client;
+                string path = resultPath + "DONE" + client;
                 if (!File.Exists(path))
+                {
                     return false;
+                }        
             }
             return true;
         }
 
         private void waitForTransferCompletion(List<string> selectedClients, string resultPath)
         {
-            long timeoutPeriod = 5000;
-            int sleepTime = 500;
+            long timeoutPeriod = 120000;
+            int sleepTime = 5000;
 
             bool timedOut = false;
             Stopwatch watch = Stopwatch.StartNew();
@@ -372,8 +387,26 @@ namespace ServiceLibrary
                 throw new TimeoutException();
         }
 
-        public void xcopyPsychoPyResults(string srcWithoutComputerName, string dstFolderName, List<string> selectedClients)
+        public Thread TransferPsychoPyResults(string srcWithoutComputerName, string dstFolderName, List<string> selectedClients)
         {
+            var t = new Thread(() => xcopyPsychoPyResults(srcWithoutComputerName, dstFolderName, selectedClients));
+            t.Start();
+            return t;
+        }
+
+        private void xcopyPsychoPyResults(string srcWithoutComputerName, string dstFolderName, List<string> selectedClients)
+        {
+            //-----clean notify files
+            string copyPath = tempPath + "networkClean.bat";
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                string line = @"del /s /q " + sharedNetworkTempFolder + @"Results\PsychoPy\DONE*";
+                file.WriteLine(line);
+            }
+            service.ExecuteCommandNoOutput(copyPath, true);
+            //-----end
+
             //----copy results from client computers to shared network folder
             int i = 0;
             foreach (string computerName in selectedClients)
@@ -382,9 +415,13 @@ namespace ServiceLibrary
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                 {
                     file.WriteLine("@echo off");
-                    string copyCmd = @"xcopy """ + testFolder + @"PsychoPy\" + dstFolderName + @"\*.psydat""" + @" """ + sharedNetworkTempFolder + @"Results\PsychoPy\" + computerName + @"\" + dstFolderName + @""" /V /E /Y /Q /I";
-                    string completionNotifyFile = @"type NUL > " + sharedNetworkTempFolder + @"Results\PsychoPy\" + computerName;
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" cmd /c (" + copyCmd + @" ^& " + completionNotifyFile + @")";
+                    string copySrc = testFolder + @"PsychoPy\" + dstFolderName + @"\";
+                    string copyDst = sharedNetworkTempFolder + @"Results\PsychoPy\" + computerName + @"\" + dstFolderName + @""" /V /E /Y /Q /I";
+                    string copyCmdpsy = @"xcopy """ + copySrc + @"*.psydat""" + @" """ + copyDst;
+                    string copyCmdcsv = @"xcopy """ + copySrc + @"*.csv""" + @" """ + copyDst;
+                    string copyCmdlog = @"xcopy """ + copySrc + @"*.log""" + @" """ + copyDst;
+                    string completionNotifyFile = @"copy NUL " + sharedNetworkTempFolder + @"Results\PsychoPy\DONE" + computerName;
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" cmd /c (" + copyCmdpsy + @" ^& " + copyCmdcsv + @" ^& " + copyCmdlog + @" ^& " + completionNotifyFile + @")";
                     file.WriteLine(line);
                 }
                 StartNewCmdThread(copyPathRemote);
@@ -396,7 +433,7 @@ namespace ServiceLibrary
             waitForTransferCompletion(selectedClients, sharedNetworkTempFolder + @"Results\PsychoPy\");
 
             //-----copy from network to local
-            string copyPath = tempPath + "networkResultsCopy.bat";
+            copyPath = tempPath + "networkResultsCopy.bat";
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
                 file.WriteLine("@echo off");
@@ -405,7 +442,23 @@ namespace ServiceLibrary
             }
             service.ExecuteCommandNoOutput(copyPath, true);
             //-----end
-        }     
+
+            //-----delete results from network
+            copyPath = tempPath + "networkResultsDelete.bat";
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                string line = @"del /s /q " + sharedNetworkTempFolder + @"Results\PsychoPy\*.*";
+                file.WriteLine(line);
+            }
+            service.ExecuteCommandNoOutput(copyPath, true);
+            //-----end
+
+            //-----notify ui
+            if (ProgressUpdate != null)
+                ProgressUpdate(this, new StatusEventArgs("Transfer Complete"));
+            //-----end
+        }   
 
         public Thread StartNewCmdThread(string cmd)
         {
@@ -419,6 +472,11 @@ namespace ServiceLibrary
             string strCmdText = @cmd;
             //MessageBox.Show(strCmdText);
             service.runCmd(strCmdText);
+        }
+
+        public void killRemoteProcess(string computerName, string processName)
+        {
+            new Thread(() => KillProcThread(computerName, processName)).Start();
         }
 
         private void KillProcThread(string computerName, string processName)
@@ -456,9 +514,19 @@ namespace ServiceLibrary
                     Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
                 }
             }
+
+            //-----notify ui
+            if (ProgressUpdate != null)
+                ProgressUpdate(this, new StatusEventArgs("Task Kill Completed"));
+            //-----end
         }
 
         public void ShutdownComputer(List<string> computerNames)
+        {
+            new Thread(() => ShutItThread(computerNames)).Start();
+        }
+
+        private void ShutItThread(List<string> computerNames)
         {
             Debug.WriteLine("Shutting begins >:)");
             var LocalPassword = userPassword;
@@ -511,11 +579,11 @@ namespace ServiceLibrary
                     Debug.WriteLine(err.ErrorDetails);
                 }
             }
-        }
 
-        public void killRemoteProcess(string computerName, string processName)
-        {
-            new Thread(() => KillProcThread(computerName, processName)).Start();
+            //-----notify ui
+            if (ProgressUpdate != null)
+                ProgressUpdate(this, new StatusEventArgs("Shutdown request sent"));
+            //-----end
         }
 
         public IEnumerable<string> GetFiles(string path)

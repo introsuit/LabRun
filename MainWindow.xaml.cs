@@ -32,7 +32,7 @@ namespace LabRun
         private string testfilepath = "";
         private string testfilename = "";
         private string testDirName = "";
-   
+
         private string labClientSharedFolder = @"C:\test\";
         private string labClientSharedFolderName = "test";
 
@@ -41,6 +41,7 @@ namespace LabRun
         public MainWindow()
         {
             InitializeComponent();
+
             try
             {
                 service = Service.getInstance();
@@ -56,6 +57,16 @@ namespace LabRun
                     return;
                 }
             }
+            
+            service.ProgressUpdate += (s, e) =>
+            {
+                Dispatcher.Invoke((Action)delegate()
+                {
+                    StatusEventArgs args = (StatusEventArgs)e;
+                    lblStatus.Content = args.Message;
+                }
+            );
+            };
             initClients();
         }
         public void initClients()
@@ -103,7 +114,7 @@ namespace LabRun
                 int index = filename.LastIndexOf("\\");
                 if (index > 0)
                 {
-                    testfilepath = filename.Substring(0, index+1); // or index + 1 to keep slash
+                    testfilepath = filename.Substring(0, index + 1); // or index + 1 to keep slash
                     testfilename = filename.Substring(index + 1, filename.Length - (index + 1)); // or index + 1 to keep slash
                 }
 
@@ -113,7 +124,7 @@ namespace LabRun
                 label1.Content = filename;
                 button2.IsEnabled = true;
             }
-        }     
+        }
 
         private void button2_Click(object sender, RoutedEventArgs e)
         {
@@ -125,15 +136,14 @@ namespace LabRun
                 return;
             }
 
-            //service.xcopyPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, computerNames);
-            service.xcopyPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, labClientSharedFolder + @"PsychoPy\" + testDirName + @"\" + testfilename, computerNames);
-            //service.runPsychoPyTests(computerNames, labClientSharedFolder + testDirName + @"\" + testfilename);
-        }     
+            lblStatus.Content = "In Progress...";
+            service.TransferAndRunPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, labClientSharedFolder + @"PsychoPy\" + testDirName + @"\" + testfilename, computerNames);
+        }
 
         private List<string> getSelectedClients()
         {
             List<LabClient> clients = dgrClients.SelectedItems.Cast<LabClient>().ToList(); ;
-            
+
             List<string> computerNames = new List<string>();
             foreach (LabClient client in clients)
             {
@@ -144,6 +154,7 @@ namespace LabRun
 
         private void btnKill_Click(object sender, RoutedEventArgs e)
         {
+            lblStatus.Content = "In Progress...";
             foreach (string computerName in getSelectedClients())
             {
                 service.killRemoteProcess(computerName, "python.exe");
@@ -152,20 +163,26 @@ namespace LabRun
 
         private void btnGetResults_Click(object sender, RoutedEventArgs e)
         {
+            lblStatus.Content = "In Progress...";
+
             string srcWithoutComputerName = @"\" + labClientSharedFolderName + @"\" + testDirName;
             string dstFolderName = testDirName;
+            Thread thread = null;
             try
             {
-                service.xcopyPsychoPyResults(srcWithoutComputerName, dstFolderName, getSelectedClients());
+                thread = service.TransferPsychoPyResults(srcWithoutComputerName, dstFolderName, getSelectedClients());
             }
             catch (TimeoutException ex)
             {
                 MessageBox.Show("Transfer timed out: " + ex.Message, "Transfer Failure", MessageBoxButton.OK, MessageBoxImage.Error);
+                lblStatus.Content = "Idle";
+                return;
             }
         }
 
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
         {
+            lblStatus.Content = "In Progress...";
             service.ShutdownComputer(getSelectedClients());
         }
 
@@ -185,8 +202,8 @@ namespace LabRun
             List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
 
             IEnumerable<LabClient> emp = (from i in clients
-                       where i.BoothNo % 2 == 0
-                       select i);
+                                          where i.BoothNo % 2 == 0
+                                          select i);
 
             dgrClients.SelectedItems.Clear();
             foreach (LabClient es in emp)
@@ -217,8 +234,9 @@ namespace LabRun
             Boolean even = true;
             Boolean odd = false;
 
-            foreach (LabClient client in clients){
-                
+            foreach (LabClient client in clients)
+            {
+
                 //Selecting every second odd
                 if (client.BoothNo % 2 == 0)
                 {
@@ -258,8 +276,9 @@ namespace LabRun
             Boolean even = false;
             Boolean odd = true;
 
-            foreach (LabClient client in clients){
-                
+            foreach (LabClient client in clients)
+            {
+
                 //Selecting every first odd
                 if (client.BoothNo % 2 == 0)
                 {
@@ -271,7 +290,7 @@ namespace LabRun
                     else
                         odd = true;
                 }
-                
+
                 //Selecting every second even
                 if ((client.BoothNo % 2 != 0) && client.BoothNo != null)
                 {
@@ -291,10 +310,5 @@ namespace LabRun
                 dgrClients.SelectedItems.Add(es);
             }
         }
-        
-
-
-
-
     }
 }
