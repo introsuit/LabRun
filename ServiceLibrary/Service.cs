@@ -14,18 +14,19 @@ namespace ServiceLibrary
 {
     public class Service
     {
+        public Credentials Credentials { get; set; }
         private readonly string domainName;
         private readonly string userName;
         private readonly string userPassword;
         private readonly string domainSlashUser;
         private readonly string userAtDomain;
-        private static readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
+        private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
         private static readonly string resultFolder = @"C:\Dump\";
         private static readonly string testFolder = @"C:\test\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
         private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
 
-        private static readonly string tempPath = System.IO.Path.GetTempPath();
+        private readonly string tempPath = System.IO.Path.GetTempPath();
 
         private static Service service;
         public event EventHandler ProgressUpdate;
@@ -37,6 +38,37 @@ namespace ServiceLibrary
             return service;
         }
 
+        public string TestFolder
+        {
+            get
+            {
+                return testFolder;
+            }
+        }
+
+        public string DomainSlashUser
+        {
+            get
+            {
+                return domainSlashUser;
+            }
+        }
+
+        public string TempPath
+        {
+            get
+            {
+                return tempPath;
+            }
+        }
+
+        public string SharedNetworkTempFolder
+        {
+            get
+            {
+                return sharedNetworkTempFolder;
+            }
+        }
 
         private Service()
         {
@@ -50,12 +82,16 @@ namespace ServiceLibrary
 
                     domainSlashUser = domainName + @"\" + userName;
                     userAtDomain = userName + @"@" + domainName;
+                    Credentials = new Credentials(domainName, userName, userPassword);
                 }
             }
             catch (FileNotFoundException ex)
             {
                 throw new FileNotFoundException("auth.ini", ex);
             }
+
+            
+
         }
 
         //should be called before mergeClientsFromFile()
@@ -308,158 +344,6 @@ namespace ServiceLibrary
             process.Close();
         }
 
-        public Thread TransferAndRunPsychoPy(string srcDir, string dstDir, string testExePath, List<string> selectedClients)
-        {
-            var t = new Thread(() => xcopyPsychoPy(srcDir, dstDir, testExePath, selectedClients));
-            t.Start();
-            return t;
-        }
-
-        private void xcopyPsychoPy(string srcDir, string dstDir, string testExePath, List<string> selectedClients)
-        {
-            //-----local copy
-            string copyPath = tempPath + "localCopy.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                string line = @"xcopy """ + srcDir + @""" " + @"""" + sharedNetworkTempFolder + @"PsychoPy\" + dstDir + @""" /V /E /Y /Q /I";
-                file.WriteLine(line);
-            }
-            //MessageBox.Show(copyPath);
-            service.ExecuteCommandNoOutput(copyPath, true);
-            //-----end
-
-            //---onecall
-            int i = 0;
-            foreach (string computerName in selectedClients)
-            {
-                string copyPathRemote = tempPath + "remoteCopyOne" + computerName + ".bat";
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
-                {
-                    file.WriteLine("@echo off");
-
-                    string copyCmd = @"xcopy """ + sharedNetworkTempFolder + @"PsychoPy\" + dstDir + @""" """ + testFolder + @"PsychoPy\" + dstDir + @""" /V /E /Y /Q /I";
-                    string runCmd = @" python " + testExePath;
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
-
-                    file.WriteLine(line);
-
-                }
-                StartNewCmdThread(copyPathRemote);
-                i++;
-            }
-
-            //-----notify ui
-            if (ProgressUpdate != null)
-                ProgressUpdate(this, new StatusEventArgs("Request Sent"));
-            //-----end
-        }
-
-        private bool transferDone(List<string> selectedClients, string resultPath)
-        {
-            foreach (string client in selectedClients)
-            {
-                string path = resultPath + "DONE" + client;
-                if (!File.Exists(path))
-                {
-                    return false;
-                }        
-            }
-            return true;
-        }
-
-        private void waitForTransferCompletion(List<string> selectedClients, string resultPath)
-        {
-            long timeoutPeriod = 120000;
-            int sleepTime = 5000;
-
-            bool timedOut = false;
-            Stopwatch watch = Stopwatch.StartNew();
-            while (!transferDone(selectedClients, resultPath) && !timedOut)
-            {
-                Thread.Sleep(sleepTime);
-                if (watch.ElapsedMilliseconds > timeoutPeriod)
-                    timedOut = true;
-            }
-            watch.Stop();
-
-            if (timedOut)
-                throw new TimeoutException();
-        }
-
-        public Thread TransferPsychoPyResults(string srcWithoutComputerName, string dstFolderName, List<string> selectedClients)
-        {
-            var t = new Thread(() => xcopyPsychoPyResults(srcWithoutComputerName, dstFolderName, selectedClients));
-            t.Start();
-            return t;
-        }
-
-        private void xcopyPsychoPyResults(string srcWithoutComputerName, string dstFolderName, List<string> selectedClients)
-        {
-            //-----clean notify files
-            string copyPath = tempPath + "networkClean.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                string line = @"del /s /q " + sharedNetworkTempFolder + @"Results\PsychoPy\DONE*";
-                file.WriteLine(line);
-            }
-            service.ExecuteCommandNoOutput(copyPath, true);
-            //-----end
-
-            //----copy results from client computers to shared network folder
-            int i = 0;
-            foreach (string computerName in selectedClients)
-            {
-                string copyPathRemote = tempPath + "remoteResultOne" + computerName + ".bat";
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
-                {
-                    file.WriteLine("@echo off");
-                    string copySrc = testFolder + @"PsychoPy\" + dstFolderName + @"\";
-                    string copyDst = sharedNetworkTempFolder + @"Results\PsychoPy\" + computerName + @"\" + dstFolderName + @""" /V /E /Y /Q /I";
-                    string copyCmdpsy = @"xcopy """ + copySrc + @"*.psydat""" + @" """ + copyDst;
-                    string copyCmdcsv = @"xcopy """ + copySrc + @"*.csv""" + @" """ + copyDst;
-                    string copyCmdlog = @"xcopy """ + copySrc + @"*.log""" + @" """ + copyDst;
-                    string completionNotifyFile = @"copy NUL " + sharedNetworkTempFolder + @"Results\PsychoPy\DONE" + computerName;
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" cmd /c (" + copyCmdpsy + @" ^& " + copyCmdcsv + @" ^& " + copyCmdlog + @" ^& " + completionNotifyFile + @")";
-                    file.WriteLine(line);
-                }
-                StartNewCmdThread(copyPathRemote);
-                i++;
-            }
-            //----end
-
-            //check to make sure transfer is completed from all clients
-            waitForTransferCompletion(selectedClients, sharedNetworkTempFolder + @"Results\PsychoPy\");
-
-            //-----copy from network to local
-            copyPath = tempPath + "networkResultsCopy.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                string line = @"xcopy """ + sharedNetworkTempFolder + @"Results\PsychoPy"" """ + testFolder + @"Results"" /V /E /Y /Q /I";
-                file.WriteLine(line);
-            }
-            service.ExecuteCommandNoOutput(copyPath, true);
-            //-----end
-
-            //-----delete results from network
-            copyPath = tempPath + "networkResultsDelete.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                string line = @"del /s /q " + sharedNetworkTempFolder + @"Results\PsychoPy\*.*";
-                file.WriteLine(line);
-            }
-            service.ExecuteCommandNoOutput(copyPath, true);
-            //-----end
-
-            //-----notify ui
-            if (ProgressUpdate != null)
-                ProgressUpdate(this, new StatusEventArgs("Transfer Complete"));
-            //-----end
-        }   
-
         public Thread StartNewCmdThread(string cmd)
         {
             var t = new Thread(() => RealStart(cmd));
@@ -583,6 +467,13 @@ namespace ServiceLibrary
             //-----notify ui
             if (ProgressUpdate != null)
                 ProgressUpdate(this, new StatusEventArgs("Shutdown request sent"));
+            //-----end
+        }
+
+        public void notifyStatus(string msg){
+            //-----notify ui
+            if (ProgressUpdate != null)
+                ProgressUpdate(this, new StatusEventArgs(msg));
             //-----end
         }
 

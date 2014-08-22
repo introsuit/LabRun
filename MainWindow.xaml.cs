@@ -69,6 +69,7 @@ namespace LabRun
             };
             initClients();
         }
+
         public void initClients()
         {
             try
@@ -137,7 +138,10 @@ namespace LabRun
             }
 
             lblStatus.Content = "In Progress...";
-            service.TransferAndRunPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, labClientSharedFolder + @"PsychoPy\" + testDirName + @"\" + testfilename, computerNames);
+            //service.TransferAndRunPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, labClientSharedFolder + @"PsychoPy\" + testDirName + @"\" + testfilename, computerNames);
+            PsychoPy psychoPy = new PsychoPy();
+            //MessageBox.Show(testfilepath.Substring(0, testfilepath.Length - 1) + " " + testDirName + " " + labClientSharedFolder + @"PsychoPy\" + testDirName + @"\" + testfilename);
+            psychoPy.TransferAndRun(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, testfilename, computerNames);
         }
 
         private List<string> getSelectedClients()
@@ -170,7 +174,10 @@ namespace LabRun
             Thread thread = null;
             try
             {
-                thread = service.TransferPsychoPyResults(srcWithoutComputerName, dstFolderName, getSelectedClients());
+                MessageBox.Show(dstFolderName);
+                //thread = service.TransferPsychoPyResults(srcWithoutComputerName, dstFolderName, getSelectedClients());
+                PsychoPy psychoPy = new PsychoPy();
+                thread = psychoPy.TransferResults(srcWithoutComputerName, dstFolderName, getSelectedClients());
             }
             catch (TimeoutException ex)
             {
