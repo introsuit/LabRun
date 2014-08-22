@@ -7,10 +7,6 @@ namespace ServiceLibrary
 {
     public class PsychoPy : TestApp
     {
-        public PsychoPy()
-        {
-            this.applicationName = "PsychoPy";
-            this.applicationExecutableName = "python";
-        }
+        public PsychoPy(string testFilePath) : base("PsychoPy", "python", testFilePath) { }
     }
 }

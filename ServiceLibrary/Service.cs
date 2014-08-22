@@ -20,7 +20,8 @@ namespace ServiceLibrary
         private readonly string userPassword;
         private readonly string domainSlashUser;
         private readonly string userAtDomain;
-        private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
+       // private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
+        private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
         private static readonly string resultFolder = @"C:\Dump\";
         private static readonly string testFolder = @"C:\test\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
@@ -40,34 +41,22 @@ namespace ServiceLibrary
 
         public string TestFolder
         {
-            get
-            {
-                return testFolder;
-            }
+            get { return testFolder; }
         }
 
         public string DomainSlashUser
         {
-            get
-            {
-                return domainSlashUser;
-            }
+            get { return domainSlashUser; }
         }
 
         public string TempPath
         {
-            get
-            {
-                return tempPath;
-            }
+            get { return tempPath; }
         }
 
         public string SharedNetworkTempFolder
         {
-            get
-            {
-                return sharedNetworkTempFolder;
-            }
+            get { return sharedNetworkTempFolder; }
         }
 
         private Service()
@@ -89,9 +78,6 @@ namespace ServiceLibrary
             {
                 throw new FileNotFoundException("auth.ini", ex);
             }
-
-            
-
         }
 
         //should be called before mergeClientsFromFile()
@@ -470,7 +456,8 @@ namespace ServiceLibrary
             //-----end
         }
 
-        public void notifyStatus(string msg){
+        public void notifyStatus(string msg)
+        {
             //-----notify ui
             if (ProgressUpdate != null)
                 ProgressUpdate(this, new StatusEventArgs(msg));
