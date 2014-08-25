@@ -194,6 +194,6 @@ namespace ServiceLibrary
             //-----notify ui
             service.notifyStatus("Transfer Complete");
             //-----end
-        }
+        }  
     }
 }

@@ -19,20 +19,16 @@
             </DataGrid.Columns>
         </DataGrid>
         <Label Content="Lab Clients:" HorizontalAlignment="Left" Margin="10,-2,0,0" VerticalAlignment="Top"/>
-        <TabControl HorizontalAlignment="Left" Height="246" Margin="195,24,0,0" VerticalAlignment="Top" Width="365">
-            <TabItem Header="PsychoPy">
+        <TabControl Name="tabControl1"  HorizontalAlignment="Left" Height="246" Margin="195,24,0,0" VerticalAlignment="Top" Width="365">
+            <TabItem Header="PsychoPy" Name="tabPsy">
                 <Grid Background="#FFE5E5E5">
-                    <Button Content="Browse" Height="30" HorizontalAlignment="Left" Margin="10,10,0,0" Name="button1" VerticalAlignment="Top" Width="76" Click="button1_Click" />
-                    <Label Content="..." Height="28" HorizontalAlignment="Left" Margin="91,10,0,0" Name="label1" VerticalAlignment="Top" />
-                    <Button IsEnabled='False' Content="Run" Height="28" HorizontalAlignment="Left" Margin="10,48,0,0" Name="btnRun" VerticalAlignment="Top" Width="75" Click="btnRun_Click" />
-                    <Button IsEnabled='True' Content="Kill" Height="28" HorizontalAlignment="Left" Margin="91,48,0,0" Name="btnKill" VerticalAlignment="Top" Width="75" Click="btnKill_Click" />
-                    <Button Content="Get Results" HorizontalAlignment="Left" Margin="10,179,0,0" VerticalAlignment="Top" Width="75" Name="btnGetResults" Height="24" Click="btnGetResults_Click" />
+                  
                 </Grid>
             </TabItem>
-            <TabItem Header="E-Prime">
+            <TabItem Header="E-Prime" Name="tabEPrime">
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
-            <TabItem Header="Z-Tree">
+            <TabItem Header="Z-Tree" Name="tabZTree">
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
         </TabControl>

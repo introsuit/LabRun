@@ -19,25 +19,16 @@ using System.Net;
 using ServiceLibrary;
 using System.Collections;
 using System.Data;
+using UserControls;
 
 namespace LabRun
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, MainUI
     {
         private Service service;
-
-        private string testFullPath = "";
-        private string testfilepath = "";
-        private string testfilename = "";
-        private string testDirName = "";
-
-        private string labClientSharedFolder = @"C:\test\";
-        private string labClientSharedFolderName = "test";
-        private PsychoPy psychoPy = null;
-
         List<LabClient> clients = new List<LabClient>();
 
         public MainWindow()
@@ -59,7 +50,7 @@ namespace LabRun
                     return;
                 }
             }
-            
+
             service.ProgressUpdate += (s, e) =>
             {
                 Dispatcher.Invoke((Action)delegate()
@@ -70,6 +61,14 @@ namespace LabRun
             );
             };
             initClients();
+            initTabs();
+        }
+
+        private void initTabs()
+        {
+            tabPsy.Content = new UserControls.TabControl(this, typeof(PsychoPy));
+            tabEPrime.Content = new UserControls.TabControl(this, typeof(EPrime));
+            tabZTree.Content = new UserControls.TabControl(this, typeof(ZTree));
         }
 
         public void initClients()
@@ -94,59 +93,7 @@ namespace LabRun
 
             //set clients sorted by Booth no
             dgrClients.ItemsSource = clients.OrderBy(o => o.BoothNo).ToList();
-        }
-
-        private void button1_Click(object sender, RoutedEventArgs e)
-        {
-            // Create OpenFileDialog 
-            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
-
-            // Set filter for file extension and default file extension 
-            dlg.DefaultExt = ".py";
-            dlg.Filter = "Python files (*.py)|*.py|PsychoPy Test Files (*.psyexp)|*.psyexp";
-
-            // Display OpenFileDialog by calling ShowDialog method 
-            Nullable<bool> result = dlg.ShowDialog();
-
-            // Get the selected file name and display in a TextBox 
-            if (result == true)
-            {
-                // Open document 
-                string filename = dlg.FileName;
-                testFullPath = filename;
-                int index = filename.LastIndexOf("\\");
-                if (index > 0)
-                {
-                    testfilepath = filename.Substring(0, index + 1); // or index + 1 to keep slash
-                    testfilename = filename.Substring(index + 1, filename.Length - (index + 1)); // or index + 1 to keep slash
-                }
-
-                string newDir = Path.GetDirectoryName(testfilepath);
-                testDirName = newDir.Remove(0, newDir.LastIndexOf('\\') + 1);
-
-                label1.Content = filename;
-                btnRun.IsEnabled = true;
-                MessageBox.Show(testFullPath);
-                psychoPy = new PsychoPy(testFullPath);
-            }
-        }
-
-        private void btnRun_Click(object sender, RoutedEventArgs e)
-        {
-            List<string> computerNames = getSelectedClients();
-
-            if (computerNames.Count == 0)
-            {
-                MessageBox.Show("Select some clients first!");
-                return;
-            }
-
-            lblStatus.Content = "In Progress...";
-            //service.TransferAndRunPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, labClientSharedFolder + @"PsychoPy\" + testDirName + @"\" + testfilename, computerNames);
-            
-            MessageBox.Show(testfilepath.Substring(0, testfilepath.Length - 1) + " " + testDirName + " " + testfilename + " " + computerNames);
-            psychoPy.TransferAndRun(computerNames);
-        }
+        }   
 
         private List<string> getSelectedClients()
         {
@@ -158,37 +105,6 @@ namespace LabRun
                 computerNames.Add(client.ComputerName);
             }
             return computerNames;
-        }
-
-        private void btnKill_Click(object sender, RoutedEventArgs e)
-        {
-            lblStatus.Content = "In Progress...";
-            foreach (string computerName in getSelectedClients())
-            {
-                service.killRemoteProcess(computerName, "python.exe");
-            }
-        }
-
-        private void btnGetResults_Click(object sender, RoutedEventArgs e)
-        {
-            lblStatus.Content = "In Progress...";
-
-            string srcWithoutComputerName = @"\" + labClientSharedFolderName + @"\" + testDirName;
-            string dstFolderName = testDirName;
-            Thread thread = null;
-            try
-            {
-                MessageBox.Show(srcWithoutComputerName + " " + dstFolderName);
-                //thread = service.TransferPsychoPyResults(srcWithoutComputerName, dstFolderName, getSelectedClients());
-                //PsychoPy psychoPy = new PsychoPy();
-                thread = psychoPy.TransferResults(getSelectedClients());
-            }
-            catch (TimeoutException ex)
-            {
-                MessageBox.Show("Transfer timed out: " + ex.Message, "Transfer Failure", MessageBoxButton.OK, MessageBoxImage.Error);
-                lblStatus.Content = "Idle";
-                return;
-            }
         }
 
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
@@ -320,6 +236,16 @@ namespace LabRun
             {
                 dgrClients.SelectedItems.Add(es);
             }
+        }
+
+        public void updateStatus(string msg)
+        {
+            lblStatus.Content = msg;
+        }
+
+        List<string> MainUI.getSelectedClients()
+        {
+            return getSelectedClients();
         }
     }
 }
