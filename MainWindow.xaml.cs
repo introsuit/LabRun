@@ -19,27 +19,22 @@ using System.Net;
 using ServiceLibrary;
 using System.Collections;
 using System.Data;
+using UserControls;
 
 namespace LabRun
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, MainUI
     {
         private Service service;
-
-        private string testfilepath = "";
-        private string testfilename = "";
-        private string testDirName = "";
-
-        
-        private string labClientSharedFolder = @"C:\test\";
-        private string labClientSharedFolderName = "test";
+        List<LabClient> clients = new List<LabClient>();
 
         public MainWindow()
         {
             InitializeComponent();
+
             try
             {
                 service = Service.getInstance();
@@ -50,12 +45,24 @@ namespace LabRun
                 if (message == "auth.ini")
                 {
                     string msg = "\n\nauth.ini file must be created and set with data in order:\n\nDomain\nUserName\nPassword";
-                    MessageBox.Show(ex.InnerException.Message + msg);
+                    MessageBox.Show(ex.InnerException.Message + msg, "File not found", MessageBoxButton.OK, MessageBoxImage.Error);
                     this.Close();
                     return;
                 }
             }
+
+            service.ProgressUpdate += (s, e) =>
+            {
+                Dispatcher.Invoke((Action)delegate()
+                {
+                    StatusEventArgs args = (StatusEventArgs)e;
+                    lblStatus.Content = args.Message;
+                }
+            );
+            };
             initClients();
+            initTabs();
+
         }
         public void initClients()
         {
@@ -69,56 +76,31 @@ namespace LabRun
 
         private void button1_Click(object sender, RoutedEventArgs e)
         {
-            // Create OpenFileDialog 
-            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
 
-            // Set filter for file extension and default file extension 
-            dlg.DefaultExt = ".py";
-            dlg.Filter = "Python files (*.py)|*.py|PsychoPy Test Files (*.psyexp)|*.psyexp";
 
-            // Display OpenFileDialog by calling ShowDialog method 
-            Nullable<bool> result = dlg.ShowDialog();
+        }
 
-            // Get the selected file name and display in a TextBox 
-            if (result == true)
-            {
-                // Open document 
-                string filename = dlg.FileName;
-
-                int index = filename.LastIndexOf("\\");
-                if (index > 0)
-                {
-                    testfilepath = filename.Substring(0, index+1); // or index + 1 to keep slash
-                    testfilename = filename.Substring(index + 1, filename.Length - (index + 1)); // or index + 1 to keep slash
-                }
-
-                string newDir = Path.GetDirectoryName(testfilepath);
-                testDirName = newDir.Remove(0, newDir.LastIndexOf('\\') + 1);
-
-                label1.Content = filename;
-                button2.IsEnabled = true;
-            }
-        }     
-
-        private void button2_Click(object sender, RoutedEventArgs e)
+        private void initTabs()
         {
-            List<string> computerNames = getSelectedClients();
+            UserControls.TabControl tC = new UserControls.TabControl(this, new PsychoPy());
+            tC.setTestLogo(@"\Images\Psychopy.png");
+            tabPsy.Content = tC;
 
-            if (computerNames.Count == 0)
-            {
-                MessageBox.Show("Select some clients first!");
-                return;
-            }
+            UserControls.TabControl tC2 = new UserControls.TabControl(this, new EPrime());
+            tC2.setTestLogo(@"\Images\eprime.png");
+            tabEPrime.Content = tC2;
 
-            service.xcopyPsychoPy(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, computerNames);
-            //service.xcopyPsychoNewWay(testfilepath.Substring(0, testfilepath.Length - 1), testDirName, labClientSharedFolder + testDirName + @"\" + testfilename, computerNames);
-            service.runPsychoPyTests(computerNames, labClientSharedFolder + testDirName + @"\" + testfilename);
-        }     
+            UserControls.TabControl tC3 = new UserControls.TabControl(this, new ZTree());
+            tC3.setTestLogo(@"\Images\ztree.png");
+            tabZTree.Content = tC3;
+        }
+
+
 
         private List<string> getSelectedClients()
         {
             List<LabClient> clients = dgrClients.SelectedItems.Cast<LabClient>().ToList(); ;
-            
+
             List<string> computerNames = new List<string>();
             foreach (LabClient client in clients)
             {
@@ -127,7 +109,9 @@ namespace LabRun
             return computerNames;
         }
 
-        private List<string> getSelectedCompsMacs() {
+
+        private List<string> getSelectedCompsMacs()
+        {
             List<string> selectedMACs = new List<string>();
             List<LabClient> clients = dgrClients.SelectedItems.Cast<LabClient>().ToList();
 
@@ -138,37 +122,13 @@ namespace LabRun
             return selectedMACs;
         }
 
-        private void btnKill_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (string computerName in getSelectedClients())
-            {
-                service.killRemoteProcess(computerName, "python.exe");
-            }
-        }
 
-        private void btnGetResults_Click(object sender, RoutedEventArgs e)
-        {
-            string srcWithoutComputerName = @"\" + labClientSharedFolderName + @"\" + testDirName;
-            string dstFolderName = testDirName;
-            service.xcopyPsychoPyResults(srcWithoutComputerName, dstFolderName, getSelectedClients());
-            //foreach (string computerName in getSelectedClients())
-            //{
-            //    string path = @"\\" + computerName + @"\" + labClientSharedFolderName + @"\" + testDirName;
-            //    Debug.WriteLine(path);
-            //    foreach (string file in service.GetFiles(path))
-            //    {
-            //        //check for result types. also make sure it is case insensitive
-            //        if (file.EndsWith(".psydat", true, null) || file.EndsWith(".log", true, null) || file.EndsWith(".csv", true, null))
-            //        {
-            //            Debug.WriteLine(file);
-            //            //File.Copy(file, );
-            //        }
-            //    }
-            //}
-        }
+
+
 
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
         {
+            lblStatus.Content = "In Progress...";
             service.ShutdownComputer(getSelectedClients());
         }
 
@@ -188,8 +148,8 @@ namespace LabRun
             List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
 
             IEnumerable<LabClient> emp = (from i in clients
-                       where i.BoothNo % 2 == 0
-                       select i);
+                                          where i.BoothNo % 2 == 0
+                                          select i);
 
             dgrClients.SelectedItems.Clear();
             foreach (LabClient es in emp)
@@ -220,8 +180,9 @@ namespace LabRun
             Boolean even = true;
             Boolean odd = false;
 
-            foreach (LabClient client in clients){
-                
+            foreach (LabClient client in clients)
+            {
+
                 //Selecting every second odd
                 if (client.BoothNo % 2 == 0)
                 {
@@ -261,8 +222,9 @@ namespace LabRun
             Boolean even = false;
             Boolean odd = true;
 
-            foreach (LabClient client in clients){
-                
+            foreach (LabClient client in clients)
+            {
+
                 //Selecting every first odd
                 if (client.BoothNo % 2 == 0)
                 {
@@ -274,7 +236,7 @@ namespace LabRun
                     else
                         odd = true;
                 }
-                
+
                 //Selecting every second even
                 if ((client.BoothNo % 2 != 0) && client.BoothNo != null)
                 {
@@ -295,23 +257,24 @@ namespace LabRun
             }
         }
 
+
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-        List<string> list = getSelectedCompsMacs();
-        foreach (string mac in list)
-        {
-            try
+            List<string> list = getSelectedCompsMacs();
+            foreach (string mac in list)
             {
-                MACAddress.SendWOLPacket(mac);
+                try
+                {
+                    MACAddress.SendWOLPacket(mac);
 
+                }
+                catch (Exception Error)
+                {
+                    MessageBox.Show(
+                    string.Format("Error:\n\n{0}", Error.Message), "Error");
+                }
             }
-            catch (Exception Error)
-            {
-                MessageBox.Show(
-                string.Format("Error:\n\n{0}", Error.Message), "Error");
-            }
-        }     
-}
+        }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
@@ -323,17 +286,26 @@ namespace LabRun
                 {
                     dgrClients.ItemsSource = service.GetLabComputersNew2();
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     MessageBox.Show("ARP error! The computer is not listed in the ARP pool. Restart client computers to solve the problem.", "ARP error!");
                 }
             }
-            
+
         }
+
+
+
+
+        public void updateStatus(string msg)
+        {
+            lblStatus.Content = msg;
         }
-        
 
-
-
-
+        List<string> MainUI.getSelectedClients()
+        {
+            return getSelectedClients();
+        }
     }
+}
 

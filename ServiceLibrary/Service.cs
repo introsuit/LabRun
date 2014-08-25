@@ -18,26 +18,48 @@ namespace ServiceLibrary
 {
     public class Service
     {
+        public Credentials Credentials { get; set; }
         private readonly string domainName;
         private readonly string userName;
         private readonly string userPassword;
         private readonly string domainSlashUser;
         private readonly string userAtDomain;
-        private readonly string adminComputerName = "2CE92433Z9";
-        private static readonly string resultFolder = @"C:\Dump\";
+        private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
+        //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
         private static readonly string testFolder = @"C:\test\";
-        private static readonly string clientsFile = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
-        private static readonly string authFile = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
+        private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
+        private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
 
-        private static readonly string tempPath = System.IO.Path.GetTempPath();
+        private readonly string tempPath = System.IO.Path.GetTempPath();
 
         private static Service service;
+        public event EventHandler ProgressUpdate;
 
         public static Service getInstance()
         {
             if (service == null)
                 service = new Service();
             return service;
+        }
+
+        public string TestFolder
+        {
+            get { return testFolder; }
+        }
+
+        public string DomainSlashUser
+        {
+            get { return domainSlashUser; }
+        }
+
+        public string TempPath
+        {
+            get { return tempPath; }
+        }
+
+        public string SharedNetworkTempFolder
+        {
+            get { return sharedNetworkTempFolder; }
         }
 
         private Service()
@@ -52,6 +74,7 @@ namespace ServiceLibrary
 
                     domainSlashUser = domainName + @"\" + userName;
                     userAtDomain = userName + @"@" + domainName;
+                    Credentials = new Credentials(domainName, userName, userPassword);
                 }
             }
             catch (FileNotFoundException ex)
@@ -60,78 +83,7 @@ namespace ServiceLibrary
             }
         }
 
-        //domain eg.: asb.local
-        //can throw exception
-        public List<LabClient> GetLabComputersNew()
-        {
-            DirectoryEntry entry = new DirectoryEntry("LDAP://OU=BSS Lab,OU=BSS Lab,OU=Computers,OU=Public,OU=Staff,DC=asb,DC=local");
-            DirectorySearcher mySearcher = new DirectorySearcher(entry);
-            mySearcher.Filter = ("(objectClass=computer)");
-            mySearcher.SizeLimit = int.MaxValue;
-            mySearcher.PageSize = int.MaxValue;
-
-            List<LabClient> computerNames = new List<LabClient>();
-
-            foreach (SearchResult resEnt in mySearcher.FindAll())
-            {
-                //"CN=SGSVG007DC"
-                string ComputerName = resEnt.GetDirectoryEntry().Name;
-                if (ComputerName.StartsWith("CN="))
-                    ComputerName = ComputerName.Remove(0, "CN=".Length);
-                computerNames.Add(new LabClient(ComputerName, null, "", ""));
-            }
-
-            mySearcher.Dispose();
-            entry.Dispose();
-
-            //----------
-            HashSet<LabClient> computers = new HashSet<LabClient>();
-            List<LabClient> clientsInFile = new List<LabClient>();
-            string cc = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "clients.ini");
-            Debug.WriteLine(Assembly.GetExecutingAssembly().Location);
-            string dd = @"D:\Documents\Visual Studio 2010\Projects\LabRun\LabRun\bin\Debug\clients.ini";
-            Debug.WriteLine(dd);
-            using (System.IO.StreamReader file = new System.IO.StreamReader(cc))
-            {
-                string line;
-                while ((line = file.ReadLine()) != null)
-                {
-                    line = line.Trim();
-
-                    //ignore comments and empty lines
-                    if (line.StartsWith(@"#") || line == "")
-                    {
-                        continue;
-                    }
-
-                    //split on whitespace+
-                    string[] compData = System.Text.RegularExpressions.Regex.Split(line, @"\s{1,}");
-
-                    string name = compData[0];
-                    int? boothNo = null;
-
-                    //set booth no. if defined
-                    if (compData.Length > 1)
-                        boothNo = Convert.ToInt32(compData[1]);
-                    LabClient client = new LabClient(compData[0], boothNo, "", "");
-                    computers.Add(client);
-                    clientsInFile.Add(client);
-                }
-            }
-            //-----------------
-            foreach (LabClient compName in computerNames)
-            {
-                computers.Add(compName);
-            }
-
-            List<LabClient> clients = computers.ToList();
-
-            //gets undefined clients from domain and adds to .ini file
-            List<LabClient> differenceQuery =
-                clients.Except(clientsInFile).ToList<LabClient>();
-            updateClientsFile(differenceQuery);
-            return clients;
-        }
+       
 
         public List<LabClient> GetLabComputersFromStorage()
         {
@@ -426,7 +378,7 @@ namespace ServiceLibrary
                 proc.StartInfo.FileName = testFileName;
                 proc.StartInfo.Arguments = string.Format("10");//this is argument
                 proc.StartInfo.CreateNoWindow = false;
-                //proc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                proc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 proc.Start();
                 proc.BeginOutputReadLine();
                 proc.WaitForExit();
@@ -496,181 +448,6 @@ namespace ServiceLibrary
             process.Close();
         }
 
-        public void xcopyPsychoNewWay(string srcDir, string dstDir, string testExePath, List<string> selectedClients)
-        {
-            //-----local copy
-            string copyPath = tempPath + "localCopy.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                string line = @"xcopy """ + srcDir + @""" " + @"""" + testFolder + dstDir + @""" /V /E /Y /Q /I";
-                file.WriteLine(line);
-            }
-            //MessageBox.Show(copyPath);
-            service.ExecuteCommandNoOutput(copyPath, true);
-            //-----end
-
-            //---onecall
-            int i = 0;
-            foreach (string computerName in selectedClients)
-            {
-                string copyPathRemote = tempPath + "remoteCopyOne" + i + ".bat";
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
-                {
-                    file.WriteLine("@echo off");
-
-                    //file.WriteLine(@"net use ""\\" + adminComputerName + @"\test"" " + userPassword + @" /user:" + @domainSlashUser);
-
-                    //file.WriteLine(":copy");
-                    string copyCmd = @"xcopy ""\\" + adminComputerName + @"\test\" + dstDir + @""" """ + testFolder + dstDir + @""" /V /E /Y /Q /I";
-                    string runCmd = @" python " + testExePath;
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
-
-                    file.WriteLine(line);
-                    //file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
-                    //file.WriteLine("goto end");
-
-                    //file.WriteLine(":disconnect");
-                    //file.WriteLine(@"net use ""\\" + adminComputerName + @"\test"" /delete");
-                    //file.WriteLine("goto end");
-                    //file.WriteLine(":end");
-                }
-                StartNewCmdThread(copyPathRemote);
-            }
-
-            //---
-
-            ////----remote .bat copy consctruction
-
-            //string copyPathRemote = tempPath + "remoteCopy.bat";
-            //using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
-            //{
-            //    file.WriteLine("@echo off");
-
-            //    //file.WriteLine(@"net use ""\\" + adminComputerName + @"\test"" " + userPassword + @" /user:" + @domainSlashUser);
-
-            //    //file.WriteLine(":copy");
-            //    string line = @"xcopy ""\\" + adminComputerName + @"\test\" + dstDir + @""" """ +testFolder + dstDir + @""" /V /E /Y /Q /I";
-            //    file.WriteLine(line);
-            //    //file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
-            //    //file.WriteLine("goto end");
-
-            //    //file.WriteLine(":disconnect");
-            //    //file.WriteLine(@"net use ""\\" + adminComputerName + @"\test"" /delete");
-            //    //file.WriteLine("goto end");
-            //    //file.WriteLine(":end");
-            //}
-            ////----end
-
-            ////----copy .remoteCopy to shared network folder
-            //copyPath = tempPath + "transferRemote.bat";
-            //using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            //{
-            //    file.WriteLine("@echo off");
-            //    string line = @"xcopy """ +copyPathRemote+ @""" ""\\asb.local\staff\users\labclient\test""" + @" /Y";
-            //    file.WriteLine(line);
-            //}
-
-            //service.ExecuteCommandNoOutput(copyPath, true);
-            ////----end
-
-            ////----tell labclients to copy test files
-            //int i = 0;
-            //foreach (string computerName in selectedClients)
-            //{
-            //    string runPath = tempPath + "testRemoteCopy" + i + ".bat";
-            //    using (System.IO.StreamWriter file = new System.IO.StreamWriter(runPath))
-            //    {
-            //        string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" cmd /c (""\\asb.local\staff\users\labclient\test\remoteCopy.bat"")";
-            //        file.WriteLine(line);
-            //    }
-
-            //    //MessageBox.Show(runPath);
-            //    StartNewCmdThread(runPath);
-
-            //    i++;
-            //}
-            ////----end
-        }
-
-        public void xcopyPsychoPy(string srcDir, string dstDir, List<string> selectedClients)
-        {
-            string copyPath = tempPath + "testCopy.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                foreach (string computerName in selectedClients)
-                {
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" " + userPassword + @" /user:" + @domainSlashUser);
-
-                    file.WriteLine(":copy");
-                    string line = @"xcopy """ + srcDir + @""" ""\\" + computerName + @"\test\" + dstDir + @""" /V /E /Y /Q /I";
-                    file.WriteLine(line);
-                    file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
-                    file.WriteLine("goto end");
-
-                    file.WriteLine(":disconnect");
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" /delete");
-                    file.WriteLine("goto end");
-                    file.WriteLine(":end");
-                }
-            }
-            //MessageBox.Show(copyPath);
-            service.ExecuteCommandNoOutput(copyPath, true);
-        }
-
-        public void runPsychoPyTests(List<string> computerNames, string testExePath)
-        {
-            int i = 0;
-            foreach (string computerName in computerNames)
-            {
-                string runPath = tempPath + "testRun" + i + ".bat";
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(runPath))
-                {
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + domainSlashUser + @" -p " + userPassword + @" python " + testExePath;
-                    file.WriteLine(line);
-                }
-
-                //MessageBox.Show(runPath);
-                StartNewCmdThread(runPath);
-
-                i++;
-            }
-        }
-
-        public void xcopyPsychoPyResults(string srcWithoutComputerName, string dstFolderName, List<string> selectedClients)
-        {
-            string copyPath = tempPath + "testCopyResults.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                foreach (string computerName in selectedClients)
-                {
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" " + userPassword + @" /user:" + @domainSlashUser);
-
-                    file.WriteLine(":copy");
-                    string src = @"\\" + computerName + srcWithoutComputerName;
-                    string dst = resultFolder + computerName + @"\" + dstFolderName;
-                    string line = @"xcopy """ + src + @"\*.psydat"" """ + dst + @""" /V /E /Y /Q /I";
-                    file.WriteLine(line);
-                    line = @"xcopy """ + src + @"\*.csv"" """ + dst + @""" /V /E /Y /Q /I";
-                    file.WriteLine(line);
-                    line = @"xcopy """ + src + @"\*.log"" """ + dst + @""" /V /E /Y /Q /I";
-                    file.WriteLine(line);
-
-                    file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
-                    file.WriteLine("goto end");
-
-                    file.WriteLine(":disconnect");
-                    file.WriteLine(@"net use ""\\" + computerName + @"\test"" /delete");
-                    file.WriteLine("goto end");
-                    file.WriteLine(":end");
-                }
-            }
-            //MessageBox.Show(copyPath);
-            service.ExecuteCommandNoOutput(copyPath, true);
-        }
-
         public Thread StartNewCmdThread(string cmd)
         {
             var t = new Thread(() => RealStart(cmd));
@@ -683,6 +460,11 @@ namespace ServiceLibrary
             string strCmdText = @cmd;
             //MessageBox.Show(strCmdText);
             service.runCmd(strCmdText);
+        }
+
+        public void killRemoteProcess(string computerName, string processName)
+        {
+            new Thread(() => KillProcThread(computerName, processName)).Start();
         }
 
         private void KillProcThread(string computerName, string processName)
@@ -720,9 +502,19 @@ namespace ServiceLibrary
                     Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
                 }
             }
+
+            //-----notify ui
+            if (ProgressUpdate != null)
+                ProgressUpdate(this, new StatusEventArgs("Task Kill Completed"));
+            //-----end
         }
 
         public void ShutdownComputer(List<string> computerNames)
+        {
+            new Thread(() => ShutItThread(computerNames)).Start();
+        }
+
+        private void ShutItThread(List<string> computerNames)
         {
             Debug.WriteLine("Shutting begins >:)");
             var LocalPassword = userPassword;
@@ -775,11 +567,19 @@ namespace ServiceLibrary
                     Debug.WriteLine(err.ErrorDetails);
                 }
             }
+
+            //-----notify ui
+            if (ProgressUpdate != null)
+                ProgressUpdate(this, new StatusEventArgs("Shutdown request sent"));
+            //-----end
         }
 
-        public void killRemoteProcess(string computerName, string processName)
+        public void notifyStatus(string msg)
         {
-            new Thread(() => KillProcThread(computerName, processName)).Start();
+            //-----notify ui
+            if (ProgressUpdate != null)
+                ProgressUpdate(this, new StatusEventArgs(msg));
+            //-----end
         }
 
         public IEnumerable<string> GetFiles(string path)

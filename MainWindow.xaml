@@ -19,20 +19,16 @@
             </DataGrid.Columns>
         </DataGrid>
         <Label Content="Lab Clients:" HorizontalAlignment="Left" Margin="10,-2,0,0" VerticalAlignment="Top"/>
-        <TabControl HorizontalAlignment="Left" Height="246" Margin="195,24,0,0" VerticalAlignment="Top" Width="365">
-            <TabItem Header="PsychoPy">
+        <TabControl Name="tabControl1"  HorizontalAlignment="Left" Height="246" Margin="195,24,0,0" VerticalAlignment="Top" Width="365">
+            <TabItem Header="PsychoPy" Name="tabPsy">
                 <Grid Background="#FFE5E5E5">
-                    <Button Content="Browse" Height="30" HorizontalAlignment="Left" Margin="10,10,0,0" Name="button1" VerticalAlignment="Top" Width="76" Click="button1_Click" />
-                    <Label Content="..." Height="28" HorizontalAlignment="Left" Margin="91,10,0,0" Name="label1" VerticalAlignment="Top" />
-                    <Button IsEnabled='False' Content="Run" Height="28" HorizontalAlignment="Left" Margin="10,48,0,0" Name="button2" VerticalAlignment="Top" Width="75" Click="button2_Click" />
-                    <Button IsEnabled='True' Content="Kill" Height="28" HorizontalAlignment="Left" Margin="91,48,0,0" Name="btnKill" VerticalAlignment="Top" Width="75" Click="btnKill_Click" />
-                    <Button Content="Get Results" HorizontalAlignment="Left" Margin="10,179,0,0" VerticalAlignment="Top" Width="75" Name="btnGetResults" Height="24" Click="btnGetResults_Click" />
+                  
                 </Grid>
             </TabItem>
-            <TabItem Header="E-Prime">
+            <TabItem Header="E-Prime" Name="tabEPrime">
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
-            <TabItem Header="Z-Tree">
+            <TabItem Header="Z-Tree" Name="tabZTree">
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
         </TabControl>
@@ -43,7 +39,11 @@
         <Button Content="Startup" Margin="0,365,483,0" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="75"/>
         <Button Content="Zig-zag" Name="btnzigzag" HorizontalAlignment="Left" Margin="195,294,0,0" VerticalAlignment="Top" Width="75" Click="btnzigzag_Click"/>
         <Button Content="Zag-zig" Name="btnzagzig" HorizontalAlignment="Left" Margin="292,294,0,0" VerticalAlignment="Top" Width="75" Click="btnzagzig_Click"/>
+
         <Button Content="Update client list" HorizontalAlignment="Left" Margin="10,438,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>
         <Label Content="Admin options" HorizontalAlignment="Left" Margin="10,407,0,0" VerticalAlignment="Top"/>
+
+        <Label x:Name="lblStatus" Content="Idle" HorizontalAlignment="Left" Margin="195,362,0,0" VerticalAlignment="Top"/>
+
     </Grid>
 </Window>
