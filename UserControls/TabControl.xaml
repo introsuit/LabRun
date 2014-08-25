@@ -5,11 +5,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-    <Grid Background="#FFE5E5E5">
+    <Grid Background="#FFE5E5E5" Margin="0,0,-30,0">
         <Button Content="Browse" Height="30" HorizontalAlignment="Left" Margin="10,10,0,0" Name="button1" VerticalAlignment="Top" Width="76" Click="button1_Click" />
         <Label Content="..." Height="28" HorizontalAlignment="Left" Margin="91,10,0,0" Name="label1" VerticalAlignment="Top" />
         <Button IsEnabled='False' Content="Run" Height="28" HorizontalAlignment="Left" Margin="10,48,0,0" Name="btnRun" VerticalAlignment="Top" Width="75" Click="btnRun_Click" />
         <Button IsEnabled='True' Content="Kill" Height="28" HorizontalAlignment="Left" Margin="91,48,0,0" Name="btnKill" VerticalAlignment="Top" Width="75" Click="btnKill_Click" />
         <Button Content="Get Results" HorizontalAlignment="Left" Margin="10,179,0,0" VerticalAlignment="Top" Width="75" Name="btnGetResults" Height="24" Click="btnGetResults_Click" />
+        <Image Name="imgTest" HorizontalAlignment="Left" Height="100" Margin="220,103,0,0" VerticalAlignment="Top" Width="100"/>
     </Grid>
 </UserControl>

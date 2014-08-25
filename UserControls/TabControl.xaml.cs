@@ -12,24 +12,24 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ServiceLibrary;
+using System.Reflection;
 
 namespace UserControls
 {
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
-    public partial class TabControl1 : UserControl
+    public partial class TabControl : UserControl
     {
         private MainUI parent = null;
         private TestApp testApp = null;
-        private Type type;
         private Service service = Service.getInstance();
 
-        public TabControl1(MainUI parent, Type type)
+        public TabControl(MainUI parent, TestApp testApp)
         {
             InitializeComponent();
             this.parent = parent;
-            this.type = type;
+            this.testApp = testApp;
         }
 
         private void button1_Click(object sender, RoutedEventArgs e)
@@ -38,8 +38,8 @@ namespace UserControls
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
 
             // Set filter for file extension and default file extension 
-            dlg.DefaultExt = ".py";
-            dlg.Filter = "Python files (*.py)|*.py|PsychoPy Test Files (*.psyexp)|*.psyexp";
+            dlg.DefaultExt = testApp.Extension;
+            dlg.Filter = testApp.ExtensionDescription;
 
             // Display OpenFileDialog by calling ShowDialog method 
             Nullable<bool> result = dlg.ShowDialog();
@@ -53,9 +53,14 @@ namespace UserControls
                 label1.Content = testFullPath;
                 btnRun.IsEnabled = true;
 
-                //testApp = new PsychoPy(testFullPath);
-                testApp = (TestApp)Activator.CreateInstance(type);
+                testApp.Initialize(testFullPath);
             }
+        }
+
+        public void setTestLogo(string path)
+        {
+            var uriSource = new Uri(path, UriKind.Relative);
+            imgTest.Source = new BitmapImage(uriSource);
         }
 
         private void btnRun_Click(object sender, RoutedEventArgs e)
@@ -69,16 +74,16 @@ namespace UserControls
             }
 
             parent.updateStatus("In Progress...");
-
             testApp.TransferAndRun(computerNames);
         }
 
         private void btnKill_Click(object sender, RoutedEventArgs e)
         {
             parent.updateStatus("In Progress...");
+            string appExeName = testApp.AppExeName;
             foreach (string computerName in parent.getSelectedClients())
             {
-                service.killRemoteProcess(computerName, "python.exe");
+                service.killRemoteProcess(computerName, appExeName);
             }
         }
 

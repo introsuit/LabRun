@@ -49,13 +49,13 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="TabControl1.xaml">
+    <Page Include="TabControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Compile Include="MainUI.cs" />
-    <Compile Include="TabControl1.xaml.cs">
-      <DependentUpon>TabControl1.xaml</DependentUpon>
+    <Compile Include="TabControl.xaml.cs">
+      <DependentUpon>TabControl.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

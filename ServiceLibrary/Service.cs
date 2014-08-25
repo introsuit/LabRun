@@ -20,9 +20,8 @@ namespace ServiceLibrary
         private readonly string userPassword;
         private readonly string domainSlashUser;
         private readonly string userAtDomain;
-       // private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
-        private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
-        private static readonly string resultFolder = @"C:\Dump\";
+        private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
+        //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
         private static readonly string testFolder = @"C:\test\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
         private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");

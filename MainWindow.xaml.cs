@@ -66,9 +66,17 @@ namespace LabRun
 
         private void initTabs()
         {
-            tabPsy.Content = new UserControls.TabControl(this, typeof(PsychoPy));
-            tabEPrime.Content = new UserControls.TabControl(this, typeof(EPrime));
-            tabZTree.Content = new UserControls.TabControl(this, typeof(ZTree));
+            UserControls.TabControl tC = new UserControls.TabControl(this, new PsychoPy());         
+            tC.setTestLogo(@"\Images\Psychopy.png");
+            tabPsy.Content = tC;
+
+            UserControls.TabControl tC2 = new UserControls.TabControl(this, new EPrime());
+            tC2.setTestLogo(@"\Images\eprime.png");
+            tabEPrime.Content = tC2;
+
+            UserControls.TabControl tC3 = new UserControls.TabControl(this, new ZTree());
+            tC3.setTestLogo(@"\Images\ztree.png");
+            tabZTree.Content = tC3;
         }
 
         public void initClients()

@@ -98,14 +98,19 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\UserControls\UserControls.csproj">
-      <Project>{E8983DE8-200B-44DC-B804-E8EA921680DC}</Project>
-      <Name>UserControls</Name>
-    </ProjectReference>
     <ProjectReference Include="ServiceLibrary\ServiceLibrary.csproj">
       <Project>{50B9C0FD-1F57-404A-98A2-F29D5510DA71}</Project>
       <Name>ServiceLibrary</Name>
     </ProjectReference>
+    <ProjectReference Include="UserControls\UserControls.csproj">
+      <Project>{2015a9bb-d0ee-4089-825e-db3c08fc5db7}</Project>
+      <Name>UserControls</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\eprime.png" />
+    <Resource Include="Images\Psychopy.png" />
+    <Resource Include="Images\ztree.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -7,6 +7,15 @@ namespace ServiceLibrary
 {
     public class ZTree : TestApp
     {
-        public ZTree(string testFilePath) : base("ZTree", @"Path to ZTree...", testFilePath) { }
+        public ZTree() : base("ZTree", @"Path to ZTree...") 
+        {
+            Extension = "ztree";
+            ExtensionDescription = "ZTree Test Files (*.ztree)|*.ztree";
+
+            resultExts = new string[3];
+            resultExts[0] = "psydat";
+            resultExts[1] = "csv";
+            resultExts[2] = "log";
+        }
     }
 }
