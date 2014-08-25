@@ -59,8 +59,13 @@ namespace LabRun
         }
         public void initClients()
         {
-            dgrClients.ItemsSource = service.GetLabComputersNew().OrderBy(o=>o.BoothNo).ToList();
+            List<LabClient> mylist = new List<LabClient>();
+            mylist = service.GetLabComputersFromStorage();
+            dgrClients.ItemsSource = mylist;
         }
+
+
+
 
         private void button1_Click(object sender, RoutedEventArgs e)
         {
@@ -120,6 +125,17 @@ namespace LabRun
                 computerNames.Add(client.ComputerName);
             }
             return computerNames;
+        }
+
+        private List<string> getSelectedCompsMacs() {
+            List<string> selectedMACs = new List<string>();
+            List<LabClient> clients = dgrClients.SelectedItems.Cast<LabClient>().ToList();
+
+            foreach (LabClient client in clients)
+            {
+                selectedMACs.Add(client.Mac);
+            }
+            return selectedMACs;
         }
 
         private void btnKill_Click(object sender, RoutedEventArgs e)
@@ -278,10 +294,46 @@ namespace LabRun
                 dgrClients.SelectedItems.Add(es);
             }
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+        List<string> list = getSelectedCompsMacs();
+        foreach (string mac in list)
+        {
+            try
+            {
+                MACAddress.SendWOLPacket(mac);
+
+            }
+            catch (Exception Error)
+            {
+                MessageBox.Show(
+                string.Format("Error:\n\n{0}", Error.Message), "Error");
+            }
+        }     
+}
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to update the list of computers? Please make sure that the computers are all turned on after the server, to enable discovery. Check ARP list to be sure or restart all lab computers manually. Do you wish to continue?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+
+                try
+                {
+                    dgrClients.ItemsSource = service.GetLabComputersNew2();
+                }
+                catch (Exception ex) {
+                    MessageBox.Show("ARP error! The computer is not listed in the ARP pool. Restart client computers to solve the problem.", "ARP error!");
+                }
+            }
+            
+        }
+        }
         
 
 
 
 
     }
-}
+

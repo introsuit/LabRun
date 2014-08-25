@@ -9,11 +9,15 @@ namespace ServiceLibrary
     {
         public string ComputerName { get; set; }
         public int? BoothNo { get; set; }
+        public string Mac { get; set; }
+        public string Ip { get; set; }
 
-        public LabClient(string computerName, int? boothNo)
+        public LabClient(string computerName, int? boothNo, string mac, string ip)
         {
             this.ComputerName = computerName;
             this.BoothNo = boothNo;
+            this.Mac = mac;
+            this.Ip = ip;
         }
 
         public override bool Equals(System.Object obj)
