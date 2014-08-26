@@ -448,6 +448,11 @@ namespace ServiceLibrary
             process.Close();
         }
 
+        public void ProcessStartSimple(string path)
+        {
+            Process.Start(path);
+        }
+
         public Thread StartNewCmdThread(string cmd)
         {
             var t = new Thread(() => RealStart(cmd));
