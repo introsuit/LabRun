@@ -95,9 +95,14 @@ namespace LabRun
             tabZTree.Content = tC3;
         }
 
-        private List<string> getSelectedClients()
+        public List<LabClient> getSelectedClients()
         {
-            List<LabClient> clients = dgrClients.SelectedItems.Cast<LabClient>().ToList(); ;
+            return dgrClients.SelectedItems.Cast<LabClient>().ToList();
+        }
+
+        public List<string> getSelectedClientsNames()
+        {
+            List<LabClient> clients = dgrClients.SelectedItems.Cast<LabClient>().ToList();
 
             List<string> computerNames = new List<string>();
             foreach (LabClient client in clients)
@@ -122,7 +127,7 @@ namespace LabRun
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
         {
             lblStatus.Content = "In Progress...";
-            service.ShutdownComputer(getSelectedClients());
+            service.ShutdownComputer(getSelectedClientsNames());
         }
 
         public IEnumerable<DataGridRow> GetDataGridRows(DataGrid grid)
@@ -293,11 +298,6 @@ namespace LabRun
         public void updateStatus(string msg)
         {
             lblStatus.Content = msg;
-        }
-
-        List<string> MainUI.getSelectedClients()
-        {
-            return getSelectedClients();
         }
     }
 }

@@ -10,7 +10,7 @@ namespace ServiceLibrary
 {
     public abstract class TestApp
     {
-        private Service service = Service.getInstance();
+        protected Service service = Service.getInstance();
         protected string applicationName;
         protected string applicationExecutableName;
         protected string resultsFolderName = "Results";
@@ -47,14 +47,14 @@ namespace ServiceLibrary
             testFolderName = Path.GetFileName(Path.GetDirectoryName(testFilePath));
         }
 
-        public Thread TransferAndRun(List<string> selectedClients)
+        public virtual Thread TransferAndRun(List<LabClient> selectedClients)
         {
             var t = new Thread(() => xcopy(selectedClients));
             t.Start();
             return t;
         }
 
-        private void xcopy(List<string> selectedClients)
+        private void xcopy(List<LabClient> selectedClients)
         {
             //-----local copy
             string copyPath = Path.Combine(tempPath, "localCopy.bat");
@@ -71,9 +71,9 @@ namespace ServiceLibrary
 
             //---onecall to client: copy and run
             int i = 0;
-            foreach (string computerName in selectedClients)
+            foreach (LabClient client in selectedClients)
             {
-                string copyPathRemote = Path.Combine(tempPath, "remoteCopyRun" + computerName + ".bat");
+                string copyPathRemote = Path.Combine(tempPath, "remoteCopyRun" + client.ComputerName + ".bat");
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                 {
                     file.WriteLine("@echo off");
@@ -83,7 +83,7 @@ namespace ServiceLibrary
                     string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
 
                     string runCmd = @"""" + applicationExecutableName + @""" """ + Path.Combine(service.TestFolder, applicationName, testFolderName, Path.GetFileName(testFilePath)) + @"""";
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
 
                     file.WriteLine(line);
 

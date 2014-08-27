@@ -65,7 +65,7 @@ namespace UserControls
 
         private void btnRun_Click(object sender, RoutedEventArgs e)
         {
-            List<string> computerNames = parent.getSelectedClients();
+            List<LabClient> computerNames = parent.getSelectedClients();
 
             if (computerNames.Count == 0)
             {
@@ -81,7 +81,7 @@ namespace UserControls
         {
             parent.updateStatus("In Progress...");
             string appExeName = testApp.AppExeName;
-            foreach (string computerName in parent.getSelectedClients())
+            foreach (string computerName in parent.getSelectedClientsNames())
             {
                 try
                 {
@@ -100,7 +100,7 @@ namespace UserControls
 
             try
             {
-                testApp.TransferResults(parent.getSelectedClients());
+                testApp.TransferResults(parent.getSelectedClientsNames());
             }
             catch (TimeoutException ex)
             {
