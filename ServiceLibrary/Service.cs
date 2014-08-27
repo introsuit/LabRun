@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Collections;
 using System.Text.RegularExpressions;
 using System.Net;
+using System.Windows.Forms;
 
 
 namespace ServiceLibrary
@@ -83,7 +84,10 @@ namespace ServiceLibrary
             }
         }
 
-       
+        /// <summary>
+        /// Reads the clients.txt into the program for a list of computers in a specific lab.
+        /// </summary>
+        /// <returns>List of clients</returns>
 
         public List<LabClient> GetLabComputersFromStorage()
         {
@@ -91,6 +95,7 @@ namespace ServiceLibrary
             List<LabClient> clientlist = new List<LabClient>();
             using (System.IO.StreamReader file = new System.IO.StreamReader("clients.txt"))
             {
+                int roomNo;
                 int boothNo;
                 string line;
                 string mac;
@@ -103,16 +108,17 @@ namespace ServiceLibrary
                     {
                         Debug.WriteLine(temp);
                     }
-                    boothNo = Int32.Parse(data[0]);
-                    compname = data[1];
-                    ip = data[2];
-                    mac = data[3];
+                    roomNo = Int32.Parse(data[0]);
+                    boothNo = Int32.Parse(data[1]);
+                    compname = data[2];
+                    ip = data[3];
+                    mac = data[4];
                     Debug.WriteLine(boothNo);
                     Debug.WriteLine(compname);
                     Debug.WriteLine(ip);
                     Debug.WriteLine(mac);
 
-                    LabClient client = new LabClient(compname, boothNo, mac, ip);
+                    LabClient client = new LabClient(roomNo, compname, boothNo, mac, ip);
                     clientlist.Add(client);
 
                 }
@@ -121,43 +127,59 @@ namespace ServiceLibrary
             return clientlist;
         }
 
+        public List<LabClient> filterForRoom(List<LabClient> clients, int roomNo) {
+            List<LabClient> newClients = new List<LabClient>();
+            foreach (LabClient client in clients) { 
+                if (client.RoomNo == roomNo)
+                    newClients.Add(client);
+            }
+            return newClients;
+        }
+
         /// <summary>
         /// Downloads the bridge's list of computers which have MAC and booth number.
-        /// Then connects MACs to IP-s using ARP and checks computer names using IP.
-        /// Throws exception if ARP list is not filled up sufficiently.
+        /// Then connects MACs to IP-s using local ARP pool, and looks up computer names using NBTSTAT from IP address.
+        /// Throws exception if ARP list is not filled up sufficiently or the bridge's client list cannot be downloaded.
         /// </summary>
         /// <returns>List of clients</returns>
 
 
-        public List<LabClient> GetLabComputersNew2()
+        public List<LabClient> GetLabComputersNew2(int labNo)
         {
 
             List<LabClient> clientlist = new List<LabClient>();
 //Get MAC addresses from Bridge
-            String contents = new System.Net.WebClient().DownloadString("http://10.204.77.17:8000/?downloadcfg=1");
-            // Write it to a file.
-            System.IO.StreamWriter file0 = new System.IO.StreamWriter("bridgelist.txt");
-            file0.WriteLine(contents);
-            file0.Close();
+            try
+            {
+                String contents = new System.Net.WebClient().DownloadString("http://10.204.77.17:8000/?downloadcfg=1");
+                // Write bridge list to a file.
+                System.IO.StreamWriter file0 = new System.IO.StreamWriter("bridgelist.txt");
+                file0.WriteLine(contents);
+                file0.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error trying to reach the bridge's client list. Error: "+ex.Message);
+            }
+
 
             //Get MAC addresses from list
             using (System.IO.StreamReader file = new System.IO.StreamReader("bridgelist.txt"))
             {
+                int roomNo;
                 int boothNo;
                 string line;
                 string mac;
                 while (((line = file.ReadLine()) != null)&&(line.Length > 10))
                 {
-                    if (Int32.Parse(line.Substring(0, 1)) != 2)
-                    {
+                        roomNo = Int32.Parse(line.Substring(0, 1));
                         mac = line.Substring(4);
                         mac = mac.Replace(" ", String.Empty);
                         mac = mac.Replace(":", String.Empty);
                         mac = mac.Replace("\u0009", String.Empty);
                         boothNo = Int32.Parse(line.Substring(2, 2).Trim());
-                        LabClient client = new LabClient("", boothNo, mac, "");
-                        clientlist.Add(client);
-                    }
+                        LabClient client = new LabClient(roomNo, "", boothNo, mac, "");
+                        clientlist.Add(client);     
                 }
             }
 
@@ -242,7 +264,7 @@ namespace ServiceLibrary
                 string clientListString = "";
                 foreach (LabClient client in clientlist)
                 {
-                    clientListString += client.BoothNo + " " + client.ComputerName + " " + client.Ip + " " + client.Mac + Environment.NewLine;
+                    clientListString +=client.RoomNo + " " + client.BoothNo + " " + client.ComputerName + " " + client.Ip + " " + client.Mac + Environment.NewLine;
                     System.IO.StreamWriter fileClients = new System.IO.StreamWriter("clients.txt");
                     fileClients.WriteLine(clientListString);
                     fileClients.Close();

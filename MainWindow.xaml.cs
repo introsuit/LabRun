@@ -30,10 +30,11 @@ namespace LabRun
     {
         private Service service;
         List<LabClient> clients = new List<LabClient>();
+        List<LabClient> selectedCLients = new List<LabClient>();
+        public int labNo = 1;
 
         public MainWindow()
         {
-            InitializeComponent();
 
             try
             {
@@ -50,7 +51,8 @@ namespace LabRun
                     return;
                 }
             }
-
+            InitializeComponent();
+           
             service.ProgressUpdate += (s, e) =>
             {
                 Dispatcher.Invoke((Action)delegate()
@@ -66,12 +68,25 @@ namespace LabRun
         }
         public void initClients()
         {
-            List<LabClient> mylist = new List<LabClient>();
-            mylist = service.GetLabComputersFromStorage();
-            dgrClients.ItemsSource = mylist;
+            clients = service.GetLabComputersFromStorage();
+            selectedCLients = service.filterForRoom(clients, labNo);
+            dgrClients.ItemsSource = selectedCLients;
+            
         }
 
-
+        public void updateClientsGrid() {
+            if (labNo == 0)
+            {
+                selectedCLients.Clear();
+                dgrClients.ItemsSource = this.clients;
+            }
+            else
+            {
+                selectedCLients.Clear();
+                selectedCLients = service.filterForRoom(clients, labNo);
+                dgrClients.ItemsSource = selectedCLients;
+            }
+        }
 
 
         private void button1_Click(object sender, RoutedEventArgs e)
@@ -93,6 +108,11 @@ namespace LabRun
             UserControls.TabControl tC3 = new UserControls.TabControl(this, new ZTree());
             tC3.setTestLogo(@"\Images\ztree.png");
             tabZTree.Content = tC3;
+
+            UserControls.ChromeTab tC4 = new UserControls.ChromeTab(this);
+            tC4.setTestLogo(@"\Images\chrome-logo.png");
+            tabChrome.Content = tC4;
+
         }
 
 
@@ -121,8 +141,6 @@ namespace LabRun
             }
             return selectedMACs;
         }
-
-
 
 
 
@@ -284,7 +302,7 @@ namespace LabRun
 
                 try
                 {
-                    dgrClients.ItemsSource = service.GetLabComputersNew2();
+                    dgrClients.ItemsSource = service.GetLabComputersNew2(labNo);
                 }
                 catch (Exception ex)
                 {
@@ -306,6 +324,46 @@ namespace LabRun
         {
             return getSelectedClients();
         }
+
+        private void btnSelectNone_Click(object sender, RoutedEventArgs e)
+        {
+            dgrClients.SelectedItems.Clear();
+        }
+
+        private void btnSelectAll_Click(object sender, RoutedEventArgs e)
+        {
+            List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
+            foreach (LabClient client in clients)
+            {
+                dgrClients.SelectedItems.Add(client);
+            }
+        }
+
+        private void cmbBxLabSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            string labNo = ((ComboBoxItem)cmbBxLabSelect.SelectedItem).Tag.ToString();
+            switch (labNo)
+            {
+                case  "lab1":
+                    {
+                        this.labNo = 1;
+                        break;
+                    }
+                case "lab2":
+                    {
+                        this.labNo = 2;
+                        break;
+                    }
+                case "both":
+                    {
+                        this.labNo = 0;
+                        break;
+                    }
+            }
+            updateClientsGrid();
+
+        }
     }
 }
+
 

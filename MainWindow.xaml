@@ -1,11 +1,11 @@
 ﻿<Window x:Class="LabRun.MainWindow"
          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="LabRun" Height="501.572" Width="574.552">
+        Title="LabRun" Height="599.572" Width="574.552">
     <Grid>
 
-        <Button Content="Shutdown" Height="20" HorizontalAlignment="Left" Margin="103,365,0,0" Name="btnShutdown" VerticalAlignment="Top" Width="75" Click="btnShutdown_Click" />
-        <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="10,24,0,0" VerticalAlignment="Top" Height="246" Width="168" >
+        <Button Content="Shutdown" Height="20" HorizontalAlignment="Left" Margin="103,437,0,0" Name="btnShutdown" VerticalAlignment="Top" Width="75" Click="btnShutdown_Click" />
+        <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="10,96,0,0" VerticalAlignment="Top" Height="246" Width="168" >
             <DataGrid.Resources>
                 <Style TargetType="DataGridRow">
                     <Style.Resources>
@@ -18,11 +18,11 @@
                 <DataGridTextColumn Header="Booth No"  Binding="{Binding BoothNo}"/>
             </DataGrid.Columns>
         </DataGrid>
-        <Label Content="Lab Clients:" HorizontalAlignment="Left" Margin="10,-2,0,0" VerticalAlignment="Top"/>
-        <TabControl Name="tabControl1"  HorizontalAlignment="Left" Height="246" Margin="195,24,0,0" VerticalAlignment="Top" Width="365">
+        <Label Content="Lab Clients:" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top"/>
+        <TabControl Name="tabControl1"  HorizontalAlignment="Left" Height="246" Margin="195,96,0,0" VerticalAlignment="Top" Width="365">
             <TabItem Header="PsychoPy" Name="tabPsy">
                 <Grid Background="#FFE5E5E5">
-                  
+
                 </Grid>
             </TabItem>
             <TabItem Header="E-Prime" Name="tabEPrime">
@@ -31,19 +31,30 @@
             <TabItem Header="Z-Tree" Name="tabZTree">
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
+            <TabItem Header="Chrome" Name="tabChrome">
+                <Grid Background="#FFE5E5E5"/>
+            </TabItem>
         </TabControl>
-        <Button Content="Even" Name="btnEven" HorizontalAlignment="Left" Margin="10,294,0,0" VerticalAlignment="Top" Width="75" Click="btnEven_Click"/>
-        <Button Content="Odd" Name="btnOdd" HorizontalAlignment="Left" Margin="103,294,0,0" VerticalAlignment="Top" Width="75" Click="btnOdd_Click" />
-        <Label Content="Select:" HorizontalAlignment="Left" Margin="10,268,0,0" VerticalAlignment="Top"/>
-        <Label Content="Power options:" HorizontalAlignment="Left" Margin="9,334,0,0" VerticalAlignment="Top" />
-        <Button Content="Startup" Margin="0,365,483,0" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="75"/>
-        <Button Content="Zig-zag" Name="btnzigzag" HorizontalAlignment="Left" Margin="195,294,0,0" VerticalAlignment="Top" Width="75" Click="btnzigzag_Click"/>
-        <Button Content="Zag-zig" Name="btnzagzig" HorizontalAlignment="Left" Margin="292,294,0,0" VerticalAlignment="Top" Width="75" Click="btnzagzig_Click"/>
+        <Button Content="Even" Name="btnEven" HorizontalAlignment="Left" Margin="104,374,0,0" VerticalAlignment="Top" Width="75" Click="btnEven_Click"/>
+        <Button Content="Odd" Name="btnOdd" HorizontalAlignment="Left" Margin="197,374,0,0" VerticalAlignment="Top" Width="75" Click="btnOdd_Click" />
+        <Label Content="Select:" HorizontalAlignment="Left" Margin="10,340,0,0" VerticalAlignment="Top"/>
+        <Label Content="Power options:" HorizontalAlignment="Left" Margin="9,406,0,0" VerticalAlignment="Top" />
+        <Button Content="Startup" Margin="0,437,483,0" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="75"/>
+        <Button Content="Zig-zag" Name="btnzigzag" HorizontalAlignment="Left" Margin="289,374,0,0" VerticalAlignment="Top" Width="75" Click="btnzigzag_Click"/>
+        <Button Content="Zag-zig" Name="btnzagzig" HorizontalAlignment="Left" Margin="386,374,0,0" VerticalAlignment="Top" Width="75" Click="btnzagzig_Click"/>
 
-        <Button Content="Update client list" HorizontalAlignment="Left" Margin="10,438,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>
-        <Label Content="Admin options" HorizontalAlignment="Left" Margin="10,407,0,0" VerticalAlignment="Top"/>
+        <Button Content="Update client list" HorizontalAlignment="Left" Margin="10,510,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>
+        <Label Content="Admin options" HorizontalAlignment="Left" Margin="10,479,0,0" VerticalAlignment="Top"/>
 
-        <Label x:Name="lblStatus" Content="Idle" HorizontalAlignment="Left" Margin="195,362,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="lblStatus" Content="Idle" HorizontalAlignment="Left" Margin="195,434,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="btnSelectNone" Content="None" HorizontalAlignment="Left" Margin="483,374,0,0" VerticalAlignment="Top" Width="75" Click="btnSelectNone_Click"/>
+        <Button x:Name="btnSelectAll" Content="All" HorizontalAlignment="Left" Margin="10,374,0,0" VerticalAlignment="Top" Width="75" Click="btnSelectAll_Click"/>
+        <ComboBox x:Name="cmbBxLabSelect" SelectedIndex="0" HorizontalAlignment="Left" Margin="10,43,0,0" VerticalAlignment="Top" Width="168" SelectionChanged="cmbBxLabSelect_SelectionChanged">
+            <ComboBoxItem Name="lab1" Tag="lab1"> Computer lab no. 1</ComboBoxItem>
+            <ComboBoxItem Name="lab2" Tag="lab2"> Computer lab no. 2</ComboBoxItem>
+            <ComboBoxItem Name="both" Tag="both">Both labs</ComboBoxItem>
+        </ComboBox>
+        <Label Content="Select lab:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>
