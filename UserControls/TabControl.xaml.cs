@@ -74,11 +74,14 @@ namespace UserControls
             }
 
             parent.updateStatus("In Progress...");
-            if(testApp is ZTree){
+            if (testApp is ZTree)
+            {
                 WindowSize winSize = (WindowSize)cmbWindowSizes.SelectedValue;
                 ((ZTree)testApp).TransferAndRun(computerNames, winSize);
-            }else {
-testApp.TransferAndRun(computerNames);
+            }
+            else
+            {
+                testApp.TransferAndRun(computerNames);
             }
         }
 

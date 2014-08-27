@@ -49,11 +49,18 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="ChromeTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="TabControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Compile Include="MainUI.cs" />
+    <Compile Include="ChromeTab.xaml.cs">
+      <DependentUpon>ChromeTab.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TabControl.xaml.cs">
       <DependentUpon>TabControl.xaml</DependentUpon>
       <SubType>Code</SubType>

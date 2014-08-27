@@ -7,13 +7,15 @@ namespace ServiceLibrary
 {
     public class LabClient
     {
+        public int RoomNo { get; set; }
         public string ComputerName { get; set; }
         public int? BoothNo { get; set; }
         public string Mac { get; set; }
         public string Ip { get; set; }
 
-        public LabClient(string computerName, int? boothNo, string mac, string ip)
+        public LabClient(int RoomNo, string computerName, int? boothNo, string mac, string ip)
         {
+            this.RoomNo = RoomNo;
             this.ComputerName = computerName;
             this.BoothNo = boothNo;
             this.Mac = mac;
