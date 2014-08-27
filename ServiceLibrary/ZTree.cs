@@ -15,13 +15,13 @@ namespace ServiceLibrary
         public ZTree()
             : base("ZTree", @"C:\Cobe Lab\ZTree\ZTree\zleaf.exe")
         {
-            Extension = "ztt";
-            ExtensionDescription = "ZTree Test Files (*.ztt)|*.ztt";
+            //Extension = "ztt";
+            //ExtensionDescription = "ZTree Test Files (*.ztt)|*.ztt";
 
-            resultExts = new string[3];
-            resultExts[0] = "psydat";
-            resultExts[1] = "csv";
-            resultExts[2] = "log";
+            resultExts.Add("xls");
+            resultExts.Add("sbj");
+            resultExts.Add("pay");
+            resultExts.Add("pay");
         }
 
         public Thread TransferAndRun(List<LabClient> selectedClients, WindowSize windowSize)
@@ -45,10 +45,6 @@ namespace ServiceLibrary
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
                 {
                     file.WriteLine("@echo off");
-
-                    string srcDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, testFolderName);
-                    string dstDir = Path.Combine(service.TestFolder, applicationName, testFolderName);
-
                     string adminCompName = System.Environment.MachineName;
 
                     //may need adding zero in front for <10no leaves
@@ -59,12 +55,9 @@ namespace ServiceLibrary
                     //resolution setting
                     string winSize = "/size " + windowSize.Width + "x" + windowSize.Height;
 
-
                     string runCmd = @"""" + applicationExecutableName + @""" /name Zleaf_" + zleafNo + @" /server " + adminCompName + @" /language en " + winSize;
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + @" " + runCmd;
-
                     file.WriteLine(line);
-
                 }
                 service.StartNewCmdThread(batFileName);
                 i++;

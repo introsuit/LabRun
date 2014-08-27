@@ -29,8 +29,9 @@ namespace LabRun
     public partial class MainWindow : Window, MainUI
     {
         private Service service;
-        List<LabClient> clients = new List<LabClient>();
-        List<LabClient> selectedCLients = new List<LabClient>();
+        private List<LabClient> clients = new List<LabClient>();
+        private List<LabClient> selectedCLients = new List<LabClient>();
+        private List<ControlUnit> tabControls = new List<ControlUnit>();
         public int labNo = 1;
 
         public MainWindow()
@@ -108,36 +109,30 @@ namespace LabRun
             UserControls.TabControl tC = new UserControls.TabControl(this, new PsychoPy());
             tC.setTestLogo(@"\Images\Psychopy.png");
             tabPsy.Content = tC;
+            tabControls.Add(tC);
 
             UserControls.TabControl tC2 = new UserControls.TabControl(this, new EPrime());
             tC2.setTestLogo(@"\Images\eprime.png");
             tabEPrime.Content = tC2;
+            tabControls.Add(tC2);
 
             UserControls.TabControl tC3 = new UserControls.TabControl(this, new ZTree());
             tC3.setTestLogo(@"\Images\ztree.png");
             tabZTree.Content = tC3;
+            tabControls.Add(tC3);
 
             ((Label)tC3.FindName("lblWindowSize")).Visibility = Visibility.Visible;
             ComboBox cmbWinSizes = (ComboBox)tC3.FindName("cmbWindowSizes");
             cmbWinSizes.Visibility = Visibility.Visible;
             cmbWinSizes.ItemsSource = service.WindowSizes;
-            //Grid mainGrid = (Grid)tC3.FindName("MainGrid");
-
-            //foreach (UIElement child in mainGrid.Children)
-            //{
-            //    if (child is Control)
-            //    {
-            //        //if (((Control)child).Tag.Equals("ztree"))
-            //        //{
-            //        //    //child.Visibility = Visibility.Visible;
-            //        //}
-            //    }                     
-            //}
-
+            ((Button)tC3.FindName("btnBrowse")).Visibility = Visibility.Hidden;
+            ((Label)tC3.FindName("lblBrowse")).Visibility = Visibility.Hidden;
+            ((Label)tC3.FindName("lblZTreeInfo")).Visibility = Visibility.Visible;
 
             UserControls.ChromeTab tC4 = new UserControls.ChromeTab(this);
             tC4.setTestLogo(@"\Images\chrome-logo.png");
             tabChrome.Content = tC4;
+            tabControls.Add(tC4);
         }
 
         public List<LabClient> getSelectedClients()
@@ -387,6 +382,20 @@ namespace LabRun
             }
             updateClientsGrid();
 
+        }
+
+        private void dgrClients_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            bool smthSelected = dgrClients.SelectedItems.Count > 0;
+            foreach (ControlUnit tab in tabControls)
+            {
+                tab.ButtonClickable(smthSelected);
+            }
+        }
+
+        private void dgrClients_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            //MessageBox.Show("f");
         }
 
     }

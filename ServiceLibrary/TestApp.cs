@@ -26,7 +26,7 @@ namespace ServiceLibrary
             }
         }
 
-        protected string[] resultExts;
+        protected List<string> resultExts = new List<string>();
 
         //e.g.: "MyTest"
         protected string testFolderName;
@@ -164,12 +164,14 @@ namespace ServiceLibrary
                     string src = Path.Combine(service.TestFolder, applicationName, testFolderName);
                     string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, applicationName, computerName, testFolderName) + @""" /V /E /Y /Q /I";
 
-                    string copyCmdpsy = @"xcopy """ + Path.Combine(src, "*." + resultExts[0]) + @""" """ + dst;
-                    string copyCmdcsv = @"xcopy """ + Path.Combine(src, "*." + resultExts[1]) + @""" """ + dst;
-                    string copyCmdlog = @"xcopy """ + Path.Combine(src, "*." + resultExts[2]) + @""" """ + dst;
+                    string resultFiles = "";
+                    foreach(string resultExt in resultExts){
+                        resultFiles += @"xcopy """ + Path.Combine(src, "*." + resultExt) + @""" """ + dst + " ^& ";
+                    }
+                    resultFiles = resultFiles.Substring(0, resultFiles.Length - 4);
                     
                     string completionNotifyFile = @"copy NUL " + Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, applicationName, completionFileName + computerName);
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmdpsy + @" ^& " + copyCmdcsv + @" ^& " + copyCmdlog + @" ^& " + completionNotifyFile + @")";
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + resultFiles + @" ^& " + completionNotifyFile + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(copyPathRemote);

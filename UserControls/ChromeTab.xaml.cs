@@ -18,9 +18,8 @@ namespace UserControls
     /// <summary>
     /// Interaction logic for Page1.xaml
     /// </summary>
-    public partial class ChromeTab : UserControl
+    public partial class ChromeTab : UserControl, ControlUnit
     {
-
         private MainUI parent = null;
         private TestApp testApp = null;
         private Service service = Service.getInstance();
@@ -45,5 +44,10 @@ namespace UserControls
         }
 
 
+
+        public void ButtonClickable(bool enabled)
+        {
+            btnRun.IsEnabled = enabled;
+        }
     }
 }

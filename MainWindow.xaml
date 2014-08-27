@@ -4,8 +4,8 @@
         Title="LabRun" Height="599.572" Width="574.552">
     <Grid>
 
-        <Button Content="Shutdown" Height="20" HorizontalAlignment="Left" Margin="103,437,0,0" Name="btnShutdown" VerticalAlignment="Top" Width="75" Click="btnShutdown_Click" />
-        <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="10,96,0,0" VerticalAlignment="Top" Height="246" Width="168" >
+        <Button Content="Shutdown" Height="23" HorizontalAlignment="Left" Margin="103,437,0,0" Name="btnShutdown" VerticalAlignment="Top" Width="75" Click="btnShutdown_Click" />
+        <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="10,96,0,0" VerticalAlignment="Top" Height="246" Width="168" SelectionChanged="dgrClients_SelectionChanged" SelectedCellsChanged="dgrClients_SelectedCellsChanged" >
             <DataGrid.Resources>
                 <Style TargetType="DataGridRow">
                     <Style.Resources>
@@ -39,14 +39,14 @@
         <Button Content="Odd" Name="btnOdd" HorizontalAlignment="Left" Margin="197,374,0,0" VerticalAlignment="Top" Width="75" Click="btnOdd_Click" />
         <Label Content="Select:" HorizontalAlignment="Left" Margin="10,340,0,0" VerticalAlignment="Top"/>
         <Label Content="Power options:" HorizontalAlignment="Left" Margin="9,406,0,0" VerticalAlignment="Top" />
-        <Button Content="Startup" Margin="0,437,483,0" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="75"/>
+        <Button Name="btnStartUp" Content="Startup" Margin="0,437,483,0" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="75"/>
         <Button Content="Zig-zag" Name="btnzigzag" HorizontalAlignment="Left" Margin="289,374,0,0" VerticalAlignment="Top" Width="75" Click="btnzigzag_Click"/>
         <Button Content="Zag-zig" Name="btnzagzig" HorizontalAlignment="Left" Margin="386,374,0,0" VerticalAlignment="Top" Width="75" Click="btnzagzig_Click"/>
 
-        <Button Content="Update client list" HorizontalAlignment="Left" Margin="10,510,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>
-        <Label Content="Admin options" HorizontalAlignment="Left" Margin="10,479,0,0" VerticalAlignment="Top"/>
+        <Button Content="Update client list" HorizontalAlignment="Left" Margin="10,510,0,0" VerticalAlignment="Top" Width="101" Click="Button_Click_1"/>
+        <Label Content="Admin options:" HorizontalAlignment="Left" Margin="10,479,0,0" VerticalAlignment="Top"/>
 
-        <Label x:Name="lblStatus" Content="Idle" HorizontalAlignment="Left" Margin="195,434,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="lblStatus" Content="Idle" HorizontalAlignment="Left" Margin="197,343,0,0" VerticalAlignment="Top"/>
         <Button x:Name="btnSelectNone" Content="None" HorizontalAlignment="Left" Margin="483,374,0,0" VerticalAlignment="Top" Width="75" Click="btnSelectNone_Click"/>
         <Button x:Name="btnSelectAll" Content="All" HorizontalAlignment="Left" Margin="10,374,0,0" VerticalAlignment="Top" Width="75" Click="btnSelectAll_Click"/>
         <ComboBox x:Name="cmbBxLabSelect" SelectedIndex="0" HorizontalAlignment="Left" Margin="10,43,0,0" VerticalAlignment="Top" Width="168" SelectionChanged="cmbBxLabSelect_SelectionChanged">
@@ -55,6 +55,7 @@
             <ComboBoxItem Name="both" Tag="both">Both labs</ComboBoxItem>
         </ComboBox>
         <Label Content="Select lab:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <Button Name="btnNetAccess" Content="Disable Internet Access" HorizontalAlignment="Left" Margin="129,510,0,0" VerticalAlignment="Top" Width="143"/>
 
     </Grid>
 </Window>
