@@ -80,6 +80,8 @@ namespace LabRun
 
         }
 
+
+
         private void initTabs()
         {
             UserControls.TabControl tC = new UserControls.TabControl(this, new PsychoPy());
@@ -93,6 +95,22 @@ namespace LabRun
             UserControls.TabControl tC3 = new UserControls.TabControl(this, new ZTree());
             tC3.setTestLogo(@"\Images\ztree.png");
             tabZTree.Content = tC3;
+            ((Label)tC3.FindName("lblWindowSize")).Visibility = Visibility.Visible;
+            ComboBox cmbWinSizes = (ComboBox)tC3.FindName("cmbWindowSizes");
+            cmbWinSizes.Visibility = Visibility.Visible;
+            cmbWinSizes.ItemsSource = service.WindowSizes;
+            //Grid mainGrid = (Grid)tC3.FindName("MainGrid");
+
+            //foreach (UIElement child in mainGrid.Children)
+            //{
+            //    if (child is Control)
+            //    {
+            //        //if (((Control)child).Tag.Equals("ztree"))
+            //        //{
+            //        //    //child.Visibility = Visibility.Visible;
+            //        //}
+            //    }                     
+            //}
         }
 
         public List<LabClient> getSelectedClients()

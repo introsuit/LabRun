@@ -74,7 +74,12 @@ namespace UserControls
             }
 
             parent.updateStatus("In Progress...");
-            testApp.TransferAndRun(computerNames);
+            if(testApp is ZTree){
+                WindowSize winSize = (WindowSize)cmbWindowSizes.SelectedValue;
+                ((ZTree)testApp).TransferAndRun(computerNames, winSize);
+            }else {
+testApp.TransferAndRun(computerNames);
+            }
         }
 
         private void btnKill_Click(object sender, RoutedEventArgs e)
@@ -108,6 +113,11 @@ namespace UserControls
                 parent.updateStatus("Idle");
                 return;
             }
+        }
+
+        private void cmbWindowSizes_Loaded(object sender, RoutedEventArgs e)
+        {
+            //cmbWindowSizes.ItemsSource = Enum.GetValues(typeof(WindowSize)).Cast<WindowSize>();
         }
     }
 }

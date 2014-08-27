@@ -10,9 +10,10 @@ namespace ServiceLibrary
 {
     public class ZTree : TestApp
     {
-        private string pathToZLeaf = @"C:\shared\ZTree\zleaf.exe";
+        private string pathToZTreeAdmin = @"C:\ZTree\ztree.exe";
 
-        public ZTree() : base("ZTree", @"C:\test\ZTree\ztree.exe") 
+        public ZTree()
+            : base("ZTree", @"C:\Cobe Lab\ZTree\ZTree\zleaf.exe")
         {
             Extension = "ztt";
             ExtensionDescription = "ZTree Test Files (*.ztt)|*.ztt";
@@ -23,17 +24,17 @@ namespace ServiceLibrary
             resultExts[2] = "log";
         }
 
-        public override Thread TransferAndRun(List<LabClient> selectedClients)
+        public Thread TransferAndRun(List<LabClient> selectedClients, WindowSize windowSize)
         {
-            var t = new Thread(() => xcopy(selectedClients));
+            var t = new Thread(() => xcopy(selectedClients, windowSize));
             t.Start();
             return t;
         }
 
-        private void xcopy(List<LabClient> selectedClients)
+        private void xcopy(List<LabClient> selectedClients, WindowSize windowSize)
         {
             //----run ztree at admin computer
-            service.ProcessStartSimple(applicationExecutableName);
+            service.ProcessStartSimple(pathToZTreeAdmin);
             //----end
 
             //----run leaves with proper args
@@ -56,9 +57,10 @@ namespace ServiceLibrary
                         zleafNo = "0" + zleafNo;
 
                     //resolution setting
-                    string resolution = "/windowsizesmth ";
+                    string winSize = "/size " + windowSize.Width + "x" + windowSize.Height;
 
-                    string runCmd = @"""" + pathToZLeaf + @""" /name Zleaf_" + zleafNo + @" /server " + adminCompName + @" /language en";
+
+                    string runCmd = @"""" + applicationExecutableName + @""" /name Zleaf_" + zleafNo + @" /server " + adminCompName + @" /language en " + winSize;
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + @" " + runCmd;
 
                     file.WriteLine(line);

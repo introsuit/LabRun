@@ -32,6 +32,8 @@ namespace ServiceLibrary
         private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
 
         private readonly string tempPath = System.IO.Path.GetTempPath();
+        private List<WindowSize> windowSizes = new List<WindowSize>();
+        public List<WindowSize> WindowSizes { get { return windowSizes; } }
 
         private static Service service;
         public event EventHandler ProgressUpdate;
@@ -76,6 +78,10 @@ namespace ServiceLibrary
                     domainSlashUser = domainName + @"\" + userName;
                     userAtDomain = userName + @"@" + domainName;
                     Credentials = new Credentials(domainName, userName, userPassword);
+
+                    windowSizes.Add(new WindowSize("Full Screen", null, null));
+                    windowSizes.Add(new WindowSize("Half Screen", 960, 1080));
+                    //windowSizes.Add(new WindowSize("Whatever Screen", null, null));
                 }
             }
             catch (FileNotFoundException ex)
