@@ -84,6 +84,7 @@ namespace ServiceLibrary
             }
         }
 
+
         /// <summary>
         /// Reads the clients.txt into the program for a list of computers in a specific lab.
         /// </summary>
@@ -170,7 +171,7 @@ namespace ServiceLibrary
                 int boothNo;
                 string line;
                 string mac;
-                while (((line = file.ReadLine()) != null)&&(line.Length > 10))
+                while (((line = file.ReadLine()) != null) && (line.Length > 10))
                 {
                         roomNo = Int32.Parse(line.Substring(0, 1));
                         mac = line.Substring(4);
@@ -183,7 +184,7 @@ namespace ServiceLibrary
                 }
             }
 
-//Get local ARP list to match MAC addresses to IP-s
+            //Get local ARP list to match MAC addresses to IP-s
             Process p = new Process();
             p.StartInfo = new ProcessStartInfo(@"C:\Windows\System32\arp.exe", "/a") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, RedirectStandardInput = true, CreateNoWindow = true };
             p.Start();
@@ -238,12 +239,12 @@ namespace ServiceLibrary
                 }
 
 
-//Get computer names, match with IP using NBTSTAT
+                //Get computer names, match with IP using NBTSTAT
 
                 foreach (LabClient client in clientlist)
                 {
 
-                   String Contents5 = ExecuteCommand("nbtstat.exe -a "+ client.Ip, true);
+                    String Contents5 = ExecuteCommand("nbtstat.exe -a " + client.Ip, true);
                     if (Contents5.IndexOf("<00>  UNIQUE") == -1)
                     {
                         throw new Exception();
@@ -252,12 +253,12 @@ namespace ServiceLibrary
                     string[] stringArray = until.Split(null);
                     string name = "";
                     foreach (string str in stringArray)
-                    {                        
+                    {
                         name = str;
                     }
                     client.ComputerName = name;
 
- 
+
                 }
 
                 //Write clientlist to file for testing
@@ -468,6 +469,11 @@ namespace ServiceLibrary
             //MessageBox.Show("error>>" + (String.IsNullOrEmpty(error) ? "(none)" : error));
             //MessageBox.Show("ExitCode: " + exitCode.ToString(), "ExecuteCommand");
             process.Close();
+        }
+
+        public void ProcessStartSimple(string path)
+        {
+            Process.Start(path);
         }
 
         public Thread StartNewCmdThread(string cmd)

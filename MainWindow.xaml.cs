@@ -115,11 +115,14 @@ namespace LabRun
 
         }
 
-
-
-        private List<string> getSelectedClients()
+        public List<LabClient> getSelectedClients()
         {
-            List<LabClient> clients = dgrClients.SelectedItems.Cast<LabClient>().ToList(); ;
+            return dgrClients.SelectedItems.Cast<LabClient>().ToList();
+        }
+
+        public List<string> getSelectedClientsNames()
+        {
+            List<LabClient> clients = dgrClients.SelectedItems.Cast<LabClient>().ToList();
 
             List<string> computerNames = new List<string>();
             foreach (LabClient client in clients)
@@ -134,7 +137,6 @@ namespace LabRun
         {
             List<string> selectedMACs = new List<string>();
             List<LabClient> clients = dgrClients.SelectedItems.Cast<LabClient>().ToList();
-
             foreach (LabClient client in clients)
             {
                 selectedMACs.Add(client.Mac);
@@ -143,11 +145,10 @@ namespace LabRun
         }
 
 
-
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
         {
             lblStatus.Content = "In Progress...";
-            service.ShutdownComputer(getSelectedClients());
+            service.ShutdownComputer(getSelectedClientsNames());
         }
 
         public IEnumerable<DataGridRow> GetDataGridRows(DataGrid grid)
@@ -320,10 +321,6 @@ namespace LabRun
             lblStatus.Content = msg;
         }
 
-        List<string> MainUI.getSelectedClients()
-        {
-            return getSelectedClients();
-        }
 
         private void btnSelectNone_Click(object sender, RoutedEventArgs e)
         {
@@ -363,6 +360,7 @@ namespace LabRun
             updateClientsGrid();
 
         }
+
     }
 }
 
