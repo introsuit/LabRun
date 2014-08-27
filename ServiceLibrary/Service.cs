@@ -386,6 +386,24 @@ namespace ServiceLibrary
             process.Close();
         }
 
+        public void runRemoteProgram(List<LabClient> compList, string path, string param)
+        {
+            foreach (LabClient client in compList)
+            {
+                string compName = client.ComputerName.ToString();
+
+                string copyPathRemote = Path.Combine(tempPath, "remoteCopyRun" + compName+ ".bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
+                {
+                    file.WriteLine("@echo off");
+                    string runCmd = @""""  + path + @"""" + " " + param; 
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + compName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + " " + runCmd;
+                    file.WriteLine(line);
+                }
+            service.StartNewCmdThread(copyPathRemote);
+            }
+        }
+
         public void runCmd(string target)
         {
             string path = "";

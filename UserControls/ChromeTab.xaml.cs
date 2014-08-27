@@ -40,9 +40,8 @@ namespace UserControls
         }
         
         private void btnRun_Click(object sender, RoutedEventArgs e)
-        {/*
-            
-          */
+        {
+            Service.getInstance().runRemoteProgram(parent.getSelectedClients(), @"C:\Program Files (x86)\Google\Chrome\Application\Chrome.exe", urlTxtBox.Text.ToString());
         }
 
 
