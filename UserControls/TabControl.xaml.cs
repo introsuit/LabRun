@@ -83,7 +83,14 @@ namespace UserControls
             string appExeName = testApp.AppExeName;
             foreach (string computerName in parent.getSelectedClients())
             {
-                service.killRemoteProcess(computerName, appExeName);
+                try
+                {
+                    service.killRemoteProcess(computerName, appExeName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
             }
         }
 

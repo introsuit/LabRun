@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Collections;
 using System.Text.RegularExpressions;
 using System.Net;
+using System.Windows.Forms;
 
 
 namespace ServiceLibrary
@@ -83,7 +84,7 @@ namespace ServiceLibrary
             }
         }
 
-       
+
 
         public List<LabClient> GetLabComputersFromStorage()
         {
@@ -133,7 +134,7 @@ namespace ServiceLibrary
         {
 
             List<LabClient> clientlist = new List<LabClient>();
-//Get MAC addresses from Bridge
+            //Get MAC addresses from Bridge
             String contents = new System.Net.WebClient().DownloadString("http://10.204.77.17:8000/?downloadcfg=1");
             // Write it to a file.
             System.IO.StreamWriter file0 = new System.IO.StreamWriter("bridgelist.txt");
@@ -146,7 +147,7 @@ namespace ServiceLibrary
                 int boothNo;
                 string line;
                 string mac;
-                while (((line = file.ReadLine()) != null)&&(line.Length > 10))
+                while (((line = file.ReadLine()) != null) && (line.Length > 10))
                 {
                     if (Int32.Parse(line.Substring(0, 1)) != 2)
                     {
@@ -161,7 +162,7 @@ namespace ServiceLibrary
                 }
             }
 
-//Get local ARP list to match MAC addresses to IP-s
+            //Get local ARP list to match MAC addresses to IP-s
             Process p = new Process();
             p.StartInfo = new ProcessStartInfo(@"C:\Windows\System32\arp.exe", "/a") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, RedirectStandardInput = true, CreateNoWindow = true };
             p.Start();
@@ -216,12 +217,12 @@ namespace ServiceLibrary
                 }
 
 
-//Get computer names, match with IP using NBTSTAT
+                //Get computer names, match with IP using NBTSTAT
 
                 foreach (LabClient client in clientlist)
                 {
 
-                   String Contents5 = ExecuteCommand("nbtstat.exe -a "+ client.Ip, true);
+                    String Contents5 = ExecuteCommand("nbtstat.exe -a " + client.Ip, true);
                     if (Contents5.IndexOf("<00>  UNIQUE") == -1)
                     {
                         throw new Exception();
@@ -230,12 +231,12 @@ namespace ServiceLibrary
                     string[] stringArray = until.Split(null);
                     string name = "";
                     foreach (string str in stringArray)
-                    {                        
+                    {
                         name = str;
                     }
                     client.ComputerName = name;
 
- 
+
                 }
 
                 //Write clientlist to file for testing

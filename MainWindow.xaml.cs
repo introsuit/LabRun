@@ -95,8 +95,6 @@ namespace LabRun
             tabZTree.Content = tC3;
         }
 
-
-
         private List<string> getSelectedClients()
         {
             List<LabClient> clients = dgrClients.SelectedItems.Cast<LabClient>().ToList(); ;
@@ -114,17 +112,12 @@ namespace LabRun
         {
             List<string> selectedMACs = new List<string>();
             List<LabClient> clients = dgrClients.SelectedItems.Cast<LabClient>().ToList();
-
             foreach (LabClient client in clients)
             {
                 selectedMACs.Add(client.Mac);
             }
             return selectedMACs;
         }
-
-
-
-
 
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
         {

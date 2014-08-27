@@ -189,6 +189,8 @@ namespace ServiceLibrary
                 string dst = Path.Combine(service.TestFolder, resultsFolderName, applicationName);
                 string line = @"xcopy """ + src + @""" """ + dst + @""" /V /E /Y /Q /I" /*/Exclude:" + service.TestFolder + @"Excludes.txt"*/;
                 file.WriteLine(line);
+                line = @"del /s /q " + Path.Combine(dst, completionFileName + @"*");
+                file.WriteLine(line);
                 ////delete unneedednotif
                 //line = @"del /s /q " + testFolder + @"Results\PsychoPy\DONE*";
                 //file.WriteLine(line);
