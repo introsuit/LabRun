@@ -398,6 +398,11 @@ namespace LabRun
             //MessageBox.Show("f");
         }
 
+        private void btnInputDisable_Click(object sender, RoutedEventArgs e)
+        {
+            service.InputDisable(getSelectedClients());
+        }
+
     }
 }
 

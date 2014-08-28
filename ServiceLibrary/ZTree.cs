@@ -52,10 +52,11 @@ namespace ServiceLibrary
                     if (client.BoothNo < 9)
                         zleafNo = "0" + zleafNo;
 
-                    //resolution setting
-                    string winSize = "/size " + windowSize.Width + "x" + windowSize.Height;
+                    //window setting
+                    string windSize = "/size " + windowSize.Width + "x" + windowSize.Height;
+                    string windPos = "/position " + windowSize.XPos + "," + windowSize.YPos;
 
-                    string runCmd = @"""" + applicationExecutableName + @""" /name Zleaf_" + zleafNo + @" /server " + adminCompName + @" /language en " + winSize;
+                    string runCmd = @"""" + applicationExecutableName + @""" /name Zleaf_" + zleafNo + @" /server " + adminCompName + @" /language en " + windSize + " " + windPos;
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + @" " + runCmd;
                     file.WriteLine(line);
                 }

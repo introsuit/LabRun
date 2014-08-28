@@ -55,7 +55,8 @@
             <ComboBoxItem Name="both" Tag="both">Both labs</ComboBoxItem>
         </ComboBox>
         <Label Content="Select lab:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-        <Button Name="btnNetAccess" Content="Disable Internet Access" HorizontalAlignment="Left" Margin="129,510,0,0" VerticalAlignment="Top" Width="143"/>
+        <Button Name="btnInputDisable" Content="Disable Input" HorizontalAlignment="Left" Margin="129,510,0,0" VerticalAlignment="Top" Width="83" Click="btnInputDisable_Click"/>
+        <Button Name="btnInputEnable" Content="Enable Input" HorizontalAlignment="Left" Margin="232,510,0,0" VerticalAlignment="Top" Width="75"/>
 
     </Grid>
 </Window>
