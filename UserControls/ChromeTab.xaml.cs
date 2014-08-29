@@ -37,13 +37,68 @@ namespace UserControls
         
         private void btnRun_Click(object sender, RoutedEventArgs e)
         {
-            service.runRemoteProgram(parent.getSelectedClients(), @"C:\Program Files (x86)\Google\Chrome\Application\Chrome.exe", urlTxtBox.Text.ToString());
+            string param1 = "";
+            string newWindowMode = ((ComboBoxItem)cmbBoxNewWindowMode.SelectedItem).Tag.ToString();
+            switch (newWindowMode)
+            {
+                case "newtab":
+                    {
+                        break;
+                    }
+                case "newwindow":
+                    {
+                        param1 = " --new-window";
+                        break;
+                    }
+                case "newchrome":
+                    {
+                        foreach (LabClient client in parent.getSelectedClients())
+                        {
+                            Service.getInstance().killRemoteProcess(client.ComputerName, "Chrome.exe");
+                        }
+                        break;
+                    }
+
+            }
+
+            string param = param1 + " "; 
+            string windowMode = ((ComboBoxItem)cmbBoxWindowMode.SelectedItem).Tag.ToString();
+            switch (windowMode)
+            {
+                case "1":
+                    {
+                        param += " -start-maximized";
+                        break;
+                    }
+                case "2":
+                    {
+                        param += " -fullscreen";
+                        break;
+                    }
+                case "3":
+                    {
+                        param += " -kiosk";
+                        break;
+                    }
+
+            }
+            param += " " + urlTxtBox.Text.ToString();
+            Service.getInstance().runRemoteProgram(parent.getSelectedClients(), @"C:\Program Files (x86)\Google\Chrome\Application\Chrome.exe", param);
+        }
+
+        private void btnClose_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (LabClient client in parent.getSelectedClients())
+            {
+                Service.getInstance().killRemoteProcess(client.ComputerName, "Chrome.exe");
+            }
+            
         }
 
         public void ButtonClickable(bool enabled)
         {
             btnRun.IsEnabled = enabled;
-            btnKill.IsEnabled = enabled;
+            btnClose.IsEnabled = enabled;
         }
     }
 }
