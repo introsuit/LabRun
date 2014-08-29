@@ -26,7 +26,7 @@ namespace ServiceLibrary
         private readonly string domainSlashUser;
         private readonly string userAtDomain;
         private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
-        private readonly string inputBlockApp = @"\\asb.local\staff\users\labclient\test\InputBlocker\InputBlocker.exe";
+        private readonly string inputBlockApp = @"C:\test\InputBlocker\InputBlocker.exe";
        // private readonly string inputBlockApp = @"C:\test\InputBlocker\InputBlocker.exe";
         //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
         private static readonly string testFolder = @"C:\test\";
@@ -99,7 +99,6 @@ namespace ServiceLibrary
         /// Reads the clients.txt into the program for a list of computers in a specific lab.
         /// </summary>
         /// <returns>List of clients</returns>
-
         public List<LabClient> GetLabComputersFromStorage()
         {
             List<LabClient> clientlist = new List<LabClient>();
@@ -390,14 +389,95 @@ namespace ServiceLibrary
             process.Close();
         }
 
-        public void InputDisable(List<LabClient> compList)
+        public void InputDisable(List<LabClient> clients)
         {
-            service.runRemoteProgram(compList, inputBlockApp);
+            string blockerDirName = Path.GetFileName(Path.GetDirectoryName(inputBlockApp));
+
+            //-----local copy
+            string copyPath = Path.Combine(tempPath, "localCopy.bat");
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                string srcDir = Path.GetDirectoryName(inputBlockApp);
+                string dstDir = Path.Combine(service.SharedNetworkTempFolder, blockerDirName);
+                string line = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
+                file.WriteLine(line);
+            }
+            service.ExecuteCommandNoOutput(copyPath, true);
+            //-----end
+
+            //service.runRemoteProgram(compList, inputBlockApp);
+            //---onecall to client: copy and run
+            int i = 0;
+            foreach (LabClient client in clients)
+            {
+                string copyPathRemote = Path.Combine(tempPath, "remoteCopyRun" + client.ComputerName + ".bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
+                {
+                    file.WriteLine("@echo off");
+
+                    string srcDir = Path.Combine(service.SharedNetworkTempFolder, blockerDirName);
+                    string dstDir = Path.Combine(service.TestFolder,  Path.GetFileName(Path.GetDirectoryName(inputBlockApp)));
+                    string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
+
+                    string runLocation = Path.Combine(dstDir, Path.GetFileName(inputBlockApp));
+                    string runCmd = @"start """" """ + runLocation + @"""";
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+
+                    file.WriteLine(line);
+                }
+                service.StartNewCmdThread(copyPathRemote);
+                i++;
+            }
+
+            //-----notify ui
+            service.notifyStatus("Request Sent");
+            //-----end
         }
 
-        public void InputEnable(List<LabClient> compList)
+        public void InputEnable(List<LabClient> clients)
         {
+            foreach (LabClient client in clients)
+            {
+                killRemoteProcess(client.ComputerName, "InputBlocker.exe");
 
+                var LocalPassword = userPassword;
+                var ssLPassword = new System.Security.SecureString();
+                foreach (char c in LocalPassword)
+                    ssLPassword.AppendChar(c);
+
+                PSCredential Credential = new PSCredential(userAtDomain, ssLPassword);
+                string serverName = client.ComputerName;
+                string cmdlet = @"remove-itemproperty -Path hkcu:software\microsoft\windows\currentversion\policies\system -Name ""DisableTaskMgr""";
+                using (PowerShell powershell = PowerShell.Create())
+                {
+                    powershell.AddCommand("Set-Variable");
+                    powershell.AddParameter("Name", "cred");
+                    powershell.AddParameter("Value", Credential);
+
+                    powershell.AddScript(@"$s = New-PSSession -ComputerName '" + serverName + "' -Credential $cred");
+                    powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdlet + " }");
+                    powershell.AddScript(@"Remove-PSSession -Session $s");
+                    powershell.AddScript(@"echo $a");
+
+                    var results = powershell.Invoke();
+
+                    foreach (var item in results)
+                    {
+                        Debug.WriteLine(item);
+                    }
+
+                    if (powershell.Streams.Error.Count > 0)
+                    {
+                        Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
+                    }
+                }
+
+                //-----notify ui
+                if (ProgressUpdate != null)
+                    ProgressUpdate(this, new StatusEventArgs("Task Kill Completed"));
+                //-----end
+            }
         }
 
         public void runRemoteProgram(List<LabClient> compList, string path, string param = "")
@@ -407,7 +487,7 @@ namespace ServiceLibrary
             {
                 string compName = client.ComputerName.ToString();
 
-                string copyPathRemote = Path.Combine(tempPath, "remoteCopyRun" + compName+ ".bat");
+                string copyPathRemote = Path.Combine(tempPath, "remoteRun" + compName+ ".bat");
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                 {
                     file.WriteLine("@echo off");

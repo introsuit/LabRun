@@ -403,6 +403,11 @@ namespace LabRun
             service.InputDisable(getSelectedClients());
         }
 
+        private void btnInputEnable_Click(object sender, RoutedEventArgs e)
+        {
+            service.InputEnable(getSelectedClients());
+        }
+
     }
 }
 
