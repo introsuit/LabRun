@@ -59,6 +59,7 @@ namespace UserControls
                 lblBrowse.Content = testFullPath;
                 inited = true;
 
+                btnRun.IsEnabled = true;
                 testApp.Initialize(testFullPath);
             }
         }
@@ -131,6 +132,8 @@ namespace UserControls
 
         public void ButtonClickable(bool enabled)
         {
+            //btnBrowse.IsEnabled = enabled;
+            btnKill.IsEnabled = enabled;
             btnRun.IsEnabled = enabled && inited;
         }
     }

@@ -27,7 +27,7 @@ namespace ServiceLibrary
         private readonly string userAtDomain;
         private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
         private readonly string inputBlockApp = @"C:\test\InputBlocker\InputBlocker.exe";
-       // private readonly string inputBlockApp = @"C:\test\InputBlocker\InputBlocker.exe";
+        // private readonly string inputBlockApp = @"C:\test\InputBlocker\InputBlocker.exe";
         //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
         private static readonly string testFolder = @"C:\test\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
@@ -136,9 +136,11 @@ namespace ServiceLibrary
             return clientlist;
         }
 
-        public List<LabClient> filterForRoom(List<LabClient> clients, int roomNo) {
+        public List<LabClient> filterForRoom(List<LabClient> clients, int roomNo)
+        {
             List<LabClient> newClients = new List<LabClient>();
-            foreach (LabClient client in clients) { 
+            foreach (LabClient client in clients)
+            {
                 if (client.RoomNo == roomNo)
                     newClients.Add(client);
             }
@@ -157,7 +159,7 @@ namespace ServiceLibrary
         {
 
             List<LabClient> clientlist = new List<LabClient>();
-//Get MAC addresses from Bridge
+            //Get MAC addresses from Bridge
             try
             {
                 String contents = new System.Net.WebClient().DownloadString("http://10.204.77.17:8000/?downloadcfg=1");
@@ -168,7 +170,7 @@ namespace ServiceLibrary
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error trying to reach the bridge's client list. Error: "+ex.Message);
+                MessageBox.Show("Error trying to reach the bridge's client list. Error: " + ex.Message);
             }
 
 
@@ -181,14 +183,14 @@ namespace ServiceLibrary
                 string mac;
                 while (((line = file.ReadLine()) != null) && (line.Length > 10))
                 {
-                        roomNo = Int32.Parse(line.Substring(0, 1));
-                        mac = line.Substring(4);
-                        mac = mac.Replace(" ", String.Empty);
-                        mac = mac.Replace(":", String.Empty);
-                        mac = mac.Replace("\u0009", String.Empty);
-                        boothNo = Int32.Parse(line.Substring(2, 2).Trim());
-                        LabClient client = new LabClient(roomNo, "", boothNo, mac, "");
-                        clientlist.Add(client);     
+                    roomNo = Int32.Parse(line.Substring(0, 1));
+                    mac = line.Substring(4);
+                    mac = mac.Replace(" ", String.Empty);
+                    mac = mac.Replace(":", String.Empty);
+                    mac = mac.Replace("\u0009", String.Empty);
+                    boothNo = Int32.Parse(line.Substring(2, 2).Trim());
+                    LabClient client = new LabClient(roomNo, "", boothNo, mac, "");
+                    clientlist.Add(client);
                 }
             }
 
@@ -273,7 +275,7 @@ namespace ServiceLibrary
                 string clientListString = "";
                 foreach (LabClient client in clientlist)
                 {
-                    clientListString +=client.RoomNo + " " + client.BoothNo + " " + client.ComputerName + " " + client.Ip + " " + client.Mac + Environment.NewLine;
+                    clientListString += client.RoomNo + " " + client.BoothNo + " " + client.ComputerName + " " + client.Ip + " " + client.Mac + Environment.NewLine;
                     System.IO.StreamWriter fileClients = new System.IO.StreamWriter("clients.txt");
                     fileClients.WriteLine(clientListString);
                     fileClients.Close();
@@ -417,7 +419,7 @@ namespace ServiceLibrary
                     file.WriteLine("@echo off");
 
                     string srcDir = Path.Combine(service.SharedNetworkTempFolder, blockerDirName);
-                    string dstDir = Path.Combine(service.TestFolder,  Path.GetFileName(Path.GetDirectoryName(inputBlockApp)));
+                    string dstDir = Path.Combine(service.TestFolder, Path.GetFileName(Path.GetDirectoryName(inputBlockApp)));
                     string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
 
                     string runLocation = Path.Combine(dstDir, Path.GetFileName(inputBlockApp));
@@ -435,49 +437,57 @@ namespace ServiceLibrary
             //-----end
         }
 
+        public void RunRemotePSCmdLet(string computerName, string cmdLet)
+        {
+            new Thread(delegate()
+               {
+                   var LocalPassword = userPassword;
+                   var ssLPassword = new System.Security.SecureString();
+                   foreach (char c in LocalPassword)
+                       ssLPassword.AppendChar(c);
+
+                   PSCredential Credential = new PSCredential(userAtDomain, ssLPassword);
+
+                   using (PowerShell powershell = PowerShell.Create())
+                   {
+                       powershell.AddCommand("Set-Variable");
+                       powershell.AddParameter("Name", "cred");
+                       powershell.AddParameter("Value", Credential);
+
+                       powershell.AddScript(@"$s = New-PSSession -ComputerName '" + computerName + "' -Credential $cred");
+                       powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdLet + " }");
+                       powershell.AddScript(@"Remove-PSSession -Session $s");
+                       powershell.AddScript(@"echo $a");
+
+                       var results = powershell.Invoke();
+
+                       foreach (var item in results)
+                       {
+                           Debug.WriteLine(item);
+                       }
+
+                       if (powershell.Streams.Error.Count > 0)
+                       {
+                           Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
+                       }
+                   }
+               }).Start();
+        }
+
         public void InputEnable(List<LabClient> clients)
         {
+
             foreach (LabClient client in clients)
             {
                 killRemoteProcess(client.ComputerName, "InputBlocker.exe");
-
-                var LocalPassword = userPassword;
-                var ssLPassword = new System.Security.SecureString();
-                foreach (char c in LocalPassword)
-                    ssLPassword.AppendChar(c);
-
-                PSCredential Credential = new PSCredential(userAtDomain, ssLPassword);
-                string serverName = client.ComputerName;
-                string cmdlet = @"remove-itemproperty -Path hkcu:software\microsoft\windows\currentversion\policies\system -Name ""DisableTaskMgr""";
-                using (PowerShell powershell = PowerShell.Create())
-                {
-                    powershell.AddCommand("Set-Variable");
-                    powershell.AddParameter("Name", "cred");
-                    powershell.AddParameter("Value", Credential);
-
-                    powershell.AddScript(@"$s = New-PSSession -ComputerName '" + serverName + "' -Credential $cred");
-                    powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdlet + " }");
-                    powershell.AddScript(@"Remove-PSSession -Session $s");
-                    powershell.AddScript(@"echo $a");
-
-                    var results = powershell.Invoke();
-
-                    foreach (var item in results)
-                    {
-                        Debug.WriteLine(item);
-                    }
-
-                    if (powershell.Streams.Error.Count > 0)
-                    {
-                        Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
-                    }
-                }
+                RunRemotePSCmdLet(client.ComputerName, @"remove-itemproperty -Path hkcu:software\microsoft\windows\currentversion\policies\system -Name ""DisableTaskMgr""");
 
                 //-----notify ui
                 if (ProgressUpdate != null)
                     ProgressUpdate(this, new StatusEventArgs("Task Kill Completed"));
                 //-----end
             }
+
         }
 
         public void runRemoteProgram(List<LabClient> compList, string path, string param = "")
@@ -487,15 +497,15 @@ namespace ServiceLibrary
             {
                 string compName = client.ComputerName.ToString();
 
-                string copyPathRemote = Path.Combine(tempPath, "remoteRun" + compName+ ".bat");
+                string copyPathRemote = Path.Combine(tempPath, "remoteRun" + compName + ".bat");
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                 {
                     file.WriteLine("@echo off");
-                    string runCmd = @""""  + path + @"""" + " " + param; 
+                    string runCmd = @"""" + path + @"""" + " " + param;
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + compName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + " " + runCmd;
                     file.WriteLine(line);
                 }
-            service.StartNewCmdThread(copyPathRemote);
+                service.StartNewCmdThread(copyPathRemote);
             }
         }
 
@@ -615,39 +625,8 @@ namespace ServiceLibrary
 
         private void KillProcThread(string computerName, string processName)
         {
-            Debug.WriteLine(computerName + " " + processName);
-            Debug.WriteLine("Killing begins >:)");
-            var LocalPassword = userPassword;
-            var ssLPassword = new System.Security.SecureString();
-            foreach (char c in LocalPassword)
-                ssLPassword.AppendChar(c);
-
-            PSCredential Credential = new PSCredential(userAtDomain, ssLPassword);
-            string serverName = computerName;
             string cmdlet = "Taskkill /IM " + processName + " /F";
-            using (PowerShell powershell = PowerShell.Create())
-            {
-                powershell.AddCommand("Set-Variable");
-                powershell.AddParameter("Name", "cred");
-                powershell.AddParameter("Value", Credential);
-
-                powershell.AddScript(@"$s = New-PSSession -ComputerName '" + serverName + "' -Credential $cred");
-                powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdlet + " }");
-                powershell.AddScript(@"Remove-PSSession -Session $s");
-                powershell.AddScript(@"echo $a");
-
-                var results = powershell.Invoke();
-
-                foreach (var item in results)
-                {
-                    Debug.WriteLine(item);
-                }
-
-                if (powershell.Streams.Error.Count > 0)
-                {
-                    Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
-                }
-            }
+            RunRemotePSCmdLet(computerName, cmdlet);
 
             //-----notify ui
             if (ProgressUpdate != null)

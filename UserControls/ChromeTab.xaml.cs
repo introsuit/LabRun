@@ -21,16 +21,13 @@ namespace UserControls
     public partial class ChromeTab : UserControl, ControlUnit
     {
         private MainUI parent = null;
-        private TestApp testApp = null;
         private Service service = Service.getInstance();
 
         public ChromeTab(MainUI parent)
         {
             InitializeComponent();
             this.parent = parent;
-            this.testApp = testApp;
         }
-
 
         public void setTestLogo(string path)
         {
@@ -40,14 +37,13 @@ namespace UserControls
         
         private void btnRun_Click(object sender, RoutedEventArgs e)
         {
-            Service.getInstance().runRemoteProgram(parent.getSelectedClients(), @"C:\Program Files (x86)\Google\Chrome\Application\Chrome.exe", urlTxtBox.Text.ToString());
+            service.runRemoteProgram(parent.getSelectedClients(), @"C:\Program Files (x86)\Google\Chrome\Application\Chrome.exe", urlTxtBox.Text.ToString());
         }
-
-
 
         public void ButtonClickable(bool enabled)
         {
             btnRun.IsEnabled = enabled;
+            btnKill.IsEnabled = enabled;
         }
     }
 }
