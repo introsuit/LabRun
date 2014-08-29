@@ -6,8 +6,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid Background="#FFE5E5E5" Margin="0,0,-30,0">
-
-        <Button  IsEnabled='True' Content="Launch" Height="28" HorizontalAlignment="Left" Margin="10,242,0,0" Name="btnRun" VerticalAlignment="Top" Width="54" Click="btnRun_Click" />
+        <Button  IsEnabled='False' Content="Launch" Height="28" HorizontalAlignment="Left" Margin="10,242,0,0" Name="btnRun" VerticalAlignment="Top" Width="54" Click="btnRun_Click" />
         <Image Name="imgTest" HorizontalAlignment="Left" Height="100" Margin="220,171,0,0" VerticalAlignment="Top" Width="100"/>
 
         <TextBox x:Name="urlTxtBox" HorizontalAlignment="Left" Height="23" Margin="10,55,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="310"/>
@@ -18,7 +17,7 @@
             <ComboBoxItem Name="windowv2" Tag="2">Full screen</ComboBoxItem>
             <ComboBoxItem Name="windowv3" Tag="3">Kiosk mode</ComboBoxItem>
         </ComboBox>
-        <Button x:Name="btnClose" Content="Close browser" HorizontalAlignment="Left" Margin="69,243,0,0" VerticalAlignment="Top" Width="81" Height="27" Click="btnClose_Click"/>
+        <Button IsEnabled='False' x:Name="btnClose" Content="Close browser" HorizontalAlignment="Left" Margin="69,243,0,0" VerticalAlignment="Top" Width="81" Height="27" Click="btnClose_Click"/>
         <Label Content="When launching new website:" HorizontalAlignment="Left" Margin="0,171,0,0" VerticalAlignment="Top"/>
         <ComboBox SelectedIndex="0" x:Name="cmbBoxNewWindowMode" HorizontalAlignment="Left" Margin="10,203,0,0" VerticalAlignment="Top" Width="120">
             <ComboBoxItem Name="newtab" Tag="newtab">In a new tab</ComboBoxItem>

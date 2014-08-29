@@ -21,16 +21,13 @@ namespace UserControls
     public partial class ChromeTab : UserControl, ControlUnit
     {
         private MainUI parent = null;
-        private TestApp testApp = null;
         private Service service = Service.getInstance();
 
         public ChromeTab(MainUI parent)
         {
             InitializeComponent();
             this.parent = parent;
-            this.testApp = testApp;
         }
-
 
         public void setTestLogo(string path)
         {
@@ -98,14 +95,10 @@ namespace UserControls
             
         }
 
-
-
-
-
-
         public void ButtonClickable(bool enabled)
         {
             btnRun.IsEnabled = enabled;
+            btnClose.IsEnabled = enabled;
         }
     }
 }
