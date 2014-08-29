@@ -18,9 +18,8 @@ namespace UserControls
     /// <summary>
     /// Interaction logic for Page1.xaml
     /// </summary>
-    public partial class ChromeTab : UserControl
+    public partial class ChromeTab : UserControl, ControlUnit
     {
-
         private MainUI parent = null;
         private TestApp testApp = null;
         private Service service = Service.getInstance();
@@ -51,7 +50,6 @@ namespace UserControls
                     }
                 case "newwindow":
                     {
-                        MessageBox.Show("ahhoy");
                         param1 = " --new-window";
                         break;
                     }
@@ -89,7 +87,6 @@ namespace UserControls
             }
             param += " " + urlTxtBox.Text.ToString();
             Service.getInstance().runRemoteProgram(parent.getSelectedClients(), @"C:\Program Files (x86)\Google\Chrome\Application\Chrome.exe", param);
-            MessageBox.Show(param);
         }
 
         private void btnClose_Click(object sender, RoutedEventArgs e)
@@ -105,5 +102,10 @@ namespace UserControls
 
 
 
+
+        public void ButtonClickable(bool enabled)
+        {
+            btnRun.IsEnabled = enabled;
+        }
     }
 }

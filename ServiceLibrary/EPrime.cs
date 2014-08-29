@@ -12,10 +12,9 @@ namespace ServiceLibrary
             Extension = "ebs2";
             ExtensionDescription = "E-Prime Test Files (*.ebs2)|*.ebs2";
 
-            resultExts = new string[3];
-            resultExts[0] = "edat2";
-            resultExts[1] = "xml";
-            resultExts[2] = "txt";
+            resultExts.Add("edat2");
+            resultExts.Add("xml");
+            resultExts.Add("txt");
         }
     }
 }

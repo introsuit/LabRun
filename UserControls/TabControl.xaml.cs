@@ -19,17 +19,23 @@ namespace UserControls
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
-    public partial class TabControl : UserControl
+    public partial class TabControl : UserControl, ControlUnit
     {
         private MainUI parent = null;
         private TestApp testApp = null;
         private Service service = Service.getInstance();
+        private bool inited = false;
 
         public TabControl(MainUI parent, TestApp testApp)
         {
             InitializeComponent();
             this.parent = parent;
             this.testApp = testApp;
+
+            if (testApp is ZTree)
+            {
+                inited = true;
+            }
         }
 
         private void button1_Click(object sender, RoutedEventArgs e)
@@ -50,8 +56,8 @@ namespace UserControls
                 // Open document 
                 string testFullPath = dlg.FileName;
 
-                label1.Content = testFullPath;
-                btnRun.IsEnabled = true;
+                lblBrowse.Content = testFullPath;
+                inited = true;
 
                 testApp.Initialize(testFullPath);
             }
@@ -121,6 +127,11 @@ namespace UserControls
         private void cmbWindowSizes_Loaded(object sender, RoutedEventArgs e)
         {
             //cmbWindowSizes.ItemsSource = Enum.GetValues(typeof(WindowSize)).Cast<WindowSize>();
+        }
+
+        public void ButtonClickable(bool enabled)
+        {
+            btnRun.IsEnabled = enabled && inited;
         }
     }
 }
