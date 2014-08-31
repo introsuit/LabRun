@@ -103,7 +103,7 @@
       <Name>ServiceLibrary</Name>
     </ProjectReference>
     <ProjectReference Include="UserControls\UserControls.csproj">
-      <Project>{2015a9bb-d0ee-4089-825e-db3c08fc5db7}</Project>
+      <Project>{2015A9BB-D0EE-4089-825E-DB3C08FC5DB7}</Project>
       <Name>UserControls</Name>
     </ProjectReference>
   </ItemGroup>
