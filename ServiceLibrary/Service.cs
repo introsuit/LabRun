@@ -25,8 +25,8 @@ namespace ServiceLibrary
         private readonly string userPassword;
         private readonly string domainSlashUser;
         private readonly string userAtDomain;
-        private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
-        //private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
+        //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
+        private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
         private readonly string inputBlockApp = @"C:\test\InputBlocker\InputBlocker.exe";
         
         private static readonly string testFolder = @"C:\test\";
