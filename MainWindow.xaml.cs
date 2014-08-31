@@ -53,7 +53,6 @@ namespace LabRun
                 }
             }
 
-
             service.ProgressUpdate += (s, e) =>
             {
                 Dispatcher.Invoke((Action)delegate()
@@ -408,6 +407,15 @@ namespace LabRun
             service.InputEnable(getSelectedClients());
         }
 
+        private void btnNetDisable_Click(object sender, RoutedEventArgs e)
+        {
+            service.NetDisable(getSelectedClients());
+        }
+
+        private void btnNetEnable_Click(object sender, RoutedEventArgs e)
+        {
+            service.NetEnable(getSelectedClients());
+        }
     }
 }
 

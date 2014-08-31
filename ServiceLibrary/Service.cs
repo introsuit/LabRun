@@ -25,11 +25,10 @@ namespace ServiceLibrary
         private readonly string userPassword;
         private readonly string domainSlashUser;
         private readonly string userAtDomain;
-        private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
+        private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
+        //private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
         private readonly string inputBlockApp = @"C:\test\InputBlocker\InputBlocker.exe";
-        // private readonly string inputBlockApp = @"C:\test\InputBlocker\InputBlocker.exe";
-
-        //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
+        
         private static readonly string testFolder = @"C:\test\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
         private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
@@ -83,8 +82,11 @@ namespace ServiceLibrary
                     Credentials = new Credentials(domainName, userName, userPassword);
 
                     windowSizes.Add(new WindowSize("Full Screen", null, null));
-                    windowSizes.Add(new WindowSize("Half Screen", 960, 1080));
-                    //windowSizes.Add(new WindowSize("Whatever Screen", null, null));
+                    windowSizes.Add(new WindowSize("Half Screen Left", 960, 1080));
+                    WindowSize size = new WindowSize("Half Screen Right", 960, 1080);
+                    size.XPos = 960;
+                    size.YPos = 0;
+                    windowSizes.Add(size);
                 }
             }
             catch (FileNotFoundException ex)
@@ -492,7 +494,6 @@ namespace ServiceLibrary
         }
 
         public void runRemoteProgram(List<LabClient> compList, string path, string param = "")
-
         {
             foreach (LabClient client in compList)
             {
@@ -744,6 +745,57 @@ namespace ServiceLibrary
                         yield return files[i];
                     }
                 }
+            }
+        }
+
+        public void NetDisable(List<LabClient> clients)
+        {
+            string script = @"function Add-FirewallRule {
+                $fw = New-Object -ComObject hnetcfg.fwpolicy2 
+                $rule = New-Object -ComObject HNetCfg.FWRule
+        
+                $appName = $null,
+                $serviceName = $null
+
+                $rule.Name = ""Block http(s) ports""
+                if ($appName -ne $null) { $rule.ApplicationName = $appName }
+                if ($serviceName -ne $null) { $rule.serviceName = $serviceName }
+                $rule.Protocol = 6 #NET_FW_IP_PROTOCOL_TCP
+                $rule.RemotePorts = ""80,443"" 
+                $rule.Enabled = $true
+                $rule.Grouping = ""@firewallapi.dll,-23255""
+                $rule.Profiles = 7 # all
+                $rule.Action = 0 # NET_FW_ACTION_ALLOW
+                $rule.EdgeTraversal = $false
+                $rule.Direction = 2
+                $fw.Rules.Add($rule)
+            }
+Add-FirewallRule
+";
+            foreach (LabClient client in clients)
+            {
+                RunRemotePSCmdLet(client.ComputerName, script);
+
+                //-----notify ui
+                if (ProgressUpdate != null)
+                    ProgressUpdate(this, new StatusEventArgs("Net Access (http(s)) was disabled!"));
+                //-----end
+            }
+        }
+
+        public void NetEnable(List<LabClient> clients)
+        {
+            string script = @"$fw = New-Object -ComObject hnetcfg.fwpolicy2 
+                            $fw.Rules.Remove(""Block http(s) ports"")";
+
+            foreach (LabClient client in clients)
+            {
+                RunRemotePSCmdLet(client.ComputerName, script);
+
+                //-----notify ui
+                if (ProgressUpdate != null)
+                    ProgressUpdate(this, new StatusEventArgs("Net Access (http(s)) was enabled!"));
+                //-----end
             }
         }
     }

@@ -59,6 +59,8 @@
         <Label Content="Select lab:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
         <Button Name="btnInputDisable" Content="Disable Input" HorizontalAlignment="Left" Margin="129,510,0,0" VerticalAlignment="Top" Width="83" Click="btnInputDisable_Click"/>
         <Button Name="btnInputEnable" Content="Enable Input" HorizontalAlignment="Left" Margin="232,510,0,0" VerticalAlignment="Top" Width="75" Click="btnInputEnable_Click"/>
-
+        
+        <Button Name="btnNetDisable" Content="Disable Net" HorizontalAlignment="Left" Margin="332,510,0,0" VerticalAlignment="Top" Width="75" Click="btnNetDisable_Click"/>
+        <Button Name="btnNetEnable" Content="Enable Net" HorizontalAlignment="Left" Margin="432,510,0,0" VerticalAlignment="Top" Width="75" Click="btnNetEnable_Click"/>
     </Grid>
 </Window>
