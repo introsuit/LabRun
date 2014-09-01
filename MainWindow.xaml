@@ -1,19 +1,33 @@
 ﻿<Window x:Class="LabRun.MainWindow"
          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="LabRun" Height="579.671" Width="577.537">
+        Title="LabRun" Height="579.671" Width="577.537" Closing="Window_Closing">
+    <Window.Resources>
+        <Style TargetType="DataGridRow">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Active}" Value="False">
+                    <Setter Property="Background" Value="Red" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     <Grid>
 
-        <Button Content="Shutdown" Height="23" HorizontalAlignment="Left" Margin="103,437,0,0" Name="btnShutdown" VerticalAlignment="Top" Width="75" Click="btnShutdown_Click" />
+        <Button IsEnabled="False" Content="Shutdown" Height="23" HorizontalAlignment="Left" Margin="103,437,0,0" Name="btnShutdown" VerticalAlignment="Top" Width="75" Click="btnShutdown_Click" />
         <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="10,96,0,0" VerticalAlignment="Top" Height="246" Width="168" SelectionChanged="dgrClients_SelectionChanged" SelectedCellsChanged="dgrClients_SelectedCellsChanged" >
-            <DataGrid.Resources>
-                <Style TargetType="DataGridRow">
-                    <Style.Resources>
-                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="DarkGray"/>
-                    </Style.Resources>
+            <DataGrid.CellStyle>
+                <Style TargetType="{x:Type DataGridCell}">
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                        </Trigger>
+                    </Style.Triggers>
                 </Style>
-            </DataGrid.Resources>
-            <DataGrid.Columns>
+                </DataGrid.CellStyle>
+
+                <DataGrid.Columns>
                 <DataGridTextColumn Header="Comp. Name" Binding="{Binding ComputerName}"/>
                 <DataGridTextColumn Header="Booth No"  Binding="{Binding BoothNo}"/>
             </DataGrid.Columns>
@@ -39,7 +53,7 @@
         <Button Content="Odd" Name="btnOdd" HorizontalAlignment="Left" Margin="197,374,0,0" VerticalAlignment="Top" Width="75" Click="btnOdd_Click" />
         <Label Content="Select:" HorizontalAlignment="Left" Margin="10,340,0,0" VerticalAlignment="Top"/>
         <Label Content="Power options:" HorizontalAlignment="Left" Margin="9,406,0,0" VerticalAlignment="Top" />
-        <Button Name="btnStartUp" Content="Startup" Margin="0,437,483,0" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="75"/>
+        <Button IsEnabled="False" Name="btnStartUp" Content="Startup" Margin="0,437,483,0" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="75"/>
         <Button Content="Zig-zag" Name="btnzigzag" HorizontalAlignment="Left" Margin="289,374,0,0" VerticalAlignment="Top" Width="75" Click="btnzigzag_Click"/>
         <Button Content="Zag-zig" Name="btnzagzig" HorizontalAlignment="Left" Margin="386,374,0,0" VerticalAlignment="Top" Width="75" Click="btnzagzig_Click"/>
 
@@ -57,10 +71,10 @@
             <ComboBoxItem Name="both" Tag="both">Both labs</ComboBoxItem>
         </ComboBox>
         <Label Content="Select lab:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-        <Button Name="btnInputDisable" Content="Disable Input" HorizontalAlignment="Left" Margin="129,510,0,0" VerticalAlignment="Top" Width="83" Click="btnInputDisable_Click"/>
-        <Button Name="btnInputEnable" Content="Enable Input" HorizontalAlignment="Left" Margin="232,510,0,0" VerticalAlignment="Top" Width="75" Click="btnInputEnable_Click"/>
-        
-        <Button Name="btnNetDisable" Content="Disable Net" HorizontalAlignment="Left" Margin="332,510,0,0" VerticalAlignment="Top" Width="75" Click="btnNetDisable_Click"/>
-        <Button Name="btnNetEnable" Content="Enable Net" HorizontalAlignment="Left" Margin="432,510,0,0" VerticalAlignment="Top" Width="75" Click="btnNetEnable_Click"/>
+        <Button IsEnabled="False" Name="btnInputDisable" Content="Disable Input" HorizontalAlignment="Left" Margin="129,510,0,0" VerticalAlignment="Top" Width="83" Click="btnInputDisable_Click"/>
+        <Button IsEnabled="False" Name="btnInputEnable" Content="Enable Input" HorizontalAlignment="Left" Margin="232,510,0,0" VerticalAlignment="Top" Width="75" Click="btnInputEnable_Click"/>
+
+        <Button IsEnabled="False" Name="btnNetDisable" Content="Disable Net" HorizontalAlignment="Left" Margin="332,510,0,0" VerticalAlignment="Top" Width="75" Click="btnNetDisable_Click"/>
+        <Button IsEnabled="False" Name="btnNetEnable" Content="Enable Net" HorizontalAlignment="Left" Margin="432,510,0,0" VerticalAlignment="Top" Width="75" Click="btnNetEnable_Click"/>
     </Grid>
 </Window>

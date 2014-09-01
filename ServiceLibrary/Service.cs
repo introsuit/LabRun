@@ -13,6 +13,7 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using System.Net;
 using System.Windows.Forms;
+using System.Net.NetworkInformation;
 
 
 namespace ServiceLibrary
@@ -27,8 +28,8 @@ namespace ServiceLibrary
         private readonly string userAtDomain;
         //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
         private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
-        private readonly string inputBlockApp = @"C:\test\InputBlocker\InputBlocker.exe";
-        
+        private readonly string inputBlockApp = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "InputBlocker", "InputBlocker.exe");
+
         private static readonly string testFolder = @"C:\test\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
         private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
@@ -38,6 +39,7 @@ namespace ServiceLibrary
         public List<WindowSize> WindowSizes { get { return windowSizes; } }
 
         private static Service service;
+        public bool AppActive { get; set; }
         public event EventHandler ProgressUpdate;
 
         public static Service getInstance()
@@ -81,6 +83,8 @@ namespace ServiceLibrary
                     userAtDomain = userName + @"@" + domainName;
                     Credentials = new Credentials(domainName, userName, userPassword);
 
+                    AppActive = true;
+
                     windowSizes.Add(new WindowSize("Full Screen", null, null));
                     windowSizes.Add(new WindowSize("Half Screen Left", 960, 1080));
                     WindowSize size = new WindowSize("Half Screen Right", 960, 1080);
@@ -92,6 +96,75 @@ namespace ServiceLibrary
             catch (FileNotFoundException ex)
             {
                 throw new FileNotFoundException("auth.ini", ex);
+            }
+        }
+
+        public void StartPingSvc(List<LabClient> clients)
+        {
+            new Thread(delegate()
+               {
+                   while (AppActive)
+                   {
+                       foreach (LabClient client in clients)
+                       {
+                           new Thread(delegate()
+                            {
+                                bool success = false;
+                                Ping ping = new Ping();
+                                try
+                                {
+                                    PingReply pingReply = ping.Send(client.ComputerName);
+                                    if (pingReply.Status == IPStatus.Success)
+                                    {
+                                        success = true;
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Debug.WriteLine(ex.Message);
+                                }
+
+                                client.Active = success;
+                            }).Start();
+                       }
+                       Thread.Sleep(30000);
+                   }
+               }).Start();
+        }
+
+        public void SchedulePingSvc(List<LabClient> clients)
+        {
+            System.Threading.Timer timer = new System.Threading.Timer((e) =>
+            {
+                MyMethod(clients);
+            }, null, 0, (long)TimeSpan.FromSeconds(10).TotalMilliseconds);
+        }
+
+        private void MyMethod(List<LabClient> clients)
+        {
+            Debug.WriteLine("Eina!");
+            foreach (LabClient client in clients)
+            {
+                WaitCallback func = delegate(object state)
+                {
+                    bool success = false;
+                    Ping ping = new Ping();
+                    try
+                    {
+                        PingReply pingReply = ping.Send(client.ComputerName, 250);
+                        if (pingReply.Status == IPStatus.Success)
+                        {
+                            success = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                    }
+                    client.Active = success;
+                    
+                };
+                ThreadPool.QueueUserWorkItem(func);
             }
         }
 
@@ -131,7 +204,6 @@ namespace ServiceLibrary
 
                     LabClient client = new LabClient(roomNo, compname, boothNo, mac, ip);
                     clientlist.Add(client);
-
                 }
             }
 
@@ -159,7 +231,6 @@ namespace ServiceLibrary
 
         public List<LabClient> GetLabComputersNew2(int labNo)
         {
-
             List<LabClient> clientlist = new List<LabClient>();
             //Get MAC addresses from Bridge
             try
@@ -244,12 +315,9 @@ namespace ServiceLibrary
                                 client.Ip = ip;
 
                             }
-
                         }
-
                     }
                 }
-
 
                 //Get computer names, match with IP using NBTSTAT
 
@@ -436,7 +504,7 @@ namespace ServiceLibrary
             }
 
             //-----notify ui
-            service.notifyStatus("Request Sent");
+            service.notifyStatus("Input Disable Request Sent");
             //-----end
         }
 
@@ -486,8 +554,7 @@ namespace ServiceLibrary
                 RunRemotePSCmdLet(client.ComputerName, @"remove-itemproperty -Path hkcu:software\microsoft\windows\currentversion\policies\system -Name ""DisableTaskMgr""");
 
                 //-----notify ui
-                if (ProgressUpdate != null)
-                    ProgressUpdate(this, new StatusEventArgs("Task Kill Completed"));
+                notifyStatus("Input Enabled");
                 //-----end
             }
 
@@ -633,8 +700,7 @@ namespace ServiceLibrary
             RunRemotePSCmdLet(computerName, cmdlet);
 
             //-----notify ui
-            if (ProgressUpdate != null)
-                ProgressUpdate(this, new StatusEventArgs("Task Kill Completed"));
+            notifyStatus("Task Kill Completed");
             //-----end
         }
 
@@ -667,16 +733,7 @@ namespace ServiceLibrary
                 powershell.AddParameter("Name", "cred");
                 powershell.AddParameter("Value", Credential);
 
-                powershell.AddScript(@"$s = New-PSSession -ComputerName '" + compList + "' -Credential $cred");
-
-                //string cmdlet = @"shutdown.exe -t 10 -f -s -c 'My comments'";
-                //powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdlet + " }");
-
-                //cmdlet = @"Start-Sleep 5";
-                //powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdlet + " }");
                 powershell.AddScript(@"$a = Stop-Computer -ComputerName " + compList + @" -Force -Credential $cred");
-
-                powershell.AddScript(@"Remove-PSSession -Session $s");
                 powershell.AddScript(@"echo $a");
 
                 var results = powershell.Invoke();
@@ -697,9 +754,7 @@ namespace ServiceLibrary
                 }
             }
 
-            //-----notify ui
-            if (ProgressUpdate != null)
-                ProgressUpdate(this, new StatusEventArgs("Shutdown request sent"));
+            notifyStatus("Shutdown request sent");
             //-----end
         }
 

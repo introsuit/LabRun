@@ -20,6 +20,7 @@ using ServiceLibrary;
 using System.Collections;
 using System.Data;
 using UserControls;
+using System.Net.NetworkInformation;
 
 namespace LabRun
 {
@@ -64,6 +65,7 @@ namespace LabRun
             };
             initClients();
             initTabs();
+            service.StartPingSvc(clients);
         }
         public void initClients()
         {
@@ -81,14 +83,13 @@ namespace LabRun
 
         public void updateClientsGrid()
         {
+            selectedCLients.Clear();
             if (labNo == 0)
             {
-                selectedCLients.Clear();
                 dgrClients.ItemsSource = this.clients;
             }
             else
             {
-                selectedCLients.Clear();
                 selectedCLients = service.filterForRoom(clients, labNo);
                 dgrClients.ItemsSource = selectedCLients;
             }
@@ -98,10 +99,7 @@ namespace LabRun
         private void button1_Click(object sender, RoutedEventArgs e)
         {
 
-
         }
-
-
 
         private void initTabs()
         {
@@ -319,7 +317,6 @@ namespace LabRun
             MessageBoxResult result = MessageBox.Show("Are you sure you want to update the list of computers? Please make sure that the computers are all turned on after the server, to enable discovery. Check ARP list to be sure or restart all lab computers manually. Do you wish to continue?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
-
                 try
                 {
                     dgrClients.ItemsSource = service.GetLabComputersNew2(labNo);
@@ -329,11 +326,7 @@ namespace LabRun
                     MessageBox.Show("ARP error! The computer is not listed in the ARP pool. Restart client computers to solve the problem.", "ARP error!");
                 }
             }
-
         }
-
-
-
 
         public void updateStatus(string msg)
         {
@@ -390,6 +383,12 @@ namespace LabRun
             {
                 tab.ButtonClickable(smthSelected);
             }
+            btnStartUp.IsEnabled = smthSelected;
+            btnShutdown.IsEnabled = smthSelected;
+            btnInputDisable.IsEnabled = smthSelected;
+            btnInputEnable.IsEnabled = smthSelected;
+            btnNetDisable.IsEnabled = smthSelected;
+            btnNetEnable.IsEnabled = smthSelected;
         }
 
         private void dgrClients_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -415,6 +414,11 @@ namespace LabRun
         private void btnNetEnable_Click(object sender, RoutedEventArgs e)
         {
             service.NetEnable(getSelectedClients());
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            service.AppActive = false;
         }
     }
 }
