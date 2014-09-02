@@ -100,7 +100,6 @@ namespace LabRun
             }
         }
 
-
         private void button1_Click(object sender, RoutedEventArgs e)
         {
 
@@ -154,7 +153,6 @@ namespace LabRun
             return computerNames;
         }
 
-
         private List<string> getSelectedCompsMacs()
         {
             List<string> selectedMACs = new List<string>();
@@ -165,7 +163,6 @@ namespace LabRun
             }
             return selectedMACs;
         }
-
 
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
         {
@@ -352,7 +349,10 @@ namespace LabRun
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            service.AppActive = false;
+            service.StopAndClean();
+            lock (service.key) {
+                Monitor.Pulse(service.key);
+            }
         }
 
         private void SelectClients(List<LabClient> clients)

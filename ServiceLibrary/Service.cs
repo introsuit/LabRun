@@ -39,8 +39,9 @@ namespace ServiceLibrary
         public List<WindowSize> WindowSizes { get { return windowSizes; } }
 
         private static Service service;
-        public bool AppActive { get; set; }
+        private bool AppActive { get; set; }
         public event EventHandler ProgressUpdate;
+        public readonly object key = new object();
 
         public static Service getInstance()
         {
@@ -99,6 +100,11 @@ namespace ServiceLibrary
             }
         }
 
+        public void StopAndClean()
+        {
+            AppActive = false;
+        }
+
         public void StartPingSvc(List<LabClient> clients)
         {
             new Thread(delegate()
@@ -127,7 +133,11 @@ namespace ServiceLibrary
                                 client.Active = success;
                             }).Start();
                        }
-                       Thread.Sleep(30000);
+                       //check again after 30sec or interrupt if app is stopped 
+                       lock (key)
+                       {
+                           Monitor.Wait(key, new TimeSpan(0, 0, 30));
+                       }
                    }
                }).Start();
         }
