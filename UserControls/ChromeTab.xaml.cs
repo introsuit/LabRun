@@ -58,7 +58,6 @@ namespace UserControls
                         }
                         break;
                     }
-
             }
 
             string param = param1 + " "; 
@@ -92,7 +91,6 @@ namespace UserControls
             {
                 Service.getInstance().killRemoteProcess(client.ComputerName, "Chrome.exe");
             }
-            
         }
 
         public void ButtonClickable(bool enabled)

@@ -21,6 +21,7 @@ using System.Collections;
 using System.Data;
 using UserControls;
 using RDPCOMAPILib;
+using System.Net.NetworkInformation;
 
 namespace LabRun
 {
@@ -58,7 +59,6 @@ namespace LabRun
                 }
             }
 
-
             service.ProgressUpdate += (s, e) =>
             {
                 Dispatcher.Invoke((Action)delegate()
@@ -70,6 +70,7 @@ namespace LabRun
             };
             initClients();
             initTabs();
+            service.StartPingSvc(clients);
         }
         public void initClients()
         {
@@ -87,14 +88,13 @@ namespace LabRun
 
         public void updateClientsGrid()
         {
+            selectedCLients.Clear();
             if (labNo == 0)
             {
-                selectedCLients.Clear();
                 dgrClients.ItemsSource = this.clients;
             }
             else
             {
-                selectedCLients.Clear();
                 selectedCLients = service.filterForRoom(clients, labNo);
                 dgrClients.ItemsSource = selectedCLients;
             }
@@ -104,10 +104,7 @@ namespace LabRun
         private void button1_Click(object sender, RoutedEventArgs e)
         {
 
-
         }
-
-
 
         private void initTabs()
         {
@@ -173,7 +170,7 @@ namespace LabRun
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
         {
             lblStatus.Content = "In Progress...";
-            service.ShutdownComputer(getSelectedClientsNames());
+            service.ShutdownComputers(getSelectedClients());
         }
 
         public IEnumerable<DataGridRow> GetDataGridRows(DataGrid grid)
@@ -186,121 +183,6 @@ namespace LabRun
                 if (null != row) yield return row;
             }
         }
-
-        private void btnEven_Click(object sender, RoutedEventArgs e)
-        {
-            List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
-
-            IEnumerable<LabClient> emp = (from i in clients
-                                          where i.BoothNo % 2 == 0
-                                          select i);
-
-            dgrClients.SelectedItems.Clear();
-            foreach (LabClient es in emp)
-            {
-                dgrClients.SelectedItems.Add(es);
-            }
-        }
-
-        private void btnOdd_Click(object sender, RoutedEventArgs e)
-        {
-            List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
-
-            IEnumerable<LabClient> emp = (from i in clients
-                                          where ((i.BoothNo % 2 != 0) && i.BoothNo != null)
-                                          select i);
-
-            dgrClients.SelectedItems.Clear();
-            foreach (LabClient es in emp)
-            {
-                dgrClients.SelectedItems.Add(es);
-            }
-        }
-
-        private void btnzigzag_Click(object sender, RoutedEventArgs e)
-        {
-            List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
-            List<LabClient> clientsSelected = new List<LabClient>();
-            Boolean even = true;
-            Boolean odd = false;
-
-            foreach (LabClient client in clients)
-            {
-
-                //Selecting every second odd
-                if (client.BoothNo % 2 == 0)
-                {
-                    if (odd)
-                    {
-                        odd = false;
-                        clientsSelected.Add(client);
-                    }
-                    else
-                        odd = true;
-                }
-
-                //Selecting every first even
-                if ((client.BoothNo % 2 != 0) && client.BoothNo != null)
-                {
-                    if (even)
-                    {
-                        even = false;
-                        clientsSelected.Add(client);
-                    }
-                    else
-                        even = true;
-                }
-            }
-
-            dgrClients.SelectedItems.Clear();
-            foreach (LabClient es in clientsSelected)
-            {
-                dgrClients.SelectedItems.Add(es);
-            }
-        }
-
-        private void btnzagzig_Click(object sender, RoutedEventArgs e)
-        {
-            List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
-            List<LabClient> clientsSelected = new List<LabClient>();
-            Boolean even = false;
-            Boolean odd = true;
-
-            foreach (LabClient client in clients)
-            {
-
-                //Selecting every first odd
-                if (client.BoothNo % 2 == 0)
-                {
-                    if (odd)
-                    {
-                        odd = false;
-                        clientsSelected.Add(client);
-                    }
-                    else
-                        odd = true;
-                }
-
-                //Selecting every second even
-                if ((client.BoothNo % 2 != 0) && client.BoothNo != null)
-                {
-                    if (even)
-                    {
-                        even = false;
-                        clientsSelected.Add(client);
-                    }
-                    else
-                        even = true;
-                }
-            }
-
-            dgrClients.SelectedItems.Clear();
-            foreach (LabClient es in clientsSelected)
-            {
-                dgrClients.SelectedItems.Add(es);
-            }
-        }
-
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
@@ -325,7 +207,6 @@ namespace LabRun
             MessageBoxResult result = MessageBox.Show("Are you sure you want to update the list of computers? Please make sure that the computers are all turned on after the server, to enable discovery. Check ARP list to be sure or restart all lab computers manually. Do you wish to continue?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
-
                 try
                 {
                     dgrClients.ItemsSource = service.GetLabComputersNew2(labNo);
@@ -335,30 +216,16 @@ namespace LabRun
                     MessageBox.Show("ARP error! The computer is not listed in the ARP pool. Restart client computers to solve the problem.", "ARP error!");
                 }
             }
-
         }
 
-
-
+        private void About_Click(object sender, RoutedEventArgs e)
+        {
+            new About().Show();
+        }
 
         public void updateStatus(string msg)
         {
             lblStatus.Content = msg;
-        }
-
-
-        private void btnSelectNone_Click(object sender, RoutedEventArgs e)
-        {
-            dgrClients.SelectedItems.Clear();
-        }
-
-        private void btnSelectAll_Click(object sender, RoutedEventArgs e)
-        {
-            List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
-            foreach (LabClient client in clients)
-            {
-                dgrClients.SelectedItems.Add(client);
-            }
         }
 
         private void cmbBxLabSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -386,7 +253,7 @@ namespace LabRun
                     }
             }
             updateClientsGrid();
-
+            cmbSelectionClients.SelectedIndex = 0;
         }
 
         private void dgrClients_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -396,6 +263,13 @@ namespace LabRun
             {
                 tab.ButtonClickable(smthSelected);
             }
+            btnStartUp.IsEnabled = smthSelected;
+            btnShutdown.IsEnabled = smthSelected;
+            btnInputDisable.IsEnabled = smthSelected;
+            btnInputEnable.IsEnabled = smthSelected;
+            btnNetDisable.IsEnabled = smthSelected;
+            btnNetEnable.IsEnabled = smthSelected;
+            //cmbSelectionClients.SelectedIndex = 1;
         }
 
         private void dgrClients_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -412,6 +286,7 @@ namespace LabRun
         {
             service.InputEnable(getSelectedClients());
         }
+
 
         private void Incoming(object Guest)
         {
@@ -464,7 +339,143 @@ namespace LabRun
 
             }
         }
+
+        private void btnNetDisable_Click(object sender, RoutedEventArgs e)
+        {
+            service.NetDisable(getSelectedClients());
+        }
+
+        private void btnNetEnable_Click(object sender, RoutedEventArgs e)
+        {
+            service.NetEnable(getSelectedClients());
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            service.AppActive = false;
+        }
+
+        private void SelectClients(List<LabClient> clients)
+        {
+            dgrClients.SelectedItems.Clear();
+            foreach (LabClient client in clients)
+            {
+                dgrClients.SelectedItems.Add(client);
+            }
+        }
+
+        private void MenuItemExit_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        } 
+
+        private void cmbSelectionClients_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            List<LabClient> clients = (List<LabClient>)dgrClients.ItemsSource;
+
+            string selection = ((ComboBoxItem)cmbSelectionClients.SelectedItem).Tag.ToString();
+            switch (selection)
+            {
+                case "all":
+                    {
+                        SelectClients(clients);
+                        break;
+                    }
+                case "none":
+                    {
+                        dgrClients.SelectedItems.Clear();
+                        break;
+                    }
+                case "odd":
+                    {
+                        clients = clients.Where(i => i.BoothNo % 2 != 0).ToList();
+                        SelectClients(clients);
+                        break;
+                    }
+                case "even":
+                    {
+                        clients = clients.Where(i => i.BoothNo % 2 == 0).ToList();
+                        SelectClients(clients);
+                        break;
+                    }
+                case "zigzag":
+                    {
+                        List<LabClient> clientsSelected = new List<LabClient>();
+                        Boolean even = true;
+                        Boolean odd = false;
+
+                        foreach (LabClient client in clients)
+                        {
+
+                            //Selecting every second odd
+                            if (client.BoothNo % 2 == 0)
+                            {
+                                if (odd)
+                                {
+                                    odd = false;
+                                    clientsSelected.Add(client);
+                                }
+                                else
+                                    odd = true;
+                            }
+
+                            //Selecting every first even
+                            if ((client.BoothNo % 2 != 0) && client.BoothNo != null)
+                            {
+                                if (even)
+                                {
+                                    even = false;
+                                    clientsSelected.Add(client);
+                                }
+                                else
+                                    even = true;
+                            }
+                        }
+                        SelectClients(clientsSelected);
+                        break;
+                    }
+                case "zagzig":
+                    {
+                        List<LabClient> clientsSelected = new List<LabClient>();
+                        Boolean even = false;
+                        Boolean odd = true;
+
+                        foreach (LabClient client in clients)
+                        {
+
+                            //Selecting every first odd
+                            if (client.BoothNo % 2 == 0)
+                            {
+                                if (odd)
+                                {
+                                    odd = false;
+                                    clientsSelected.Add(client);
+                                }
+                                else
+                                    odd = true;
+                            }
+
+                            //Selecting every second even
+                            if ((client.BoothNo % 2 != 0) && client.BoothNo != null)
+                            {
+                                if (even)
+                                {
+                                    even = false;
+                                    clientsSelected.Add(client);
+                                }
+                                else
+                                    even = true;
+                            }
+                        }
+                        SelectClients(clientsSelected);
+                        break;
+                    }
+            }
+
+        }
+    
+        }
     }
-}
+
 
 

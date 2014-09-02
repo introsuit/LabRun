@@ -1,17 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
 namespace ServiceLibrary
 {
-    public class LabClient
+    public class LabClient : INotifyPropertyChanged
     {
+        private bool active;
+        public bool Active
+        {
+            get { return active; }
+            set
+            {
+                if (value != active)
+                {
+                    active = value;
+                    OnPropertyChanged("Active");
+                }
+            }
+        }
+
         public int RoomNo { get; set; }
         public string ComputerName { get; set; }
         public int? BoothNo { get; set; }
         public string Mac { get; set; }
         public string Ip { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void OnPropertyChanged(string p)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(p));
+            }
+        }
 
         public LabClient(int RoomNo, string computerName, int? boothNo, string mac, string ip)
         {
@@ -20,6 +45,7 @@ namespace ServiceLibrary
             this.BoothNo = boothNo;
             this.Mac = mac;
             this.Ip = ip;
+            active = false;
         }
 
         public override bool Equals(System.Object obj)
@@ -41,10 +67,11 @@ namespace ServiceLibrary
             return (ComputerName == p.ComputerName);
         }
 
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             int hash = 13;
             hash = (hash * 7) + ComputerName.GetHashCode();
             return hash;
-        }
+        }    
     }
 }
