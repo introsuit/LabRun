@@ -20,6 +20,7 @@ using ServiceLibrary;
 using System.Collections;
 using System.Data;
 using UserControls;
+using RDPCOMAPILib;
 
 namespace LabRun
 {
@@ -33,6 +34,10 @@ namespace LabRun
         private List<LabClient> selectedCLients = new List<LabClient>();
         private List<ControlUnit> tabControls = new List<ControlUnit>();
         public int labNo = 1;
+        public Boolean isScreenShared = false;
+        public int sessionID = 0;
+        RDPSession x = new RDPSession();
+
 
         public MainWindow()
         {
@@ -408,6 +413,57 @@ namespace LabRun
             service.InputEnable(getSelectedClients());
         }
 
+        private void Incoming(object Guest)
+        {
+            IRDPSRAPIAttendee MyGuest = (IRDPSRAPIAttendee)Guest;
+            MyGuest.ControlLevel = CTRL_LEVEL.CTRL_LEVEL_VIEW;
+        }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            
+            
+            if (!this.isScreenShared)
+            {
+                if (this.getSelectedClients() != null)
+                {
+                    this.sessionID++;
+                   // this.x = new RDPSession();
+                    Service.getInstance().TransferAndRun(this.getSelectedClients());
+                    BtnScrShare.Content = "Stop screen sharing";
+                    this.isScreenShared = true;
+             
+
+                    x.OnAttendeeConnected += Incoming;
+                    x.Open();
+
+                    IRDPSRAPIInvitation Invitation = x.Invitations.CreateInvitation("Trial"+sessionID, "MyGroup"+sessionID, "", 50);
+                    String Contents = Invitation.ConnectionString.Trim();
+                    System.IO.StreamWriter file = new System.IO.StreamWriter(@"\\BSSFILES2\Dept\adm\lr-temp\rds-key.txt");
+                    file.WriteLine(Contents);
+                    file.Close();
+
+                    x.OnAttendeeConnected += Incoming;
+                    x.Open();
+                }
+            }
+            else {
+                BtnScrShare.Content = "Share screen";
+               // x.Close();
+                //x = null;  
+
+                this.isScreenShared = false;
+
+                foreach (LabClient client in this.getSelectedClients())
+                {
+                    Service.getInstance().killRemoteProcess(client.ComputerName, "scr-viewer.exe");
+                }
+                //Ugly hack that works getting around the the error when restarting screen sharing
+                /*System.Windows.Forms.Application.Restart();
+                System.Windows.Application.Current.Shutdown();*/
+
+            }
+        }
     }
 }
 

@@ -44,7 +44,7 @@
         <Button Content="Zag-zig" Name="btnzagzig" HorizontalAlignment="Left" Margin="386,374,0,0" VerticalAlignment="Top" Width="75" Click="btnzagzig_Click"/>
 
 
-        <Button Content="Update client list" HorizontalAlignment="Left" Margin="10,510,0,0" VerticalAlignment="Top" Width="113" Click="Button_Click_1"/>
+        <Button Content="Update client list" HorizontalAlignment="Left" Margin="10,510,0,0" VerticalAlignment="Top" Width="102" Click="Button_Click_1"/>
         <Label Content="Admin options" HorizontalAlignment="Left" Margin="10,479,0,0" VerticalAlignment="Top"/>
 
 
@@ -57,8 +57,9 @@
             <ComboBoxItem Name="both" Tag="both">Both labs</ComboBoxItem>
         </ComboBox>
         <Label Content="Select lab:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-        <Button Name="btnInputDisable" Content="Disable Input" HorizontalAlignment="Left" Margin="129,510,0,0" VerticalAlignment="Top" Width="83" Click="btnInputDisable_Click"/>
-        <Button Name="btnInputEnable" Content="Enable Input" HorizontalAlignment="Left" Margin="232,510,0,0" VerticalAlignment="Top" Width="75" Click="btnInputEnable_Click"/>
+        <Button Name="btnInputDisable" Content="Disable Input" HorizontalAlignment="Left" Margin="117,510,0,0" VerticalAlignment="Top" Width="83" Click="btnInputDisable_Click"/>
+        <Button Name="btnInputEnable" Content="Enable Input" HorizontalAlignment="Left" Margin="205,510,0,0" VerticalAlignment="Top" Width="75" Click="btnInputEnable_Click"/>
+        <Button x:Name="BtnScrShare" Content="Share screen" HorizontalAlignment="Left" Margin="285,510,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_2"/>
 
     </Grid>
 </Window>

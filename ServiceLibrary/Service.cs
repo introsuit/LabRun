@@ -343,8 +343,9 @@ namespace ServiceLibrary
             //MessageBox.Show("output>>" + (String.IsNullOrEmpty(output) ? "(none)" : output));
             //MessageBox.Show("error>>" + (String.IsNullOrEmpty(error) ? "(none)" : error));
             //MessageBox.Show("ExitCode: " + exitCode.ToString(), "ExecuteCommand");
-            return output;
             process.Close();
+            return output;
+            
         }
 
         public void ExecuteCmdSimple(string command)
@@ -708,6 +709,33 @@ namespace ServiceLibrary
             if (ProgressUpdate != null)
                 ProgressUpdate(this, new StatusEventArgs(msg));
             //-----end
+        }
+
+        public Thread TransferAndRun(List<LabClient> selectedClients)
+        {
+            var t = new Thread(() => ScrVwrCopyAndRun(selectedClients));
+            t.Start();
+            return t;
+        }
+
+        private void ScrVwrCopyAndRun(List<LabClient> selectedClients)
+        {
+            //Run viewer on each selected lab client.
+            foreach (LabClient client in selectedClients)
+            {
+                string batFileName = Path.Combine(tempPath, "ScrViewer_" + client.ComputerName + ".bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
+                {
+                    file.WriteLine("@echo off");
+
+
+                    string copyCmd = @"xcopy ""\\BSSFILES2\dept\adm\labrun\scr-viewer"" ""C:\labrun\scr-viewer"" /V /E /Y /Q /I";
+                    string runCmd = @"""" + @"C:\labrun\scr-viewer\scr-viewer.exe" + @"""";
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";                    
+                    file.WriteLine(line);
+                }
+                service.StartNewCmdThread(batFileName);
+              }
         }
 
         public IEnumerable<string> GetFiles(string path)
