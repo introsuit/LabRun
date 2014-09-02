@@ -162,7 +162,7 @@ namespace ServiceLibrary
                         Debug.WriteLine(ex.Message);
                     }
                     client.Active = success;
-                    
+
                 };
                 ThreadPool.QueueUserWorkItem(func);
             }
@@ -704,12 +704,12 @@ namespace ServiceLibrary
             //-----end
         }
 
-        public void ShutdownComputer(List<string> computerNames)
+        public void ShutdownComputers(List<LabClient> clients)
         {
-            new Thread(() => ShutItThread(computerNames)).Start();
+            new Thread(() => ShutItThread(clients)).Start();
         }
 
-        private void ShutItThread(List<string> computerNames)
+        private void ShutItThread(List<LabClient> clients)
         {
             Debug.WriteLine("Shutting begins >:)");
             var LocalPassword = userPassword;
@@ -719,39 +719,37 @@ namespace ServiceLibrary
 
             PSCredential Credential = new PSCredential(userAtDomain, ssLPassword);
 
-            string compList = "";
-            foreach (string comp in computerNames)
+            foreach (LabClient client in clients)
             {
-                compList += comp + ", ";
-            }
-            compList = compList.Substring(0, compList.Length - 2);
-            Debug.WriteLine(compList);
-
-            using (PowerShell powershell = PowerShell.Create())
-            {
-                powershell.AddCommand("Set-Variable");
-                powershell.AddParameter("Name", "cred");
-                powershell.AddParameter("Value", Credential);
-
-                powershell.AddScript(@"$a = Stop-Computer -ComputerName " + compList + @" -Force -Credential $cred");
-                powershell.AddScript(@"echo $a");
-
-                var results = powershell.Invoke();
-
-                foreach (var item in results)
+                new Thread(delegate()
                 {
-                    Debug.WriteLine(item);
-                }
+                  using (PowerShell powershell = PowerShell.Create())
+                  {
+                      powershell.AddCommand("Set-Variable");
+                      powershell.AddParameter("Name", "cred");
+                      powershell.AddParameter("Value", Credential);
 
-                if (powershell.Streams.Error.Count > 0)
-                {
-                    Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
-                }
+                      powershell.AddScript(@"$a = Stop-Computer -ComputerName " + client.ComputerName + @" -Force -Credential $cred");
+                      powershell.AddScript(@"echo $a");
 
-                foreach (ErrorRecord err in powershell.Streams.Error)
-                {
-                    Debug.WriteLine(err.ErrorDetails);
-                }
+                      var results = powershell.Invoke();
+
+                      foreach (var item in results)
+                      {
+                          Debug.WriteLine(item);
+                      }
+
+                      if (powershell.Streams.Error.Count > 0)
+                      {
+                          Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
+                      }
+
+                      foreach (ErrorRecord err in powershell.Streams.Error)
+                      {
+                          Debug.WriteLine(err.ErrorDetails);
+                      }
+                  }
+              }).Start();
             }
 
             notifyStatus("Shutdown request sent");
