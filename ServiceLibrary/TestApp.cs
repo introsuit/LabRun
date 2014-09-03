@@ -18,6 +18,10 @@ namespace ServiceLibrary
         protected string tempPath = Path.GetTempPath();
         public string Extension { get; set; }
         public string ExtensionDescription { get; set; }
+        private string timePrint = "";
+
+        private string projectName = "ProjectX";
+
         public string AppExeName 
         {
             get
@@ -97,13 +101,14 @@ namespace ServiceLibrary
             //-----end
         }
 
-        private bool transferDone(List<string> selectedClients)
+        private bool transferDone(List<LabClient> clients)
         {
-            foreach (string client in selectedClients)
+            foreach (LabClient client in clients)
             {
                 //service.SharedNetworkTempFolder + @"Results\" + applicationName + @"\"
                 //string path = resultPath + "DONE" + client;
-                string path = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, applicationName, completionFileName + client);
+                string path = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, completionFileName + client.ComputerName);
+                Debug.WriteLine(path);
                 if (!File.Exists(path))
                 {
                     return false;
@@ -112,7 +117,7 @@ namespace ServiceLibrary
             return true;
         }
 
-        private void waitForTransferCompletion(List<string> selectedClients)
+        private void waitForTransferCompletion(List<LabClient> selectedClients)
         {
             long timeoutPeriod = 120000;
             int sleepTime = 5000;
@@ -131,47 +136,48 @@ namespace ServiceLibrary
                 throw new TimeoutException();
         }
 
-        public Thread TransferResults(List<string> selectedClients)
+        public Thread TransferResults(List<LabClient> clients)
         {
-            var t = new Thread(() => xcopyResults(selectedClients));
+            var t = new Thread(() => xcopyResults(clients));
             t.Start();
             return t;
         }
 
-        private void xcopyResults(List<string> selectedClients)
+        private void xcopyResults(List<LabClient> clients)
         {
             //-----clean notify files
             string copyPath = Path.Combine(tempPath, "networkClean.bat");
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
                 file.WriteLine("@echo off");
-                string line = @"del /s /q " + Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, applicationName, completionFileName + @"*");
+                string line = @"del /s /q " + Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, completionFileName + @"*");
                 file.WriteLine(line);
             }
             service.ExecuteCommandNoOutput(copyPath, true);
             //-----end
 
             //----copy results from client computers to shared network folder
+            DateTime timeStamp = DateTime.Now;
+            timePrint = timeStamp.Hour + "hh" + timeStamp.Minute + "mm " + timeStamp.ToShortDateString();
             int i = 0;
-
-            foreach (string computerName in selectedClients)
+            foreach (LabClient client in clients)
             {
-                string copyPathRemote = Path.Combine(tempPath, "remoteResultOne" + computerName + ".bat");
+                string copyPathRemote = Path.Combine(tempPath, "remoteResultOne" + client.ComputerName + ".bat");
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                 {
                     file.WriteLine("@echo off");
 
                     string src = Path.Combine(service.TestFolder, applicationName, testFolderName);
-                    string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, applicationName, computerName, testFolderName) + @""" /V /E /Y /Q /I";
+                    string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, client.BoothNo + "", timePrint, applicationName, testFolderName);
 
                     string resultFiles = "";
                     foreach(string resultExt in resultExts){
-                        resultFiles += @"xcopy """ + Path.Combine(src, "*." + resultExt) + @""" """ + dst + " ^& ";
+                        resultFiles += @"xcopy """ + Path.Combine(src, "*." + resultExt) + @""" """ + dst + @""" /V /E /Y /Q /I ^& ";
                     }
                     resultFiles = resultFiles.Substring(0, resultFiles.Length - 4);
                     
-                    string completionNotifyFile = @"copy NUL " + Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, applicationName, completionFileName + computerName);
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + computerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + resultFiles + @" ^& " + completionNotifyFile + @")";
+                    string completionNotifyFile = @"copy NUL " + Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, completionFileName + client.ComputerName);
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + resultFiles + @" ^& " + completionNotifyFile + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(copyPathRemote);
@@ -180,14 +186,14 @@ namespace ServiceLibrary
             //----end
 
             //check to make sure transfer is completed from all clients
-            waitForTransferCompletion(selectedClients);
+            waitForTransferCompletion(clients);
 
             //-----copy from network to local
             copyPath = Path.Combine(tempPath, "networkResultsCopy.bat");
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
                 file.WriteLine("@echo off");
-                string src = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, applicationName);
+                string src = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName);
                 string dst = Path.Combine(service.TestFolder, resultsFolderName, applicationName);
                 string line = @"xcopy """ + src + @""" """ + dst + @""" /V /E /Y /Q /I" /*/Exclude:" + service.TestFolder + @"Excludes.txt"*/;
                 file.WriteLine(line);

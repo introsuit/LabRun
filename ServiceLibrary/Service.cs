@@ -12,7 +12,6 @@ using System.Reflection;
 using System.Collections;
 using System.Text.RegularExpressions;
 using System.Net;
-using System.Windows.Forms;
 using System.Net.NetworkInformation;
 
 namespace ServiceLibrary
@@ -205,7 +204,7 @@ namespace ServiceLibrary
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error trying to reach the bridge's client list. Error: " + ex.Message);
+                throw new WebException("Error trying to reach the bridge's client list. Error:", ex);
             }
 
 
@@ -299,8 +298,6 @@ namespace ServiceLibrary
                         name = str;
                     }
                     client.ComputerName = name;
-
-
                 }
 
                 //Write clientlist to file for testing
@@ -379,51 +376,6 @@ namespace ServiceLibrary
             return output;
 
         }
-
-        public void ExecuteCmdSimple(string command)
-        {
-            System.Diagnostics.Process.Start(command);
-        }
-
-        public void runWmi()
-        {
-            try
-            {
-                object[] theProcessToRun = { "notepad.exe" };
-                ConnectionOptions theConnection = new ConnectionOptions();
-                theConnection.Username = Credentials.UserName + @"@" + Credentials.DomainName;
-                theConnection.Password = Credentials.Password;
-                ManagementScope theScope = new ManagementScope("\\YLGW036496\\root\\cimv2", theConnection);
-                ManagementClass theClass = new ManagementClass(theScope, new ManagementPath("Win32_Process"), new ObjectGetOptions());
-                theClass.InvokeMethod("Create", theProcessToRun);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-            }
-        }
-
-        public void newRunCmd(string target)
-        {
-            string arguments = @"C:\Windows\notepad32";
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.FileName = @"C:\PSTools\PsExec.exe";
-            startInfo.Arguments = arguments;
-            Debug.WriteLine(arguments);
-            startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardError = true;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.CreateNoWindow = false;
-            Process process = new Process();
-            process.StartInfo = startInfo;
-            process.Start();
-            process.WaitForExit();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
-            process.Close();
-        }
-
 
         public void InputDisable(List<LabClient> clients)
         {
@@ -573,36 +525,7 @@ namespace ServiceLibrary
             {
                 Debug.WriteLine("Exception Occurred :{0},{1}", ex.Message, ex.StackTrace.ToString());
             }
-        }
-
-        public void execBatch(string target)
-        {
-            System.Diagnostics.Process proc = new System.Diagnostics.Process();
-            int timeout = 1000;
-            int NO_MILLISECONDS_IN_A_SECOND = 100;
-            int NO_SECONDS_IN_A_MINUTE = 100;
-
-            proc.StartInfo.FileName = target;
-
-            proc.StartInfo.RedirectStandardError = true;
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.StartInfo.UseShellExecute = false;
-
-            proc.Start();
-
-            proc.WaitForExit
-                (
-                    (timeout <= 0)
-                        ? int.MaxValue : timeout * NO_MILLISECONDS_IN_A_SECOND *
-                            NO_SECONDS_IN_A_MINUTE
-                );
-
-            string errorMessage = proc.StandardError.ReadToEnd();
-            proc.WaitForExit();
-
-            string outputMessage = proc.StandardOutput.ReadToEnd();
-            proc.WaitForExit();
-        }
+        }   
 
         public void ExecuteCommandNoOutput(string command, bool waitForExit = false)
         {
@@ -751,43 +674,6 @@ namespace ServiceLibrary
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);
-            }
-        }
-
-        public IEnumerable<string> GetFiles(string path)
-        {
-            Queue<string> queue = new Queue<string>();
-            queue.Enqueue(path);
-            while (queue.Count > 0)
-            {
-                path = queue.Dequeue();
-                try
-                {
-                    foreach (string subDir in Directory.GetDirectories(path))
-                    {
-                        queue.Enqueue(subDir);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine(ex);
-                }
-                string[] files = null;
-                try
-                {
-                    files = Directory.GetFiles(path);
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine(ex);
-                }
-                if (files != null)
-                {
-                    for (int i = 0; i < files.Length; i++)
-                    {
-                        yield return files[i];
-                    }
-                }
             }
         }
 
