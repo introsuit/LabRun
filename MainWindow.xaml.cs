@@ -293,23 +293,21 @@ namespace LabRun
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            
-            
+
+
             if (!this.isScreenShared)
             {
                 if (this.getSelectedClients() != null)
                 {
                     this.sessionID++;
-                   // this.x = new RDPSession();
                     Service.getInstance().TransferAndRun(this.getSelectedClients());
                     BtnScrShare.Content = "Stop screen sharing";
                     this.isScreenShared = true;
-             
 
                     x.OnAttendeeConnected += Incoming;
                     x.Open();
 
-                    IRDPSRAPIInvitation Invitation = x.Invitations.CreateInvitation("Trial"+sessionID, "MyGroup"+sessionID, "", 50);
+                    IRDPSRAPIInvitation Invitation = x.Invitations.CreateInvitation("Trial"+sessionID, "MyGroup" + sessionID, "", 50);
                     String Contents = Invitation.ConnectionString.Trim();
                     System.IO.StreamWriter file = new System.IO.StreamWriter(@"\\BSSFILES2\Dept\adm\lr-temp\rds-key.txt");
                     file.WriteLine(Contents);
@@ -317,11 +315,14 @@ namespace LabRun
 
                     x.OnAttendeeConnected += Incoming;
                     x.Open();
+
                 }
             }
-            else {
+            else
+            {
                 BtnScrShare.Content = "Share screen";
-               // x.Close();
+
+                x.Close();
                 //x = null;  
 
                 this.isScreenShared = false;
@@ -350,7 +351,8 @@ namespace LabRun
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             service.StopAndClean();
-            lock (service.key) {
+            lock (service.key)
+            {
                 Monitor.Pulse(service.key);
             }
         }
@@ -367,7 +369,7 @@ namespace LabRun
         private void MenuItemExit_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
-        } 
+        }
 
         private void cmbSelectionClients_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -473,9 +475,9 @@ namespace LabRun
             }
 
         }
-    
-        }
+
     }
+}
 
 
 
