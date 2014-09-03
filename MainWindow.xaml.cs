@@ -33,6 +33,7 @@ namespace LabRun
         private List<LabClient> clients = new List<LabClient>();
         private List<ControlUnit> tabControls = new List<ControlUnit>();
         public int labNo = 1;
+        private Boolean isSelectionByCmbbx = false;
 
         public MainWindow()
         {
@@ -256,7 +257,9 @@ namespace LabRun
             btnNetEnable.IsEnabled = smthSelected;
             BtnScrShare.IsEnabled = smthSelected;
             btnStopSharing.IsEnabled = smthSelected;
-            //cmbSelectionClients.SelectedIndex = 1;
+            if (!this.isSelectionByCmbbx)
+                cmbSelectionClients.SelectedIndex = 1;
+            
         }
 
         private void btnInputDisable_Click(object sender, RoutedEventArgs e)
@@ -318,28 +321,33 @@ namespace LabRun
             {
                 case "all":
                     {
+                        this.isSelectionByCmbbx = true;
                         SelectClients(clients);
                         break;
                     }
                 case "none":
                     {
+                        this.isSelectionByCmbbx = true;
                         dgrClients.SelectedItems.Clear();
                         break;
                     }
                 case "odd":
                     {
+                        this.isSelectionByCmbbx = true;
                         clients = clients.Where(i => i.BoothNo % 2 != 0).ToList();
                         SelectClients(clients);
                         break;
                     }
                 case "even":
                     {
+                        this.isSelectionByCmbbx = true;
                         clients = clients.Where(i => i.BoothNo % 2 == 0).ToList();
                         SelectClients(clients);
                         break;
                     }
                 case "zigzag":
                     {
+                        this.isSelectionByCmbbx = true;
                         List<LabClient> clientsSelected = new List<LabClient>();
                         Boolean even = true;
                         Boolean odd = false;
@@ -376,6 +384,7 @@ namespace LabRun
                     }
                 case "zagzig":
                     {
+                        this.isSelectionByCmbbx = true;
                         List<LabClient> clientsSelected = new List<LabClient>();
                         Boolean even = false;
                         Boolean odd = true;
@@ -416,6 +425,39 @@ namespace LabRun
         private void btnStopSharing_Click(object sender, RoutedEventArgs e)
         {
             service.StopScreenSharing(getSelectedClients());
+
+        }
+
+        private void dgrClients_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            this.isSelectionByCmbbx = false;
+            cmbSelectionClients.SelectedIndex = 1;
+        }
+
+        private void dgrClients_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            this.isSelectionByCmbbx = false;
+            cmbSelectionClients.SelectedIndex = 1;
+        }
+
+      
+
+        private void dgrClients_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            this.isSelectionByCmbbx = false;
+            cmbSelectionClients.SelectedIndex = 1;
+        }
+
+        private void dgrClients_MouseLeftButtonUp_1(object sender, MouseButtonEventArgs e)
+        {
+            this.isSelectionByCmbbx = false;
+            cmbSelectionClients.SelectedIndex = 1;
+        }
+
+        private void dgrClients_MouseUp_1(object sender, MouseButtonEventArgs e)
+        {
+            this.isSelectionByCmbbx = false;
+            cmbSelectionClients.SelectedIndex = 1;
         }
     }
 }

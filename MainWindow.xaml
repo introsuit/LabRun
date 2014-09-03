@@ -30,7 +30,7 @@
             </MenuItem>
         </Menu>
 
-        <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="11,110,0,0" VerticalAlignment="Top" Height="246" Width="168" SelectionChanged="dgrClients_SelectionChanged">
+        <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="11,110,0,0" VerticalAlignment="Top" Height="246" Width="168" SelectionChanged="dgrClients_SelectionChanged" MouseLeftButtonDown="dgrClients_MouseLeftButtonDown" MouseLeftButtonUp="dgrClients_MouseLeftButtonUp_1" MouseUp="dgrClients_MouseUp_1">
             <DataGrid.CellStyle>
                 <Style TargetType="{x:Type DataGridCell}">
                     <Style.Triggers>
@@ -85,7 +85,7 @@
 
 
             <ComboBoxItem Tag="none">None</ComboBoxItem>
-            <!--<ComboBoxItem Tag="custom">Custom</ComboBoxItem>-->
+            <ComboBoxItem Tag="custom">Custom</ComboBoxItem>
             <ComboBoxItem Tag="odd">Odd</ComboBoxItem>
             <ComboBoxItem Tag="even">Even</ComboBoxItem>
             <ComboBoxItem Tag="zigzag">Zig-Zag</ComboBoxItem>
