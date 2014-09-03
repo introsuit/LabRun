@@ -199,7 +199,7 @@ namespace LabRun
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("ARP error! The computer is not listed in the ARP pool. Restart client computers to solve the problem.", "ARP error!");
+                    MessageBox.Show("ARP error! The computer is not listed in the ARP pool. Restart client computers to solve the problem. \n" + ex.Message, "ARP error!");
                 }
             }
         }
