@@ -11,7 +11,7 @@ namespace ServiceLibrary
         private bool first = true;
         private int sessionID = 0;
         private RDPSession x = new RDPSession();
-        private string rdsKeyLocation = @"\\BSSFILES2\Dept\adm\lr-temp\rds-key.txt";
+        private readonly string rdsKeyLocation = @"\\BSSFILES2\Dept\adm\lr-temp\rds-key.txt";
 
         private static ScreenShare screenShare = null;
 

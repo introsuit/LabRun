@@ -20,11 +20,6 @@ namespace ServiceLibrary
     public class Service
     {
         public Credentials Credentials { get; set; }
-        private readonly string domainName;
-        private readonly string userName;
-        private readonly string userPassword;
-        private readonly string domainSlashUser;
-        private readonly string userAtDomain;
         //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
         private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
         private readonly string inputBlockApp = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "InputBlocker", "InputBlocker.exe");
@@ -41,7 +36,7 @@ namespace ServiceLibrary
         private bool AppActive { get; set; }
         public event EventHandler ProgressUpdate;
         public readonly object key = new object();
-        
+
         private ScreenShare screenShare = ScreenShare.getInstance();
 
         public static Service getInstance()
@@ -54,11 +49,6 @@ namespace ServiceLibrary
         public string TestFolder
         {
             get { return testFolder; }
-        }
-
-        public string DomainSlashUser
-        {
-            get { return domainSlashUser; }
         }
 
         public string TempPath
@@ -77,14 +67,11 @@ namespace ServiceLibrary
             {
                 using (System.IO.StreamReader file = new System.IO.StreamReader(authFile))
                 {
-                    domainName = file.ReadLine();
-                    userName = file.ReadLine();
-                    userPassword = file.ReadLine();
+                    string domainName = file.ReadLine();
+                    string userName = file.ReadLine();
+                    string userPassword = file.ReadLine();
 
-                    domainSlashUser = domainName + @"\" + userName;
-                    userAtDomain = userName + @"@" + domainName;
                     Credentials = new Credentials(domainName, userName, userPassword);
-
                     AppActive = true;
 
                     windowSizes.Add(new WindowSize("Full Screen", null, null));
@@ -134,7 +121,7 @@ namespace ServiceLibrary
                                 client.Active = success;
                             }).Start();
                        }
-                       //check again after 30sec or interrupt if app is stopped 
+                       //check again after x sec or interrupt if app is stopped 
                        lock (key)
                        {
                            Monitor.Wait(key, new TimeSpan(0, 0, 30));
@@ -142,43 +129,6 @@ namespace ServiceLibrary
                    }
                }).Start();
         }
-
-        public void SchedulePingSvc(List<LabClient> clients)
-        {
-            System.Threading.Timer timer = new System.Threading.Timer((e) =>
-            {
-                MyMethod(clients);
-            }, null, 0, (long)TimeSpan.FromSeconds(10).TotalMilliseconds);
-        }
-
-        private void MyMethod(List<LabClient> clients)
-        {
-            Debug.WriteLine("Eina!");
-            foreach (LabClient client in clients)
-            {
-                WaitCallback func = delegate(object state)
-                {
-                    bool success = false;
-                    Ping ping = new Ping();
-                    try
-                    {
-                        PingReply pingReply = ping.Send(client.ComputerName, 250);
-                        if (pingReply.Status == IPStatus.Success)
-                        {
-                            success = true;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                    }
-                    client.Active = success;
-
-                };
-                ThreadPool.QueueUserWorkItem(func);
-            }
-        }
-
 
         /// <summary>
         /// Reads the clients.txt into the program for a list of computers in a specific lab.
@@ -426,7 +376,7 @@ namespace ServiceLibrary
             //MessageBox.Show("ExitCode: " + exitCode.ToString(), "ExecuteCommand");
             process.Close();
             return output;
-            
+
         }
 
         public void ExecuteCmdSimple(string command)
@@ -440,8 +390,8 @@ namespace ServiceLibrary
             {
                 object[] theProcessToRun = { "notepad.exe" };
                 ConnectionOptions theConnection = new ConnectionOptions();
-                theConnection.Username = userName + @"@" + domainName;
-                theConnection.Password = userPassword;
+                theConnection.Username = Credentials.UserName + @"@" + Credentials.DomainName;
+                theConnection.Password = Credentials.Password;
                 ManagementScope theScope = new ManagementScope("\\YLGW036496\\root\\cimv2", theConnection);
                 ManagementClass theClass = new ManagementClass(theScope, new ManagementPath("Win32_Process"), new ObjectGetOptions());
                 theClass.InvokeMethod("Create", theProcessToRun);
@@ -507,7 +457,7 @@ namespace ServiceLibrary
 
                     string runLocation = Path.Combine(dstDir, Path.GetFileName(inputBlockApp));
                     string runCmd = @"start """" """ + runLocation + @"""";
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
 
                     file.WriteLine(line);
                 }
@@ -524,12 +474,12 @@ namespace ServiceLibrary
         {
             new Thread(delegate()
                {
-                   var LocalPassword = userPassword;
+                   var LocalPassword = Credentials.Password;
                    var ssLPassword = new System.Security.SecureString();
                    foreach (char c in LocalPassword)
                        ssLPassword.AppendChar(c);
 
-                   PSCredential Credential = new PSCredential(userAtDomain, ssLPassword);
+                   PSCredential Credential = new PSCredential(Credentials.UserAtDomain, ssLPassword);
 
                    using (PowerShell powershell = PowerShell.Create())
                    {
@@ -585,7 +535,7 @@ namespace ServiceLibrary
                 {
                     file.WriteLine("@echo off");
                     string runCmd = @"""" + path + @"""" + " " + param;
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + compName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + " " + runCmd;
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + compName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + " " + runCmd;
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(copyPathRemote);
@@ -724,44 +674,44 @@ namespace ServiceLibrary
         private void ShutItThread(List<LabClient> clients)
         {
             Debug.WriteLine("Shutting begins >:)");
-            var LocalPassword = userPassword;
+            var LocalPassword = Credentials.Password;
             var ssLPassword = new System.Security.SecureString();
             foreach (char c in LocalPassword)
                 ssLPassword.AppendChar(c);
 
-            PSCredential Credential = new PSCredential(userAtDomain, ssLPassword);
+            PSCredential Credential = new PSCredential(Credentials.UserAtDomain, ssLPassword);
 
             foreach (LabClient client in clients)
             {
                 new Thread(delegate()
                 {
-                  using (PowerShell powershell = PowerShell.Create())
-                  {
-                      powershell.AddCommand("Set-Variable");
-                      powershell.AddParameter("Name", "cred");
-                      powershell.AddParameter("Value", Credential);
+                    using (PowerShell powershell = PowerShell.Create())
+                    {
+                        powershell.AddCommand("Set-Variable");
+                        powershell.AddParameter("Name", "cred");
+                        powershell.AddParameter("Value", Credential);
 
-                      powershell.AddScript(@"$a = Stop-Computer -ComputerName " + client.ComputerName + @" -Force -Credential $cred");
-                      powershell.AddScript(@"echo $a");
+                        powershell.AddScript(@"$a = Stop-Computer -ComputerName " + client.ComputerName + @" -Force -Credential $cred");
+                        powershell.AddScript(@"echo $a");
 
-                      var results = powershell.Invoke();
+                        var results = powershell.Invoke();
 
-                      foreach (var item in results)
-                      {
-                          Debug.WriteLine(item);
-                      }
+                        foreach (var item in results)
+                        {
+                            Debug.WriteLine(item);
+                        }
 
-                      if (powershell.Streams.Error.Count > 0)
-                      {
-                          Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
-                      }
+                        if (powershell.Streams.Error.Count > 0)
+                        {
+                            Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
+                        }
 
-                      foreach (ErrorRecord err in powershell.Streams.Error)
-                      {
-                          Debug.WriteLine(err.ErrorDetails);
-                      }
-                  }
-              }).Start();
+                        foreach (ErrorRecord err in powershell.Streams.Error)
+                        {
+                            Debug.WriteLine(err.ErrorDetails);
+                        }
+                    }
+                }).Start();
             }
 
             notifyStatus("Shutdown request sent");
@@ -796,11 +746,11 @@ namespace ServiceLibrary
 
                     string copyCmd = @"xcopy ""\\BSSFILES2\dept\adm\labrun\scr-viewer"" ""C:\labrun\scr-viewer"" /V /E /Y /Q /I";
                     string runCmd = @"""" + @"C:\labrun\scr-viewer\scr-viewer.exe" + @"""";
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";                    
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);
-              }
+            }
         }
 
         public IEnumerable<string> GetFiles(string path)
