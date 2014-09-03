@@ -15,7 +15,6 @@ using System.Net;
 using System.Windows.Forms;
 using System.Net.NetworkInformation;
 
-
 namespace ServiceLibrary
 {
     public class Service
@@ -42,6 +41,8 @@ namespace ServiceLibrary
         private bool AppActive { get; set; }
         public event EventHandler ProgressUpdate;
         public readonly object key = new object();
+        
+        private ScreenShare screenShare = ScreenShare.getInstance();
 
         public static Service getInstance()
         {
@@ -888,6 +889,16 @@ Add-FirewallRule
                     ProgressUpdate(this, new StatusEventArgs("Net Access (http(s)) was enabled!"));
                 //-----end
             }
+        }
+
+        public void StartScreenSharing(List<LabClient> clients)
+        {
+            screenShare.Start(clients);
+        }
+
+        public void StopScreenSharing(List<LabClient> clients)
+        {
+            screenShare.Stop(clients);
         }
     }
 }
