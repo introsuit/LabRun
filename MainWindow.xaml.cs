@@ -318,8 +318,6 @@ namespace LabRun
                     file.WriteLine(Contents);
                     file.Close();
 
-                    x.OnAttendeeConnected += Incoming;
-                    x.Open();
                 }
             }
             else {
