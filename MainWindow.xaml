@@ -30,7 +30,7 @@
             </MenuItem>
         </Menu>
 
-        <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="11,110,0,0" VerticalAlignment="Top" Height="246" Width="168" SelectionChanged="dgrClients_SelectionChanged" SelectedCellsChanged="dgrClients_SelectedCellsChanged" >
+        <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="11,110,0,0" VerticalAlignment="Top" Height="246" Width="168" SelectionChanged="dgrClients_SelectionChanged" MouseLeftButtonDown="dgrClients_MouseLeftButtonDown" MouseLeftButtonUp="dgrClients_MouseLeftButtonUp_1" MouseUp="dgrClients_MouseUp_1">
             <DataGrid.CellStyle>
                 <Style TargetType="{x:Type DataGridCell}">
                     <Style.Triggers>
@@ -77,39 +77,39 @@
             <ComboBoxItem Name="both" Tag="both">Both labs</ComboBoxItem>
         </ComboBox>
 
-       
-        
+
+
 
         <Label Content="Select lab:" HorizontalAlignment="Left" Margin="11,24,0,0" VerticalAlignment="Top"/>
         <ComboBox SelectedIndex="0" Name="cmbSelectionClients" HorizontalAlignment="Left" Margin="11,385,0,0" VerticalAlignment="Top" Width="168" SelectionChanged="cmbSelectionClients_SelectionChanged">
 
 
             <ComboBoxItem Tag="none">None</ComboBoxItem>
-            <!--<ComboBoxItem Tag="custom">Custom</ComboBoxItem>-->
+            <ComboBoxItem Tag="custom">Custom</ComboBoxItem>
             <ComboBoxItem Tag="odd">Odd</ComboBoxItem>
             <ComboBoxItem Tag="even">Even</ComboBoxItem>
             <ComboBoxItem Tag="zigzag">Zig-Zag</ComboBoxItem>
             <ComboBoxItem Tag="zagzig">Zag-Zig</ComboBoxItem>
             <ComboBoxItem Tag="all">All</ComboBoxItem>
         </ComboBox>
-        <GroupBox Header="Power Options" HorizontalAlignment="Left" Margin="11,453,0,0" VerticalAlignment="Top" Height="61" Width="202">
+        <GroupBox Header="Power Options" HorizontalAlignment="Left" Margin="11,453,0,0" VerticalAlignment="Top" Height="61" Width="168">
             <Grid>
-                <Button IsEnabled="False" Name="btnStartUp" Height="23" Content="Startup" Margin="0,9,105.667,0" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="75" RenderTransformOrigin="3.56,0.515"/>
-                <Button IsEnabled="False" Content="Shutdown" Height="23" HorizontalAlignment="Left" Margin="106,9,0,0" Name="btnShutdown" VerticalAlignment="Top" Width="75" Click="btnShutdown_Click" />
+                <Button IsEnabled="False" Name="btnStartUp" Height="23" Content="Startup" Margin="0,9,90,0" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="56" RenderTransformOrigin="3.56,0.515"/>
+                <Button IsEnabled="False" Content="Shutdown" Height="23" HorizontalAlignment="Left" Margin="83,9,0,0" Name="btnShutdown" VerticalAlignment="Top" Width="62" Click="btnShutdown_Click" />
             </Grid>
         </GroupBox>
-        <GroupBox Header="Input Options" HorizontalAlignment="Left" Margin="255,376,0,0" VerticalAlignment="Top" Height="61" Width="306">
+        <GroupBox Header="Input Options" HorizontalAlignment="Left" Margin="198,376,0,0" VerticalAlignment="Top" Height="61" Width="363">
             <Grid Margin="0,0,0,0">
-                <Button IsEnabled="False" Name="btnInputDisable" Content="Disable Input" HorizontalAlignment="Left" Margin="109,11,0,0" VerticalAlignment="Top" Width="75" Click="btnInputDisable_Click"/>
-                <Button IsEnabled="False" Name="btnInputEnable" Content="Enable Input" HorizontalAlignment="Left" Margin="210,11,0,0" VerticalAlignment="Top" Width="75" Click="btnInputEnable_Click"/>
-                <Button x:Name="BtnScrShare" Content="Share screen" HorizontalAlignment="Left" Margin="15,11,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_2"/>
+                <Button IsEnabled="False" Name="btnInputDisable" Content="Disable Input" HorizontalAlignment="Left" Margin="186,10,0,0" VerticalAlignment="Top" Width="75" Click="btnInputDisable_Click"/>
+                <Button IsEnabled="False" Name="btnInputEnable" Content="Enable Input" HorizontalAlignment="Left" Margin="266,10,0,0" VerticalAlignment="Top" Width="75" Click="btnInputEnable_Click"/>
+                <Button IsEnabled="False" Name="BtnScrShare" Content="Share screen" HorizontalAlignment="Left" Margin="10,10,0,0" Width="75" Click="Button_Click_2" Height="23" VerticalAlignment="Top"/>
+                <Button IsEnabled="False" Name="btnStopSharing" Content="Stop Scr. Shr." HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Width="75" Click="btnStopSharing_Click"/>
             </Grid>
         </GroupBox>
-        <GroupBox Header="Network Options" HorizontalAlignment="Left" Margin="255,453,0,0" VerticalAlignment="Top" Height="61" Width="306">
+        <GroupBox Header="Network Options" HorizontalAlignment="Left" Margin="198,453,0,0" VerticalAlignment="Top" Height="61" Width="363">
             <Grid Margin="0,0,0,0">
-                <Button IsEnabled="False" Name="btnNetDisable" Content="Disable Net" HorizontalAlignment="Left" Margin="110,6,0,0" VerticalAlignment="Top" Width="75" Click="btnNetDisable_Click"/>
-                <Button IsEnabled="False" Name="btnNetEnable" Content="Enable Net" HorizontalAlignment="Left" Margin="210,6,0,0" VerticalAlignment="Top" Width="75" Click="btnNetEnable_Click"/>
+                <Button IsEnabled="False" Name="btnNetDisable" Content="Disable Net" HorizontalAlignment="Left" Margin="186,6,0,0" VerticalAlignment="Top" Width="75" Click="btnNetDisable_Click"/>
+                <Button IsEnabled="False" Name="btnNetEnable" Content="Enable Net" HorizontalAlignment="Left" Margin="266,6,0,0" VerticalAlignment="Top" Width="75" Click="btnNetEnable_Click"/>
             </Grid>
-        </GroupBox>
-    </Grid>
+        </GroupBox> </Grid>
 </Window>

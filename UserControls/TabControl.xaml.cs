@@ -115,7 +115,7 @@ namespace UserControls
 
             try
             {
-                testApp.TransferResults(parent.getSelectedClientsNames());
+                testApp.TransferResults(parent.getSelectedClients());
             }
             catch (TimeoutException ex)
             {

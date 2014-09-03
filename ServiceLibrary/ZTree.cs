@@ -57,7 +57,7 @@ namespace ServiceLibrary
                     string windPos = "/position " + windowSize.XPos + "," + windowSize.YPos;
 
                     string runCmd = @"""" + applicationExecutableName + @""" /name Zleaf_" + zleafNo + @" /server " + adminCompName + @" /language en " + windSize + " " + windPos;
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.DomainSlashUser + @" -p " + service.Credentials.Password + @" " + runCmd;
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" " + runCmd;
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);
