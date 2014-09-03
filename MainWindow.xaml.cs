@@ -20,7 +20,6 @@ using ServiceLibrary;
 using System.Collections;
 using System.Data;
 using UserControls;
-using RDPCOMAPILib;
 using System.Net.NetworkInformation;
 
 namespace LabRun
@@ -32,13 +31,8 @@ namespace LabRun
     {
         private Service service;
         private List<LabClient> clients = new List<LabClient>();
-        private List<LabClient> selectedCLients = new List<LabClient>();
         private List<ControlUnit> tabControls = new List<ControlUnit>();
         public int labNo = 1;
-        public Boolean isScreenShared = false;
-        public int sessionID = 0;
-        RDPSession x = new RDPSession();
-
 
         public MainWindow()
         {
@@ -82,28 +76,21 @@ namespace LabRun
             {
                 MessageBox.Show(ex.Message);
             }
-            selectedCLients = service.filterForRoom(clients, labNo);
-            dgrClients.ItemsSource = selectedCLients;
+            List<LabClient> selectedClients = service.filterForRoom(clients, labNo);
+            dgrClients.ItemsSource = selectedClients;
         }
 
         public void updateClientsGrid()
         {
-            selectedCLients.Clear();
             if (labNo == 0)
             {
                 dgrClients.ItemsSource = this.clients;
             }
             else
             {
-                selectedCLients = service.filterForRoom(clients, labNo);
-                dgrClients.ItemsSource = selectedCLients;
+                List<LabClient> selectedClients = service.filterForRoom(clients, labNo);
+                dgrClients.ItemsSource = selectedClients;
             }
-        }
-
-
-        private void button1_Click(object sender, RoutedEventArgs e)
-        {
-
         }
 
         private void initTabs()
@@ -154,7 +141,6 @@ namespace LabRun
             return computerNames;
         }
 
-
         private List<string> getSelectedCompsMacs()
         {
             List<string> selectedMACs = new List<string>();
@@ -165,7 +151,6 @@ namespace LabRun
             }
             return selectedMACs;
         }
-
 
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
         {
@@ -269,12 +254,9 @@ namespace LabRun
             btnInputEnable.IsEnabled = smthSelected;
             btnNetDisable.IsEnabled = smthSelected;
             btnNetEnable.IsEnabled = smthSelected;
+            BtnScrShare.IsEnabled = smthSelected;
+            btnStopSharing.IsEnabled = smthSelected;
             //cmbSelectionClients.SelectedIndex = 1;
-        }
-
-        private void dgrClients_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
-        {
-            //MessageBox.Show("f");
         }
 
         private void btnInputDisable_Click(object sender, RoutedEventArgs e)
@@ -287,55 +269,11 @@ namespace LabRun
             service.InputEnable(getSelectedClients());
         }
 
-
-        private void Incoming(object Guest)
-        {
-            IRDPSRAPIAttendee MyGuest = (IRDPSRAPIAttendee)Guest;
-            MyGuest.ControlLevel = CTRL_LEVEL.CTRL_LEVEL_VIEW;
-        }
-
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            
-            
-            if (!this.isScreenShared)
-            {
-                if (this.getSelectedClients() != null)
-                {
-                    this.sessionID++;
-                   // this.x = new RDPSession();
-                    Service.getInstance().TransferAndRun(this.getSelectedClients());
-                    BtnScrShare.Content = "Stop screen sharing";
-                    this.isScreenShared = true;
-             
 
-                    x.OnAttendeeConnected += Incoming;
-                    x.Open();
+            service.StartScreenSharing(getSelectedClients());
 
-                    IRDPSRAPIInvitation Invitation = x.Invitations.CreateInvitation("Trial"+sessionID, "MyGroup"+sessionID, "", 50);
-                    String Contents = Invitation.ConnectionString.Trim();
-                    System.IO.StreamWriter file = new System.IO.StreamWriter(@"\\BSSFILES2\Dept\adm\lr-temp\rds-key.txt");
-                    file.WriteLine(Contents);
-                    file.Close();
-
-                }
-            }
-            else {
-                BtnScrShare.Content = "Share screen";
-               // x.Close();
-                //x = null;  
-
-                this.isScreenShared = false;
-
-                foreach (LabClient client in this.getSelectedClients())
-                {
-                    Service.getInstance().killRemoteProcess(client.ComputerName, "scr-viewer.exe");
-                }
-                //Ugly hack that works getting around the the error when restarting screen sharing
-                /*System.Windows.Forms.Application.Restart();
-                System.Windows.Application.Current.Shutdown();*/
-
-            }
         }
 
         private void btnNetDisable_Click(object sender, RoutedEventArgs e)
@@ -350,7 +288,11 @@ namespace LabRun
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            service.AppActive = false;
+            service.StopAndClean();
+            lock (service.key)
+            {
+                Monitor.Pulse(service.key);
+            }
         }
 
         private void SelectClients(List<LabClient> clients)
@@ -365,7 +307,7 @@ namespace LabRun
         private void MenuItemExit_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
-        } 
+        }
 
         private void cmbSelectionClients_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -469,11 +411,14 @@ namespace LabRun
                         break;
                     }
             }
-
         }
-    
+
+        private void btnStopSharing_Click(object sender, RoutedEventArgs e)
+        {
+            service.StopScreenSharing(getSelectedClients());
         }
     }
+}
 
 
 

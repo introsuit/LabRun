@@ -125,15 +125,6 @@
     <Resource Include="Images\chrome-logo.png" />
   </ItemGroup>
   <ItemGroup>
-    <COMReference Include="RDPCOMAPILib">
-      <Guid>{CC802D05-AE07-4C15-B496-DB9D22AA0A84}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
     <Resource Include="Images\ic_menu_exit.png" />
   </ItemGroup>
   <ItemGroup>

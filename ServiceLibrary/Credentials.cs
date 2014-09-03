@@ -7,17 +7,29 @@ namespace ServiceLibrary
 {
     public class Credentials
     {
-        public string DomainName { get; set; }
-        public string UserName { get; set; }
-        public string Password { get; set; }
+        private readonly string domainName;
+        public string DomainName { get { return domainName; } }
+
+        private readonly string userName;
+        public string UserName { get { return userName; } }
+
+        private readonly string password;
+        public string Password { get { return password; } }
+
+        private readonly string domainSlashUser;
+        public string DomainSlashUser { get { return domainSlashUser; } }
+
+        private readonly string userAtDomain;
+        public string UserAtDomain { get { return userAtDomain; } }
 
         public Credentials(string domainName, string userName, string password)
         {
-            this.DomainName = domainName;
-            this.UserName = userName;
-            this.Password = password;
+            this.domainName = domainName;
+            this.userName = userName;
+            this.password = password;
+
+            domainSlashUser = domainName + @"\" + userName;
+            userAtDomain = userName + @"@" + domainName;
         }
-
-
     }
 }
