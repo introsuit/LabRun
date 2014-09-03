@@ -31,7 +31,6 @@ namespace LabRun
     {
         private Service service;
         private List<LabClient> clients = new List<LabClient>();
-        private List<LabClient> selectedCLients = new List<LabClient>();
         private List<ControlUnit> tabControls = new List<ControlUnit>();
         public int labNo = 1;
 
@@ -77,27 +76,21 @@ namespace LabRun
             {
                 MessageBox.Show(ex.Message);
             }
-            selectedCLients = service.filterForRoom(clients, labNo);
-            dgrClients.ItemsSource = selectedCLients;
+            List<LabClient> selectedClients = service.filterForRoom(clients, labNo);
+            dgrClients.ItemsSource = selectedClients;
         }
 
         public void updateClientsGrid()
         {
-            selectedCLients.Clear();
             if (labNo == 0)
             {
                 dgrClients.ItemsSource = this.clients;
             }
             else
             {
-                selectedCLients = service.filterForRoom(clients, labNo);
-                dgrClients.ItemsSource = selectedCLients;
+                List<LabClient> selectedClients = service.filterForRoom(clients, labNo);
+                dgrClients.ItemsSource = selectedClients;
             }
-        }
-
-        private void button1_Click(object sender, RoutedEventArgs e)
-        {
-
         }
 
         private void initTabs()
@@ -266,11 +259,6 @@ namespace LabRun
             //cmbSelectionClients.SelectedIndex = 1;
         }
 
-        private void dgrClients_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
-        {
-            //MessageBox.Show("f");
-        }
-
         private void btnInputDisable_Click(object sender, RoutedEventArgs e)
         {
             service.InputDisable(getSelectedClients());
@@ -421,14 +409,12 @@ namespace LabRun
                         break;
                     }
             }
-
         }
 
         private void btnStopSharing_Click(object sender, RoutedEventArgs e)
         {
             service.StopScreenSharing(getSelectedClients());
         }
-
     }
 }
 

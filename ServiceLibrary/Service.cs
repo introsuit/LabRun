@@ -19,20 +19,21 @@ namespace ServiceLibrary
 {
     public class Service
     {
+        private static Service service;
+
         public Credentials Credentials { get; set; }
+
         //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
         private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
         private readonly string inputBlockApp = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "InputBlocker", "InputBlocker.exe");
-
         private static readonly string testFolder = @"C:\test\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
         private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
-
         private readonly string tempPath = System.IO.Path.GetTempPath();
+
         private List<WindowSize> windowSizes = new List<WindowSize>();
         public List<WindowSize> WindowSizes { get { return windowSizes; } }
-
-        private static Service service;
+   
         private bool AppActive { get; set; }
         public event EventHandler ProgressUpdate;
         public readonly object key = new object();

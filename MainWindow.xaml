@@ -30,7 +30,7 @@
             </MenuItem>
         </Menu>
 
-        <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="11,110,0,0" VerticalAlignment="Top" Height="246" Width="168" SelectionChanged="dgrClients_SelectionChanged" SelectedCellsChanged="dgrClients_SelectedCellsChanged" >
+        <DataGrid IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="11,110,0,0" VerticalAlignment="Top" Height="246" Width="168" SelectionChanged="dgrClients_SelectionChanged">
             <DataGrid.CellStyle>
                 <Style TargetType="{x:Type DataGridCell}">
                     <Style.Triggers>
