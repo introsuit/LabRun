@@ -20,9 +20,9 @@ namespace ServiceLibrary
         public string ExtensionDescription { get; set; }
         private string timePrint = "";
 
-        private string projectName = "ProjectX";
+        protected string projectName = "ProjectX";
 
-        public string AppExeName 
+        public string AppExeName
         {
             get
             {
@@ -41,7 +41,7 @@ namespace ServiceLibrary
         protected TestApp(string applicationName, string applicationExecutableName/*, string testFilePath*/)
         {
             this.applicationName = applicationName;
-            this.applicationExecutableName = applicationExecutableName;     
+            this.applicationExecutableName = applicationExecutableName;
         }
 
         //must be called before any action!
@@ -87,7 +87,7 @@ namespace ServiceLibrary
                     string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
 
                     string runCmd = @"""" + applicationExecutableName + @""" """ + Path.Combine(service.TestFolder, applicationName, testFolderName, Path.GetFileName(testFilePath)) + @"""";
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& start """" " + runCmd + @")";
 
                     file.WriteLine(line);
 
@@ -136,7 +136,7 @@ namespace ServiceLibrary
                 throw new TimeoutException();
         }
 
-        public Thread TransferResults(List<LabClient> clients)
+        public virtual Thread TransferResults(List<LabClient> clients)
         {
             var t = new Thread(() => xcopyResults(clients));
             t.Start();
@@ -165,17 +165,23 @@ namespace ServiceLibrary
                 string copyPathRemote = Path.Combine(tempPath, "remoteResultOne" + client.ComputerName + ".bat");
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                 {
-                    file.WriteLine("@echo off");
-
                     string src = Path.Combine(service.TestFolder, applicationName, testFolderName);
+
+                    //file.WriteLine("@echo off");
+                    //file.WriteLine(@"cd " + src);
+                    //file.WriteLine(@"IF NOT EXIST timestamp (echo timeis2014 > timestamp)");
+                    //file.WriteLine(@"set /p time=<timestamp");
+                    //file.WriteLine(@"echo %time% > timestamp");
+
                     string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, client.BoothNo + "", timePrint, applicationName, testFolderName);
 
                     string resultFiles = "";
-                    foreach(string resultExt in resultExts){
+                    foreach (string resultExt in resultExts)
+                    {
                         resultFiles += @"xcopy """ + Path.Combine(src, "*." + resultExt) + @""" """ + dst + @""" /V /E /Y /Q /I ^& ";
                     }
                     resultFiles = resultFiles.Substring(0, resultFiles.Length - 4);
-                    
+
                     string completionNotifyFile = @"copy NUL " + Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, completionFileName + client.ComputerName);
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + resultFiles + @" ^& " + completionNotifyFile + @")";
                     file.WriteLine(line);
@@ -194,7 +200,7 @@ namespace ServiceLibrary
             {
                 file.WriteLine("@echo off");
                 string src = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName);
-                string dst = Path.Combine(service.TestFolder, resultsFolderName, applicationName);
+                string dst = Path.Combine(service.TestFolder, resultsFolderName, projectName);
                 string line = @"xcopy """ + src + @""" """ + dst + @""" /V /E /Y /Q /I" /*/Exclude:" + service.TestFolder + @"Excludes.txt"*/;
                 file.WriteLine(line);
                 line = @"del /s /q " + Path.Combine(dst, completionFileName + @"*");
@@ -211,7 +217,8 @@ namespace ServiceLibrary
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
                 file.WriteLine("@echo off");
-                string line = @"del /s /q " + Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, applicationName, "*.*");
+                string line = @"rmdir /s /q """ + Path.Combine(service.SharedNetworkTempFolder, resultsFolderName) + @"""";
+                //string line = @"del /s /q " + Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, "*.*");
                 file.WriteLine(line);
             }
             service.ExecuteCommandNoOutput(copyPath, true);
@@ -220,6 +227,40 @@ namespace ServiceLibrary
             //-----notify ui
             service.notifyStatus("Transfer Complete");
             //-----end
+        }
+
+        public void DeleteResults(List<LabClient> clients)
+        {
+            new Thread(delegate()
+            {
+                //----del results from client computers
+                int i = 0;
+                foreach (LabClient client in clients)
+                {
+                    string copyPathRemote = Path.Combine(tempPath, "remoteResultDel" + client.ComputerName + ".bat");
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
+                    {
+                        string path = Path.Combine(service.TestFolder, applicationName, testFolderName);
+
+                        string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (rmdir /s /q """ + path + @""")";
+                        file.WriteLine(line);
+                    }
+                    service.StartNewCmdThread(copyPathRemote);
+                    i++;
+                }
+                //----end
+
+                //----del results from local
+                string pathDel = Path.Combine(tempPath, "delResultsFromLocal.bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(pathDel))
+                {
+                    file.WriteLine("@echo off");
+                    string line = @"rmdir /s /q """ + Path.Combine(service.TestFolder, resultsFolderName, projectName) + @"""";
+                    file.WriteLine(line);
+                }
+                service.ExecuteCommandNoOutput(pathDel, true);
+                //----end
+            });
         }
     }
 }

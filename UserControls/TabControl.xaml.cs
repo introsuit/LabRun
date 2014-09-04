@@ -135,6 +135,16 @@ namespace UserControls
             //btnBrowse.IsEnabled = enabled;
             btnKill.IsEnabled = enabled;
             btnRun.IsEnabled = enabled && inited;
+            btnDelResults.IsEnabled = enabled;
+        }
+
+        private void btnDelResults_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to delete all result files from lab computers?\nMake sure you have a backup!", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                testApp.DeleteResults(parent.getSelectedClients());
+            }
         }
     }
 }

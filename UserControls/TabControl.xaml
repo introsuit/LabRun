@@ -10,12 +10,14 @@
         <Label Name="lblBrowse" Content="..." Height="28" HorizontalAlignment="Left" Margin="91,10,0,0" VerticalAlignment="Top" />
         <Button IsEnabled='False' Content="Run" Height="28" HorizontalAlignment="Left" Margin="10,48,0,0" Name="btnRun" VerticalAlignment="Top" Width="75" Click="btnRun_Click" />
         <Button IsEnabled='False' Content="Kill" Height="28" HorizontalAlignment="Left" Margin="91,48,0,0" Name="btnKill" VerticalAlignment="Top" Width="75" Click="btnKill_Click" />
-        <Button Content="Get Results" HorizontalAlignment="Left" Margin="10,179,0,0" VerticalAlignment="Top" Width="75" Name="btnGetResults" Height="24" Click="btnGetResults_Click" />
+        <Button Content="Copy Results Here" HorizontalAlignment="Left" Margin="10,179,0,0" VerticalAlignment="Top" Width="113" Name="btnGetResults" Height="24" Click="btnGetResults_Click" />
         <Image Name="imgTest" HorizontalAlignment="Left" Height="100" Margin="220,103,0,0" VerticalAlignment="Top" Width="100"/>
         <ComboBox SelectedIndex="0" Name="cmbWindowSizes" Visibility="Hidden" Tag="ztree" HorizontalAlignment="Left" Margin="202,57,0,0" VerticalAlignment="Top" Width="120" Loaded="cmbWindowSizes_Loaded">
           
         </ComboBox>
         <Label Name="lblWindowSize" Visibility="Hidden" Tag="ztree" Content="Window Size:" HorizontalAlignment="Left" Margin="202,30,0,0" VerticalAlignment="Top"/>
         <Label Visibility="Hidden" Name="lblZTreeInfo" Content="Launch ZTree and then open your test file in it:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <Button IsEnabled="False" Name="btnExportDb" Content="Export to DB" HorizontalAlignment="Left" Margin="140,179,0,0" VerticalAlignment="Top" Width="75"/>
+        <Button IsEnabled="False" Name="btnDelResults" Content="Delete Results" HorizontalAlignment="Left" Margin="11,208,0,0" VerticalAlignment="Top" Width="112" Click="btnDelResults_Click"/>
     </Grid>
 </UserControl>
