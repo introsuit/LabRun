@@ -25,6 +25,8 @@ namespace UserControls
         private TestApp testApp = null;
         private Service service = Service.getInstance();
         private bool inited = false;
+        private String project = "UnknownProject";
+        private bool clientSelected = false;
 
         public TabControl(MainUI parent, TestApp testApp)
         {
@@ -61,6 +63,7 @@ namespace UserControls
 
                 btnRun.IsEnabled = true;
                 testApp.Initialize(testFullPath);
+                ButtonClickable(true);
             }
         }
 
@@ -84,11 +87,11 @@ namespace UserControls
             if (testApp is ZTree)
             {
                 WindowSize winSize = (WindowSize)cmbWindowSizes.SelectedValue;
-                ((ZTree)testApp).TransferAndRun(computerNames, winSize);
+                ((ZTree)testApp).TransferAndRun(computerNames, project, winSize);
             }
             else
             {
-                testApp.TransferAndRun(computerNames);
+                testApp.TransferAndRun(computerNames, project);
             }
         }
 
@@ -115,7 +118,7 @@ namespace UserControls
 
             try
             {
-                testApp.TransferResults(parent.getSelectedClients());
+                testApp.TransferResults(parent.getSelectedClients(), project);
             }
             catch (TimeoutException ex)
             {
@@ -132,10 +135,12 @@ namespace UserControls
 
         public void ButtonClickable(bool enabled)
         {
+            clientSelected = enabled;
             //btnBrowse.IsEnabled = enabled;
-            btnKill.IsEnabled = enabled;
-            btnRun.IsEnabled = enabled && inited;
-            btnDelResults.IsEnabled = enabled;
+            btnKill.IsEnabled = clientSelected;
+            btnRun.IsEnabled = clientSelected && inited;
+            btnGetResults.IsEnabled = clientSelected && inited;
+            btnDelResults.IsEnabled = clientSelected && inited;
         }
 
         private void btnDelResults_Click(object sender, RoutedEventArgs e)
@@ -143,8 +148,13 @@ namespace UserControls
             MessageBoxResult result = MessageBox.Show("Are you sure you want to delete all result files from lab computers?\nMake sure you have a backup!", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
-                testApp.DeleteResults(parent.getSelectedClients());
+                testApp.DeleteResults(parent.getSelectedClients(), project);
             }
+        }
+
+        public void SetProject(string projectName)
+        {
+            project = projectName;
         }
     }
 }

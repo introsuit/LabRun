@@ -11,5 +11,6 @@ namespace UserControls
         void updateStatus(string msg);
         List<string> getSelectedClientsNames();
         List<LabClient> getSelectedClients();
+        void SetProject(string projectName);
     }
 }

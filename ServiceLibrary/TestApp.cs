@@ -20,7 +20,7 @@ namespace ServiceLibrary
         public string ExtensionDescription { get; set; }
         private string timePrint = "";
 
-        protected string projectName = "ProjectX";
+        protected string projectName = "UnknownProject";
 
         public string AppExeName
         {
@@ -51,8 +51,9 @@ namespace ServiceLibrary
             testFolderName = Path.GetFileName(Path.GetDirectoryName(testFilePath));
         }
 
-        public virtual Thread TransferAndRun(List<LabClient> selectedClients)
+        public virtual Thread TransferAndRun(List<LabClient> selectedClients, string project)
         {
+            projectName = project;
             var t = new Thread(() => xcopy(selectedClients));
             t.Start();
             return t;
@@ -136,8 +137,9 @@ namespace ServiceLibrary
                 throw new TimeoutException();
         }
 
-        public virtual Thread TransferResults(List<LabClient> clients)
+        public virtual Thread TransferResults(List<LabClient> clients, string project)
         {
+            projectName = project;
             var t = new Thread(() => xcopyResults(clients));
             t.Start();
             return t;
@@ -158,7 +160,7 @@ namespace ServiceLibrary
 
             //----copy results from client computers to shared network folder
             DateTime timeStamp = DateTime.Now;
-            timePrint = timeStamp.Hour + "hh" + timeStamp.Minute + "mm " + timeStamp.ToShortDateString();
+            timePrint = timeStamp.Hour + "h" + timeStamp.Minute + "m " + timeStamp.ToShortDateString();
             int i = 0;
             foreach (LabClient client in clients)
             {
@@ -229,8 +231,9 @@ namespace ServiceLibrary
             //-----end
         }
 
-        public void DeleteResults(List<LabClient> clients)
+        public void DeleteResults(List<LabClient> clients, string project)
         {
+            projectName = project;
             new Thread(delegate()
             {
                 //----del results from client computers
@@ -240,6 +243,7 @@ namespace ServiceLibrary
                     string copyPathRemote = Path.Combine(tempPath, "remoteResultDel" + client.ComputerName + ".bat");
                     using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                     {
+                        Debug.WriteLine(copyPathRemote);
                         string path = Path.Combine(service.TestFolder, applicationName, testFolderName);
 
                         string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (rmdir /s /q """ + path + @""")";
@@ -260,7 +264,7 @@ namespace ServiceLibrary
                 }
                 service.ExecuteCommandNoOutput(pathDel, true);
                 //----end
-            });
+            }).Start();
         }
     }
 }

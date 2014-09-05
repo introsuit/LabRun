@@ -34,6 +34,7 @@ namespace LabRun
         private List<ControlUnit> tabControls = new List<ControlUnit>();
         public int labNo = 1;
         private Boolean isSelectionByCmbbx = false;
+        private string project = "UnknownProject";
 
         public MainWindow()
         {
@@ -259,7 +260,6 @@ namespace LabRun
             btnStopSharing.IsEnabled = smthSelected;
             if (!this.isSelectionByCmbbx)
                 cmbSelectionClients.SelectedIndex = 1;
-            
         }
 
         private void btnInputDisable_Click(object sender, RoutedEventArgs e)
@@ -438,8 +438,6 @@ namespace LabRun
             cmbSelectionClients.SelectedIndex = 1;
         }
 
-      
-
         private void dgrClients_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             this.isSelectionByCmbbx = false;
@@ -456,6 +454,47 @@ namespace LabRun
         {
             this.isSelectionByCmbbx = false;
             cmbSelectionClients.SelectedIndex = 1;
+        }
+
+        private void btnSelProject_Click(object sender, RoutedEventArgs e)
+        {
+            Project project = new Project(this);
+            project.Show();         
+        }
+
+        public void SetProject(string projectName)
+        {
+            project = projectName;
+            lblProject.Content = project;
+            foreach (ControlUnit cUnit in tabControls)
+            {
+                cUnit.SetProject(project);
+            }
+        }
+
+        private void btnLogin_Click(object sender, RoutedEventArgs e)
+        {
+            if (!service.LoggedIn())
+            {
+                Login login = new Login(this);
+                login.Show();
+            }
+            else
+            {
+                service.LogOut();
+                btnLogin.Content = "Login";
+                lblLogin.Content = "Logged in as Guest";
+                btnSelProject.Content = "Set Your Project";
+                project = "UnkownProject";
+                lblProject.Content = "...";
+            }
+        }
+
+        public void SetLogin(User user)
+        {
+            lblLogin.Content = "Logged in as " + user.Username;
+            btnSelProject.Content = "Choose Your Project";
+            btnLogin.Content = "Logout";
         }
     }
 }

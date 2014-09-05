@@ -21,18 +21,19 @@ namespace ServiceLibrary
         private static Service service;
 
         public Credentials Credentials { get; set; }
+        private User user = null;
 
         //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
-        private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\test\";
+        private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\";
         private readonly string inputBlockApp = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "InputBlocker", "InputBlocker.exe");
-        private static readonly string testFolder = @"C:\test\";
+        private static readonly string testFolder = @"C:\Cobe Lab\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
         private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
         private readonly string tempPath = System.IO.Path.GetTempPath();
 
         private List<WindowSize> windowSizes = new List<WindowSize>();
         public List<WindowSize> WindowSizes { get { return windowSizes; } }
-   
+
         private bool AppActive { get; set; }
         public event EventHandler ProgressUpdate;
         public readonly object key = new object();
@@ -188,8 +189,6 @@ namespace ServiceLibrary
         /// Throws exception if ARP list is not filled up sufficiently or the bridge's client list cannot be downloaded.
         /// </summary>
         /// <returns>List of clients</returns>
-
-
         public List<LabClient> GetLabComputersNew2(int labNo)
         {
             List<LabClient> clientlist = new List<LabClient>();
@@ -525,7 +524,7 @@ namespace ServiceLibrary
             {
                 Debug.WriteLine("Exception Occurred :{0},{1}", ex.Message, ex.StackTrace.ToString());
             }
-        }   
+        }
 
         public void ExecuteCommandNoOutput(string command, bool waitForExit = false)
         {
@@ -736,6 +735,38 @@ Add-FirewallRule
         public void StopScreenSharing(List<LabClient> clients)
         {
             screenShare.Stop(clients);
+        }
+
+        public User Login(string username, string password)
+        {
+            User user = null;
+            WebClient webClient = new WebClient();
+            string userHash = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/login?username=" + username + "&password=" + password);
+            if (userHash.Contains("templogin"))
+            {
+                user = new User(username, password);
+                user.UniqueHash = userHash;
+            }
+            this.user = user;
+            return user;
+        }
+
+        public void LogOut()
+        {
+            user = null;
+        }
+
+        public bool LoggedIn()
+        {
+            return user != null;
+        }
+
+        public List<string> GetProjects()
+        {
+            WebClient webClient = new WebClient();
+            string projectsStr = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/projects?" + user.UniqueHash);
+            string[] lines = projectsStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            return new List<string>(lines); ;
         }
     }
 }

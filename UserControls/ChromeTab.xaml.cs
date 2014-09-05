@@ -98,5 +98,10 @@ namespace UserControls
             btnRun.IsEnabled = enabled;
             btnClose.IsEnabled = enabled;
         }
+
+        public void SetProject(string projectName)
+        {
+            //nothing :)
+        }
     }
 }
