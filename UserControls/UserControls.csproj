@@ -49,6 +49,9 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ZtreeControl.xaml.cs">
+      <DependentUpon>ZtreeControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ZTreeTab.xaml.cs">
       <DependentUpon>ZTreeTab.xaml</DependentUpon>
     </Compile>
@@ -69,6 +72,10 @@
       <DependentUpon>TabControl.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="ZtreeControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ZTreeTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

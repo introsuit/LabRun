@@ -112,13 +112,13 @@ namespace LabRun
             tabZTree.Content = tC3;
             tabControls.Add(tC3);
 
-            ((Label)tC3.FindName("lblWindowSize")).Visibility = Visibility.Visible;
-            ComboBox cmbWinSizes = (ComboBox)tC3.FindName("cmbWindowSizes");
-            cmbWinSizes.Visibility = Visibility.Visible;
-            cmbWinSizes.ItemsSource = service.WindowSizes;
+            //((Label)tC3.FindName("lblWindowSize")).Visibility = Visibility.Visible;
+            //ComboBox cmbWinSizes = (ComboBox)tC3.FindName("cmbWindowSizes");
+            //cmbWinSizes.Visibility = Visibility.Visible;
+            //cmbWinSizes.ItemsSource = service.WindowSizes;
             ((Button)tC3.FindName("btnBrowse")).Visibility = Visibility.Hidden;
             ((Label)tC3.FindName("lblBrowse")).Visibility = Visibility.Hidden;
-            ((Label)tC3.FindName("lblZTreeInfo")).Visibility = Visibility.Visible;
+            //((Label)tC3.FindName("lblZTreeInfo")).Visibility = Visibility.Visible;
 
             UserControls.ChromeTab tC4 = new UserControls.ChromeTab(this);
             tC4.setTestLogo(@"\Images\chrome-logo.png");

@@ -1,0 +1,13 @@
+﻿<UserControl x:Class="UserControls.ZtreeControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="297" d:DesignWidth="340">
+    <Grid>
+        <ComboBox HorizontalAlignment="Left" Margin="202,57,0,0" Name="cmbWindowSizes" SelectedIndex="0" Tag="ztree" VerticalAlignment="Top" Width="120" />
+        <Label Content="Window Size:" HorizontalAlignment="Left" Margin="202,30,0,0" Name="lblWindowSize" Tag="ztree" VerticalAlignment="Top" />
+        <Label Content="Launch ZTree and then open your test file in it:" HorizontalAlignment="Left" Margin="10,10,0,0" Name="lblZTreeInfo" VerticalAlignment="Top" />
+    </Grid>
+</UserControl>

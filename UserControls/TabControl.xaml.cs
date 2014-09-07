@@ -27,6 +27,7 @@ namespace UserControls
         private bool inited = false;
         private String project = "UnknownProject";
         private bool clientSelected = false;
+        private ZtreeControl ztreeCtrl = null;
 
         public TabControl(MainUI parent, TestApp testApp)
         {
@@ -37,6 +38,9 @@ namespace UserControls
             if (testApp is ZTree)
             {
                 inited = true;
+
+                ztreeCtrl = new ZtreeControl();
+                ztreeControls.Children.Add(ztreeCtrl);
             }
         }
 
@@ -86,7 +90,7 @@ namespace UserControls
             parent.updateStatus("In Progress...");
             if (testApp is ZTree)
             {
-                WindowSize winSize = (WindowSize)cmbWindowSizes.SelectedValue;
+                WindowSize winSize = ztreeCtrl.GetSelectedWindowSize();
                 ((ZTree)testApp).TransferAndRun(computerNames, project, winSize);
             }
             else
