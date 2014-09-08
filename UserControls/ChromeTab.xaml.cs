@@ -34,7 +34,7 @@ namespace UserControls
             var uriSource = new Uri(path, UriKind.Relative);
             imgTest.Source = new BitmapImage(uriSource);
         }
-        
+
         private void btnRun_Click(object sender, RoutedEventArgs e)
         {
             string param1 = "";
@@ -60,7 +60,7 @@ namespace UserControls
                     }
             }
 
-            string param = param1 + " "; 
+            string param = param1 + " ";
             string windowMode = ((ComboBoxItem)cmbBoxWindowMode.SelectedItem).Tag.ToString();
             switch (windowMode)
             {
@@ -87,10 +87,7 @@ namespace UserControls
 
         private void btnClose_Click(object sender, RoutedEventArgs e)
         {
-            foreach (LabClient client in parent.getSelectedClients())
-            {
-                Service.getInstance().killRemoteProcess(client.ComputerName, "Chrome.exe");
-            }
+            service.CloseRemoteChrome(parent.getSelectedClients());
         }
 
         public void ButtonClickable(bool enabled)

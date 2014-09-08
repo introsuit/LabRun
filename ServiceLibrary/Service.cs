@@ -23,8 +23,8 @@ namespace ServiceLibrary
         public Credentials Credentials { get; set; }
         private User user = null;
 
-        //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
-        private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\";
+        private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
+        //private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\";
         private readonly string inputBlockApp = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "InputBlocker", "InputBlocker.exe");
         private static readonly string testFolder = @"C:\Cobe Lab\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
@@ -572,6 +572,21 @@ namespace ServiceLibrary
             string strCmdText = @cmd;
             //MessageBox.Show(strCmdText);
             service.runCmd(strCmdText);
+        }
+
+        public void CloseRemoteChrome(List<LabClient> computers)
+        {
+            new Thread(() =>
+            {
+                string processName = "Chrome.exe";
+                foreach (LabClient computer in computers)
+                {
+                    string cmdlet = @"Taskkill /IM " + processName + @" /F
+                    $a = $env:LOCALAPPDATA + ""\Google\Chrome\User Data\Default\Preferences""
+(gc $a) -replace '""exited_cleanly"": false','""exited_cleanly"": true' | Out-File $a";
+                    RunRemotePSCmdLet(computer.ComputerName, cmdlet);
+                }
+            }).Start();
         }
 
         public void killRemoteProcess(string computerName, string processName)

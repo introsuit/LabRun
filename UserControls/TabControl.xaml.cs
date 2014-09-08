@@ -39,7 +39,7 @@ namespace UserControls
             {
                 inited = true;
 
-                ztreeCtrl = new ZtreeControl();
+                ztreeCtrl = new ZtreeControl((ZTree)testApp);
                 ztreeControls.Children.Add(ztreeCtrl);
             }
         }
