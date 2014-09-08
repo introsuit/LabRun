@@ -27,8 +27,8 @@ namespace LabRun
         {
             InitializeComponent();
             this.parent = parent;
-            txbName.Text = "dtutinas";
-            txbPass.Password = "QpbP9422";
+            txbName.Text = "";
+            txbPass.Password = "";
         }
 
         private void btnLogin_Click(object sender, RoutedEventArgs e)

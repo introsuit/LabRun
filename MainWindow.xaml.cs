@@ -34,7 +34,8 @@ namespace LabRun
         private List<ControlUnit> tabControls = new List<ControlUnit>();
         public int labNo = 1;
         private Boolean isSelectionByCmbbx = false;
-        private string project = "UnknownProject";
+        private readonly string unnamedProject = "UnnamedProject";
+        private string project = "";
 
         public MainWindow()
         {
@@ -66,6 +67,7 @@ namespace LabRun
             };
             initClients();
             initTabs();
+            SetProject(unnamedProject);
             service.StartPingSvc(clients);
         }
         public void initClients()
@@ -458,8 +460,15 @@ namespace LabRun
 
         private void btnSelProject_Click(object sender, RoutedEventArgs e)
         {
-            Project project = new Project(this);
-            project.Show();         
+            if (service.LoggedIn())
+            {
+                Project project = new Project(this);
+                project.Show();
+            }
+            else
+            {
+                new ProjectName(this, project).Show();
+            }
         }
 
         public void SetProject(string projectName)
@@ -485,8 +494,7 @@ namespace LabRun
                 btnLogin.Content = "Login";
                 lblLogin.Content = "Logged in as Guest";
                 btnSelProject.Content = "Set Your Project";
-                project = "UnkownProject";
-                lblProject.Content = "...";
+                SetProject(unnamedProject);
             }
         }
 

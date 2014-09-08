@@ -21,6 +21,7 @@ namespace ServiceLibrary
         private string timePrint = "";
 
         protected string projectName = "UnknownProject";
+        public string ProjectName { get { return projectName; } set { this.projectName = ProjectName; } }
 
         public string AppExeName
         {
@@ -160,7 +161,7 @@ namespace ServiceLibrary
 
             //----copy results from client computers to shared network folder
             DateTime timeStamp = DateTime.Now;
-            timePrint = timeStamp.Hour + "h" + timeStamp.Minute + "m " + timeStamp.ToShortDateString();
+            timePrint = String.Format("{0:yyyyMMddhhmm}", timeStamp);
             int i = 0;
             foreach (LabClient client in clients)
             {
@@ -169,7 +170,7 @@ namespace ServiceLibrary
                 {
                     string src = Path.Combine(service.TestFolder, applicationName, testFolderName);
 
-                    //file.WriteLine("@echo off");
+                    file.WriteLine("@echo off");
                     //file.WriteLine(@"cd " + src);
                     //file.WriteLine(@"IF NOT EXIST timestamp (echo timeis2014 > timestamp)");
                     //file.WriteLine(@"set /p time=<timestamp");
