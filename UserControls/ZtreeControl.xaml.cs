@@ -21,17 +21,23 @@ namespace UserControls
     public partial class ZtreeControl : UserControl
     {
         private Service service = Service.getInstance();
+        private ZTree ztree = null;
 
-        public ZtreeControl()
+        public ZtreeControl(ZTree ztree)
         {
             InitializeComponent();
-
+            this.ztree = ztree;
             cmbWindowSizes.ItemsSource = service.WindowSizes;
         }
 
         public WindowSize GetSelectedWindowSize()
         {
             return (WindowSize)cmbWindowSizes.SelectedItem;
+        }
+
+        private void btnRunAdminZTree_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

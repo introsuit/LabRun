@@ -118,6 +118,7 @@ namespace LabRun
             //ComboBox cmbWinSizes = (ComboBox)tC3.FindName("cmbWindowSizes");
             //cmbWinSizes.Visibility = Visibility.Visible;
             //cmbWinSizes.ItemsSource = service.WindowSizes;
+            ((Button)tC3.FindName("btnRun")).Content = "Run Leaves";
             ((Button)tC3.FindName("btnBrowse")).Visibility = Visibility.Hidden;
             ((Label)tC3.FindName("lblBrowse")).Visibility = Visibility.Hidden;
             //((Label)tC3.FindName("lblZTreeInfo")).Visibility = Visibility.Visible;
