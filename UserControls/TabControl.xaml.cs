@@ -90,6 +90,7 @@ namespace UserControls
             parent.updateStatus("In Progress...");
             if (testApp is ZTree)
             {
+                //MessageBox.Show("Make sure", "Attention", MessageBoxButton.OK, MessageBoxImage.Information);
                 WindowSize winSize = ztreeCtrl.GetSelectedWindowSize();
                 ((ZTree)testApp).TransferAndRun(computerNames, project, winSize);
             }
@@ -152,13 +153,13 @@ namespace UserControls
             MessageBoxResult result = MessageBox.Show("Are you sure you want to delete all result files from lab computers?\nMake sure you have a backup!", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
-                testApp.DeleteResults(parent.getSelectedClients(), project);
+                testApp.DeleteResults(parent.getSelectedClients());
             }
         }
 
         public void SetProject(string projectName)
         {
-            project = projectName;
+            testApp.ProjectName = projectName;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace ServiceLibrary
         public string ExtensionDescription { get; set; }
         private string timePrint = "";
 
-        protected string projectName = "UnknownProject";
+        protected string projectName = "";
         public string ProjectName { get { return projectName; } set { this.projectName = ProjectName; } }
 
         public string AppExeName
@@ -232,9 +232,8 @@ namespace ServiceLibrary
             //-----end
         }
 
-        public void DeleteResults(List<LabClient> clients, string project)
+        public virtual void DeleteResults(List<LabClient> clients)
         {
-            projectName = project;
             new Thread(delegate()
             {
                 //----del results from client computers

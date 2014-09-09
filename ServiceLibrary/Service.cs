@@ -23,8 +23,8 @@ namespace ServiceLibrary
         public Credentials Credentials { get; set; }
         private User user = null;
 
-        private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
-        //private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\";
+        //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
+        private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\";
         private readonly string inputBlockApp = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "InputBlocker", "InputBlocker.exe");
         private static readonly string testFolder = @"C:\Cobe Lab\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
@@ -102,25 +102,27 @@ namespace ServiceLibrary
                    {
                        foreach (LabClient client in clients)
                        {
-                           new Thread(delegate()
-                            {
-                                bool success = false;
-                                Ping ping = new Ping();
-                                try
-                                {
-                                    PingReply pingReply = ping.Send(client.ComputerName);
-                                    if (pingReply.Status == IPStatus.Success)
-                                    {
-                                        success = true;
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Debug.WriteLine(ex.Message);
-                                }
+                           Thread t = new Thread(delegate()
+                           {
+                               bool success = false;
+                               Ping ping = new Ping();
+                               try
+                               {
+                                   PingReply pingReply = ping.Send(client.ComputerName);
+                                   if (pingReply.Status == IPStatus.Success)
+                                   {
+                                       success = true;
+                                   }
+                               }
+                               catch (Exception ex)
+                               {
+                                   Debug.WriteLine(ex.Message);
+                               }
 
-                                client.Active = success;
-                            }).Start();
+                               client.Active = success;
+                           });
+                           t.IsBackground = true;
+                           t.Start();
                        }
                        //check again after x sec or interrupt if app is stopped 
                        lock (key)
@@ -345,6 +347,31 @@ namespace ServiceLibrary
             }
         }
 
+        public void LaunchCommandLineApp(string path, string arguments)
+        {
+            // Use ProcessStartInfo class
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.CreateNoWindow = false;
+            startInfo.UseShellExecute = false;
+            startInfo.FileName = path;
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.Arguments = arguments;
+
+            try
+            {
+                // Start the process with the info we specified.
+                // Call WaitForExit and then the using statement will close.
+                using (Process exeProcess = Process.Start(startInfo))
+                {
+                    exeProcess.WaitForExit();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+        }
+
         public String ExecuteCommand(string command, bool waitForExit = false)
         {
             int exitCode;
@@ -530,7 +557,7 @@ namespace ServiceLibrary
 
         public void RunRemotePSCmdLet(string computerName, string cmdLet)
         {
-            new Thread(delegate()
+            Thread t = new Thread(delegate()
                {
                    var LocalPassword = Credentials.Password;
                    var ssLPassword = new System.Security.SecureString();
@@ -562,7 +589,9 @@ namespace ServiceLibrary
                            Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
                        }
                    }
-               }).Start();
+               });
+            t.IsBackground = true;
+            t.Start();
         }
 
         public void InputEnable(List<LabClient> clients)
@@ -682,17 +711,20 @@ namespace ServiceLibrary
 
         public void CloseRemoteChrome(List<LabClient> computers)
         {
-            new Thread(() =>
+            Thread t = new Thread(() =>
             {
                 string processName = "Chrome.exe";
                 foreach (LabClient computer in computers)
                 {
                     string cmdlet = @"Taskkill /IM " + processName + @" /F
-                    $a = $env:LOCALAPPDATA + ""\Google\Chrome\User Data\Default\Preferences""
-(gc $a) -replace '""exited_cleanly"": false','""exited_cleanly"": true' | Out-File $a";
+                    $a = $env:LOCALAPPDATA + ""\Google\Chrome\User Data\Default\Preferences"" 
+                    $content = get-content $a | % { $_ -replace '""exited_cleanly"": false', '""exited_cleanly"": true' } | % { $_ -replace '""exit_type"": ""Crashed""', '""exit_type"": ""Normal""' }
+                    $content | set-content $a";
                     RunRemotePSCmdLet(computer.ComputerName, cmdlet);
                 }
-            }).Start();
+            });
+            t.IsBackground = true;
+            t.Start();
         }
 
         public void killRemoteProcess(string computerName, string processName)

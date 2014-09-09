@@ -13,18 +13,32 @@ namespace ServiceLibrary
     /// </summary>
     public class ZTree : TestApp
     {
-        private string pathToZTreeAdmin = @"C:\ZTree\ZTreeRun.vbs";
+        private readonly string pathToZTreeAdmin = @"C:\ZTree\ZTreeRun.vbs";
+        private readonly string dumpFolder = @"C:\ZTreeDump";
 
         public ZTree()
             : base("ZTree", @"C:\Cobe Lab\ZTree\ZTree\zleaf.exe")
         {
-            //Extension = "ztt";
-            //ExtensionDescription = "ZTree Test Files (*.ztt)|*.ztt";
+            applicationName = "ZTree";
 
             resultExts.Add("xls");
             resultExts.Add("sbj");
             resultExts.Add("pay");
             resultExts.Add("pay");
+        }
+
+        public void RunAdminZTree()
+        {
+            new Thread(() =>
+            {
+                if (!Directory.Exists(dumpFolder))
+                {
+                    Directory.CreateDirectory(dumpFolder);
+                }
+                string path = @"\\asb.local\staff\users\labclient\ZTree\ZTree\ztree.exe";
+                string arguments = @"/language en /privdir " + dumpFolder + @" /datadir " + dumpFolder + @" /gsfdir " + dumpFolder;
+                service.LaunchCommandLineApp(path, arguments);
+            }).Start();
         }
 
         public Thread TransferAndRun(List<LabClient> selectedClients, string project, WindowSize windowSize)
@@ -37,10 +51,6 @@ namespace ServiceLibrary
 
         private void xcopy(List<LabClient> selectedClients, WindowSize windowSize)
         {
-            //----run ztree at admin computer
-            service.ProcessStartSimple(pathToZTreeAdmin);
-            //----end
-
             //----run leaves with proper args
             int i = 0;
             foreach (LabClient client in selectedClients)
@@ -89,8 +99,8 @@ namespace ServiceLibrary
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
                 file.WriteLine("@echo off");
-                string src = Path.Combine(Path.GetDirectoryName(pathToZTreeAdmin), "Results");
-                string dst = Path.Combine(service.TestFolder, resultsFolderName, projectName, "ZTreeSubject");
+                string src = dumpFolder;
+                string dst = Path.Combine(service.TestFolder, resultsFolderName, projectName, "ZTreeSubject", applicationName);
                 string line = @"xcopy """ + src + @""" """ + dst + @""" /V /E /Y /Q /I";
                 file.WriteLine(line);
                 //line = @"del /s /q " + Path.Combine(dst, completionFileName + @"*");
@@ -98,6 +108,25 @@ namespace ServiceLibrary
             }
             service.ExecuteCommandNoOutput(copyPath, true);
             //-----end
+        }
+
+        public override void DeleteResults(List<LabClient> clients)
+        {
+            new Thread(delegate()
+            {
+                //----del results from local
+                string pathDel = Path.Combine(tempPath, "delResultsFromLocal.bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(pathDel))
+                {
+                    file.WriteLine("@echo off");
+                    string line = @"rmdir /s /q """ + Path.Combine(dumpFolder) + @"""";
+                    file.WriteLine(line);
+                    line = @"rmdir /s /q """ + Path.Combine(service.TestFolder, resultsFolderName, projectName) + @"""";
+                    file.WriteLine(line);
+                }
+                service.ExecuteCommandNoOutput(pathDel, true);
+                //----end
+            }).Start();
         }
     }
 }
