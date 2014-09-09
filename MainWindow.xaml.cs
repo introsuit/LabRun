@@ -127,6 +127,11 @@ namespace LabRun
             tC4.setTestLogo(@"\Images\chrome-logo.png");
             tabChrome.Content = tC4;
             tabControls.Add(tC4);
+
+            UserControls.CustomRun tC5 = new UserControls.CustomRun(this);
+
+            tabCustom.Content = tC5;
+            tabControls.Add(tC5);
         }
 
         public List<LabClient> getSelectedClients()
@@ -504,6 +509,21 @@ namespace LabRun
             lblLogin.Content = "Logged in as " + user.Username;
             btnSelProject.Content = "Choose Your Project";
             btnLogin.Content = "Logout";
+        }
+
+        private void AURPS_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("https://aucobe.sona-systems.com/");
+        }
+
+        private void AUCBL_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("https://aucobe.sona-systems.com/");
+        }
+
+        private void COBELAB_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("http://bss.au.dk/research/research-labs/cognition-and-behavior-lab/");
         }
     }
 }

@@ -12,7 +12,7 @@
         </Style>
     </Window.Resources>
     <Grid>
-        <Menu Height="22" Name="menu1" Width="200" Margin="0, 0, 0, 0" HorizontalAlignment="Left" VerticalAlignment="Top"  Background="White">
+        <Menu Height="22" Name="menu1" Width="227" Margin="0, 0, 0, 0" HorizontalAlignment="Left" VerticalAlignment="Top"  Background="White">
             <MenuItem Header="_File">
                 <MenuItem Header="_Exit" InputGestureText="Alt+F4" Click="MenuItemExit_Click">
                     <MenuItem.Icon>
@@ -24,6 +24,11 @@
                 <MenuItem Header="_Update Client List" Click="Button_Click_1"/>
                 <!--<MenuItem Header="_Close" IsCheckable="true"/>
                 <MenuItem Header="_Save" IsCheckable="true"/>-->
+            </MenuItem>
+            <MenuItem Header="_Useful websites">
+                <MenuItem Header="_Participant pool" Click="AURPS_Click"/>
+                <MenuItem Header="_Lab homepage" Click="AUCBL_Click"/>
+                <MenuItem Header="_DMS, Booking System, Wiki" Click="COBELAB_Click"/>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About LabRun" Click="About_Click"/>
@@ -51,9 +56,7 @@
         <Label Content="Lab Clients:" HorizontalAlignment="Left" Margin="11,84,0,0" VerticalAlignment="Top"/>
         <TabControl Name="tabControl1"  HorizontalAlignment="Left" Height="332" Margin="196,110,0,0" VerticalAlignment="Top" Width="365">
             <TabItem Header="PsychoPy" Name="tabPsy">
-                <Grid Background="#FFE5E5E5">
-
-                </Grid>
+                <Grid Background="#FFE5E5E5" />
             </TabItem>
             <TabItem Header="E-Prime" Name="tabEPrime">
                 <Grid Background="#FFE5E5E5"/>
@@ -61,9 +64,13 @@
             <TabItem Header="Z-Tree" Name="tabZTree">
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
+            <TabItem Header="Custom program" Name="tabCustom">
+                <Grid Background="#FFE5E5E5"/>
+            </TabItem>
             <TabItem Header="Chrome" Name="tabChrome">
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
+            
         </TabControl>
         <Label Content="Select Lab Clients:" HorizontalAlignment="Left" Margin="13,448,0,0" VerticalAlignment="Top"/>
 

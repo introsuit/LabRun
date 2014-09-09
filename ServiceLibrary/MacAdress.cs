@@ -7,7 +7,6 @@ namespace ServiceLibrary
 {
     // MACAddress Class (Sending WOL 'Magic' Packets)
     // Written by John Storer II (Feb 20, 2012)
-    //
     // Feel free to use/modify this code as you wish, without liability.
     using System;
     using System.Collections.Generic;

@@ -438,7 +438,7 @@ namespace ServiceLibrary
                        powershell.AddCommand("Set-Variable");
                        powershell.AddParameter("Name", "cred");
                        powershell.AddParameter("Value", Credential);
-
+                       
                        powershell.AddScript(@"$s = New-PSSession -ComputerName '" + computerName + "' -Credential $cred");
                        powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdLet + " }");
                        powershell.AddScript(@"Remove-PSSession -Session $s");
@@ -618,6 +618,9 @@ namespace ServiceLibrary
                 ssLPassword.AppendChar(c);
 
             PSCredential Credential = new PSCredential(Credentials.UserAtDomain, ssLPassword);
+
+
+            
 
             foreach (LabClient client in clients)
             {
