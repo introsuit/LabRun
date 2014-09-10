@@ -376,8 +376,9 @@ namespace ServiceLibrary
 
         }
 
+        //Copies a selected file to shared drive for distribution
         public void CopyFilesToNetworkShare(string srcDir) {
-            //Copies a selected file to shared drive for distribution
+           
             string copyPath = Path.Combine(tempPath, "localCopy.bat");
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
@@ -397,7 +398,6 @@ namespace ServiceLibrary
         public void CopyFilesFromNetworkShareToClients(string srcPath, string fileName, List<LabClient> clients)
         {
 
-            //
             foreach (LabClient client in clients)
             {
                 string batFileName = Path.Combine(tempPath, "CustomCopy" + client.ComputerName + ".bat");
@@ -408,6 +408,61 @@ namespace ServiceLibrary
                     string copyCmd = @"xcopy """+@"\\BSSFILES2\Dept\adm\labrun\temp\" + fileName + ""+@""" ""C:\labrun\temp"" /V /Y /Q ";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @")";
+                    file.WriteLine(line);
+                }
+                service.StartNewCmdThread(batFileName);
+            }
+        }
+
+        /// <summary>
+        /// Transfers a folder first to the shared drive then to each selected labclient.
+        /// Uses PSExec delegated batch files, running on each client.
+        /// Then runs selected file using same PSExec batch.
+        /// </summary>
+        /// <returns>Nothing</returns>
+        public void CopyEntireFolder(List<LabClient> clients, string folderPath, string filePath) {
+            
+            //Get folder name without path
+            string folderName = "";
+            string[] words = folderPath.Split('\\');
+            foreach (string word in words)
+            {
+                folderName = word;
+            }
+
+            //Get file name without path
+            string fileName = "";
+            string[] words2 = filePath.Split('\\');
+            foreach (string word in words2)
+            {
+                fileName = word;
+            }
+
+
+            // Copy to network drive
+            string copyPath = Path.Combine(tempPath, "localCopy.bat");
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                string dstDir = @"\\BSSFILES2\Dept\adm\labrun\temp\"+folderName;
+                string line = @"xcopy """ + folderPath + @""" """ + dstDir + @""" /i /s /e /V /Y /Q";
+                file.WriteLine(line);
+            }
+            service.ExecuteCommandNoOutput(copyPath, true);
+
+            // From Network drive, to clients
+            foreach (LabClient client in clients)
+            {
+                string batFileName = Path.Combine(tempPath, "CopyFolder" + client.ComputerName + ".bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
+                {
+                    file.WriteLine("@echo off");
+                    // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
+                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\" + folderName + @"""" + @" ""C:\labrun\temp\"+folderName+@""""+@" /i /s /e /V /Y /Q ";
+                    // Build runcommand to embed in bat also
+                    string runCmd = @"""" + @"C:\labrun\temp\" + folderName + filePath + @"""";
+                    // Deploy and run batfile FROM Server TO labclient using PSTools
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);
@@ -441,23 +496,21 @@ namespace ServiceLibrary
         }
 
         /// <summary>
-        /// Deletes the files contained in supplied hashset on the supplied clients.
+        /// Deletes the temp directory containing transferred files on the supplied clients.
         /// </summary>
         /// <returns>Nothing</returns> 
-        public void deleteFiles(HashSet<string> files, List<LabClient> clients)
+        public void deleteFiles(List<LabClient> clients)
         {
             foreach (LabClient client in clients)
             {
                 
-                    string batFileName = Path.Combine(tempPath, "CustomCopy" + client.ComputerName + ".bat");
+                    string batFileName = Path.Combine(tempPath, "DeleteTemp" + client.ComputerName + ".bat");
                     using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
                     {
                         file.WriteLine("@echo off");
-                        foreach (string fileLine in files)
-                        {
-                            string deleteCmd = @"delete C:\labrun\temp" + fileLine +" /Q ";
-                        }
-                        string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+
+                        string deleteCmd = @"rmdir /S /Q C:\labrun\temp";
+                        string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + deleteCmd + @")";
                         file.WriteLine(line);
                     }
                     service.StartNewCmdThread(batFileName);

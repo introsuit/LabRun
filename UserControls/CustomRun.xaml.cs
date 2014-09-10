@@ -23,12 +23,14 @@ namespace UserControls
         private Service service = Service.getInstance();
         public string filePath { get; set; }
         public string fileName { get; set; }
-        public HashSet<string> files { get; set; }
+        public string DirPath { get; set; }
+        public string DirFileName { get; set; }
+        public string DirFileNameWithExtraDir { get; set; }
         public Boolean isEnabled { get; set; }
         public CustomRun(MainUI parent)
         {
             InitializeComponent();
-            files = new HashSet<string>();
+            
             isEnabled = false;
             this.parent = parent;
         }
@@ -72,6 +74,7 @@ namespace UserControls
                 btnTransfer.IsEnabled = true;
                 btnRun.IsEnabled = true;
             }
+            btnDelete.IsEnabled = enabled;
 
         }
 
@@ -84,18 +87,17 @@ namespace UserControls
         {
             Service.getInstance().CopyFilesToNetworkShare(this.filePath);
             Service.getInstance().CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, parent.getSelectedClients());
-            if (!this.files.Contains(this.filePath))
-            {
-                this.files.Add(@"C:\labrun\temp\" + this.fileName);
-            }
+
             btnDelete.IsEnabled = true;
             
         }
 
         private void btnDelete_Click(object sender, RoutedEventArgs e)
         {
-            foreach (string temp in this.files) {
-                //psexec \\computer cmd /c del fileName
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to delete the entire transferred directory? Verify that result files are backed up and that nothing of value remains in the directory! Do you wish to continue?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                service.deleteFiles(parent.getSelectedClients());
             }
         }
 
@@ -103,11 +105,55 @@ namespace UserControls
         {
             Service.getInstance().CopyFilesToNetworkShare(this.filePath);
             Service.getInstance().CopyAndRunFilesFromNetworkShareToClients(this.filePath,this.fileName,parent.getSelectedClients());
-            if (!this.files.Contains(this.filePath))
-            {
-                this.files.Add(@"C:\labrun\temp\" + this.fileName);
-            }
             btnDelete.IsEnabled = true;
+        }
+
+        private void dirBrowse_Btn_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Forms.FolderBrowserDialog browse = new System.Windows.Forms.FolderBrowserDialog();
+            System.Windows.Forms.DialogResult result = browse.ShowDialog();
+            if (result != null){
+                this.DirPath = browse.SelectedPath;
+                lblDirectoryPath.Content = "Folder to copy: "+this.DirPath;
+            }   
+        }
+
+        private void dirFileBrowse_Btn_Click(object sender, RoutedEventArgs e)
+        {
+            // Create OpenFileDialog 
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+
+            // Display OpenFileDialog by calling ShowDialog method 
+            Nullable<bool> result = dlg.ShowDialog();
+
+            // Get the selected file name and save the path 
+            if (result == true)
+            {
+                string pathChosenFile = "";
+                this.DirFileName = dlg.FileName;
+
+                string[] directory = this.DirPath.Split('\\');
+                string[] file = this.DirFileName.Split('\\');
+                int i = 0;
+                string subFileName = "";
+                foreach (string word in file)
+                {
+                    if (i > directory.Length-1)
+                    {
+                        subFileName += "\\"+file[i];
+                    }
+                    i++;
+                }
+                lblFileToLaunch.Content ="File to launch: " + subFileName;
+                this.DirFileNameWithExtraDir = subFileName;
+            }
+               
+        }
+
+        private void launchDirectory_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show(this.DirFileName);
+            Service.getInstance().CopyEntireFolder(parent.getSelectedClients(), this.DirPath, this.DirFileNameWithExtraDir);
         }
     }
 }
