@@ -22,6 +22,11 @@ namespace ServiceLibrary
             }
         }
 
+        public bool PsychoPy { get; set; }
+        public bool EPrime { get; set; }
+        public bool ZTree { get; set; }
+        public bool Chrome { get; set; }
+
         public int RoomNo { get; set; }
         public string ComputerName { get; set; }
         public int? BoothNo { get; set; }
@@ -46,6 +51,9 @@ namespace ServiceLibrary
             this.Mac = mac;
             this.Ip = ip;
             active = false;
+            PsychoPy = false;
+            EPrime = false;
+            ZTree = false;
         }
 
         public override bool Equals(System.Object obj)

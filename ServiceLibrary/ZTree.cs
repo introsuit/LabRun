@@ -41,9 +41,8 @@ namespace ServiceLibrary
             }).Start();
         }
 
-        public Thread TransferAndRun(List<LabClient> selectedClients, string project, WindowSize windowSize)
+        public Thread TransferAndRun(List<LabClient> selectedClients, WindowSize windowSize)
         {
-            projectName = project;
             var t = new Thread(() => xcopy(selectedClients, windowSize));
             t.Start();
             return t;
@@ -84,9 +83,8 @@ namespace ServiceLibrary
             //-----end
         }
 
-        public override Thread TransferResults(List<LabClient> clients, string project)
+        public override Thread TransferResults(List<LabClient> clients)
         {
-            projectName = project;
             var t = new Thread(() => ResTransfer(clients));
             t.Start();
             return t;

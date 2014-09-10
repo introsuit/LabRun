@@ -22,6 +22,7 @@ namespace UserControls
     {
         private MainUI parent = null;
         private Service service = Service.getInstance();
+        public TabItem TabItem { get; set; }
 
         public ChromeTab(MainUI parent)
         {
@@ -37,6 +38,7 @@ namespace UserControls
 
         private void btnRun_Click(object sender, RoutedEventArgs e)
         {
+            List<LabClient> clients = parent.getSelectedClients();
             string param1 = "";
             string newWindowMode = ((ComboBoxItem)cmbBoxNewWindowMode.SelectedItem).Tag.ToString();
             switch (newWindowMode)
@@ -52,9 +54,9 @@ namespace UserControls
                     }
                 case "newchrome":
                     {
-                        foreach (LabClient client in parent.getSelectedClients())
+                        foreach (LabClient client in clients)
                         {
-                            Service.getInstance().killRemoteProcess(client.ComputerName, "Chrome.exe");
+                            service.killRemoteProcess(client.ComputerName, "Chrome.exe");
                         }
                         break;
                     }
@@ -82,12 +84,15 @@ namespace UserControls
 
             }
             param += " " + urlTxtBox.Text.ToString();
-            Service.getInstance().runRemoteProgram(parent.getSelectedClients(), @"C:\Program Files (x86)\Google\Chrome\Application\Chrome.exe", param);
+            parent.SetTabActivity(TabItem, clients, true);
+            service.runRemoteProgram(clients, @"C:\Program Files (x86)\Google\Chrome\Application\Chrome.exe", param);
         }
 
         private void btnClose_Click(object sender, RoutedEventArgs e)
         {
-            service.CloseRemoteChrome(parent.getSelectedClients());
+            List<LabClient> clients = parent.getSelectedClients();       
+            parent.SetTabActivity(TabItem, clients, false);
+            service.CloseRemoteChrome(clients);
         }
 
         public void ButtonClickable(bool enabled)

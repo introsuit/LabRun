@@ -473,22 +473,22 @@ namespace ServiceLibrary
         /// <returns>Nothing</returns> 
         public void deleteFiles(HashSet<string> files, List<LabClient> clients)
         {
-            foreach (LabClient client in clients)
-            {
+            //foreach (LabClient client in clients)
+            //{
                 
-                    string batFileName = Path.Combine(tempPath, "CustomCopy" + client.ComputerName + ".bat");
-                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
-                    {
-                        file.WriteLine("@echo off");
-                        foreach (string fileLine in files)
-                        {
-                            string deleteCmd = @"delete C:\labrun\temp" + fileLine +" /Q ";
-                        }
-                        string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
-                        file.WriteLine(line);
-                    }
-                    service.StartNewCmdThread(batFileName);
-            }
+            //        string batFileName = Path.Combine(tempPath, "CustomCopy" + client.ComputerName + ".bat");
+            //        using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
+            //        {
+            //            file.WriteLine("@echo off");
+            //            foreach (string fileLine in files)
+            //            {
+            //                string deleteCmd = @"delete C:\labrun\temp" + fileLine +" /Q ";
+            //            }
+            //            string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+            //            file.WriteLine(line);
+            //        }
+            //        service.StartNewCmdThread(batFileName);
+            //}
         }
 
         /// <summary>
