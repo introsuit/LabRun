@@ -13,6 +13,6 @@ namespace UserControls
         List<string> getSelectedClientsNames();
         List<LabClient> getSelectedClients();
         void SetProject(string projectName);
-        void SetTabActivity(TabItem tabItem, List<LabClient> clients, bool active);
+        void SetTabActivity(TabItem tabItem, List<LabClient> selectedClients, bool active);
     }
 }

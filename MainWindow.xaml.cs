@@ -57,7 +57,7 @@ namespace LabRun
                 if (message == "config.ini")
                 {
                     string msg = "File config.ini was not found!";
-                    MessageBox.Show( msg, "File not found", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(msg, "File not found", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
             }
@@ -75,6 +75,13 @@ namespace LabRun
             initTabs();
             SetProject(unnamedProject);
             service.StartPingSvc(clients);
+        }
+
+        private void EnableColumn()
+        {
+            if (clients.Exists(i => i.PsychoPy == true))
+                dgrClients.Columns[2].Visibility = Visibility.Visible;
+            else dgrClients.Columns[2].Visibility = Visibility.Hidden;
         }
 
         private void FitToContent()
@@ -149,10 +156,10 @@ namespace LabRun
             tabZTree.Content = tC3;
             tC3.TabItem = tabZTree;
             tabControls.Add(tC3);
-            tabZTree.Header = new TextBlock 
+            tabZTree.Header = new TextBlock
                 {
-                    Text = tabZTree.Header.ToString(), 
-                };        
+                    Text = tabZTree.Header.ToString(),
+                };
 
             ((Button)tC3.FindName("btnRun")).Content = "Run Leaves";
             ((Button)tC3.FindName("btnBrowse")).Visibility = Visibility.Hidden;
@@ -175,7 +182,7 @@ namespace LabRun
             tabControls.Add(tC5);
         }
 
-        public void SetTabActivity(TabItem tabItem, List<LabClient> clients, bool active)
+        public void SetTabActivity(TabItem tabItem, List<LabClient> selectedClients, bool active)
         {
             if (!(tabItem.Header is TextBlock))
             {
@@ -183,33 +190,41 @@ namespace LabRun
             }
 
             bool exists = false;
+            DataGridColumn column = null;
             switch (tabItem.Name.ToString())
             {
                 case "tabPsy":
-                    clients.ForEach(i => i.PsychoPy = active);
+                    selectedClients.ForEach(i => i.PsychoPy = active);
                     exists = clients.Exists(i => i.PsychoPy == true);
+                    column = dgrClients.Columns[2];
                     break;
                 case "tabEPrime":
-                    clients.ForEach(i => i.EPrime = active);
+                    selectedClients.ForEach(i => i.EPrime = active);
                     exists = clients.Exists(i => i.EPrime == true);
+                    column = dgrClients.Columns[3];
                     break;
                 case "tabZTree":
-                    clients.ForEach(i => i.ZTree = active);
+                    selectedClients.ForEach(i => i.ZTree = active);
                     exists = clients.Exists(i => i.ZTree == true);
+                    column = dgrClients.Columns[4];
                     break;
                 case "tabChrome":
-                    clients.ForEach(i => i.Chrome = active);
+                    selectedClients.ForEach(i => i.Chrome = active);
                     exists = clients.Exists(i => i.Chrome == true);
-                    break;
+                    column = dgrClients.Columns[5];
+                    break;             
             }
             if (exists)
             {
-                ((TextBlock)tabItem.Header).Foreground =  Brushes.Red;
+                ((TextBlock)tabItem.Header).Foreground = Brushes.Red;
+                column.Visibility = Visibility.Visible;
             }
             else
             {
                 ((TextBlock)tabItem.Header).Foreground = Brushes.Black;
+                column.Visibility = Visibility.Hidden;
             }
+            EnableColumn();
         }
 
         public List<LabClient> getSelectedClients()
@@ -509,7 +524,6 @@ namespace LabRun
         private void btnStopSharing_Click(object sender, RoutedEventArgs e)
         {
             service.StopScreenSharing(getSelectedClients());
-
         }
 
         private void dgrClients_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -606,8 +620,8 @@ namespace LabRun
 
         private void dgrClients_Loaded(object sender, RoutedEventArgs e)
         {
-            
-        }      
+
+        }
     }
 }
 

@@ -22,10 +22,61 @@ namespace ServiceLibrary
             }
         }
 
-        public bool PsychoPy { get; set; }
-        public bool EPrime { get; set; }
-        public bool ZTree { get; set; }
-        public bool Chrome { get; set; }
+        private bool psychoPy;
+        public bool PsychoPy
+        {
+            get { return psychoPy; }
+            set
+            {
+                if (value != psychoPy)
+                {
+                    psychoPy = value;
+                    OnPropertyChanged("PsychoPy");
+                }
+            }
+        }
+
+        public bool eprime { get; set; }
+        public bool EPrime
+        {
+            get { return eprime; }
+            set
+            {
+                if (value != eprime)
+                {
+                    eprime = value;
+                    OnPropertyChanged("EPrime");
+                }
+            }
+        }
+
+        public bool ztree { get; set; }
+        public bool ZTree
+        {
+            get { return ztree; }
+            set
+            {
+                if (value != ztree)
+                {
+                    ztree = value;
+                    OnPropertyChanged("ZTree");
+                }
+            }
+        }
+
+        public bool chrome { get; set; }
+        public bool Chrome
+        {
+            get { return chrome; }
+            set
+            {
+                if (value != chrome)
+                {
+                    chrome = value;
+                    OnPropertyChanged("Chrome");
+                }
+            }
+        }
 
         public int RoomNo { get; set; }
         public string ComputerName { get; set; }
@@ -80,6 +131,6 @@ namespace ServiceLibrary
             int hash = 13;
             hash = (hash * 7) + ComputerName.GetHashCode();
             return hash;
-        }    
+        }
     }
 }
