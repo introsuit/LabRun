@@ -525,48 +525,53 @@ namespace ServiceLibrary
 
         public void InputDisable(List<LabClient> clients)
         {
-            string blockerDirName = Path.GetFileName(Path.GetDirectoryName(inputBlockApp));
-
-            //-----local copy
-            string copyPath = Path.Combine(tempPath, "localCopy.bat");
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                string srcDir = Path.GetDirectoryName(inputBlockApp);
-                string dstDir = Path.Combine(service.SharedNetworkTempFolder, blockerDirName);
-                string line = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
-                file.WriteLine(line);
-            }
-            service.ExecuteCommandNoOutput(copyPath, true);
-            //-----end
-
-            //service.runRemoteProgram(compList, inputBlockApp);
-            //---onecall to client: copy and run
-            int i = 0;
-            foreach (LabClient client in clients)
-            {
-                string copyPathRemote = Path.Combine(tempPath, "remoteCopyRun" + client.ComputerName + ".bat");
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
+            Thread t = new Thread(delegate()
                 {
-                    file.WriteLine("@echo off");
+                    string blockerDirName = Path.GetFileName(Path.GetDirectoryName(inputBlockApp));
 
-                    string srcDir = Path.Combine(service.SharedNetworkTempFolder, blockerDirName);
-                    string dstDir = Path.Combine(service.TestFolder, Path.GetFileName(Path.GetDirectoryName(inputBlockApp)));
-                    string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
+                    //-----local copy
+                    string copyPath = Path.Combine(tempPath, "localCopy.bat");
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+                    {
+                        file.WriteLine("@echo off");
+                        string srcDir = Path.GetDirectoryName(inputBlockApp);
+                        string dstDir = Path.Combine(service.SharedNetworkTempFolder, blockerDirName);
+                        string line = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
+                        file.WriteLine(line);
+                    }
+                    service.ExecuteCommandNoOutput(copyPath, true);
+                    //-----end
 
-                    string runLocation = Path.Combine(dstDir, Path.GetFileName(inputBlockApp));
-                    string runCmd = @"start """" """ + runLocation + @"""";
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+                    //service.runRemoteProgram(compList, inputBlockApp);
+                    //---onecall to client: copy and run
+                    int i = 0;
+                    foreach (LabClient client in clients)
+                    {
+                        string copyPathRemote = Path.Combine(tempPath, "remoteCopyRun" + client.ComputerName + ".bat");
+                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
+                        {
+                            file.WriteLine("@echo off");
 
-                    file.WriteLine(line);
-                }
-                service.StartNewCmdThread(copyPathRemote);
-                i++;
-            }
+                            string srcDir = Path.Combine(service.SharedNetworkTempFolder, blockerDirName);
+                            string dstDir = Path.Combine(service.TestFolder, Path.GetFileName(Path.GetDirectoryName(inputBlockApp)));
+                            string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
 
-            //-----notify ui
-            service.notifyStatus("Input Disable Request Sent");
-            //-----end
+                            string runLocation = Path.Combine(dstDir, Path.GetFileName(inputBlockApp));
+                            string runCmd = @"start """" """ + runLocation + @"""";
+                            string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+
+                            file.WriteLine(line);
+                        }
+                        service.StartNewCmdThread(copyPathRemote);
+                        i++;
+                    }
+
+                    //-----notify ui
+                    service.notifyStatus("Input Disable Request Sent");
+                    //-----end
+                });
+            t.IsBackground = true;
+            t.Start();
         }
 
         public void RunRemotePSCmdLet(string computerName, string cmdLet)

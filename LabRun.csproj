@@ -150,6 +150,19 @@
   <ItemGroup>
     <Resource Include="Images\HuiLab_Logo.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\whitespace.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\denied.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\sharingiscaring.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\denied2.png" />
+    <Resource Include="Images\denied3.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

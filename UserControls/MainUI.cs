@@ -14,5 +14,11 @@ namespace UserControls
         List<LabClient> getSelectedClients();
         void SetProject(string projectName);
         void SetTabActivity(TabItem tabItem, List<LabClient> selectedClients, bool active);
+        void SetFeatureActivity(Feature feature, List<LabClient> selectedClients, bool active);
+    }
+
+    public enum Feature
+    {
+        WEB, SHARESCR, INPUT
     }
 }

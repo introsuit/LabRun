@@ -63,54 +63,97 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Booth No"  Binding="{Binding BoothNo}"/>
                         <DataGridTextColumn Header="Comp. Name" Binding="{Binding ComputerName}"/>
-                        <DataGridTextColumn Header="Psy.Py" Binding="{Binding PsychoPy}" Visibility="Hidden">
-                            <DataGridTextColumn.CellStyle>
-                                <Style TargetType="DataGridCell">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding PsychoPy}"
-                                     Value="True">
-                                            <Setter Property="Background" Value="Yellow"/>
+
+                        <DataGridTemplateColumn Header="Psy.Py" Visibility="Hidden">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Name="IMG" Height="13"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding PsychoPy}" Value="True">
+                                            <Setter Property="Source" Value="Images\Psychopy.png" TargetName="IMG"/>
                                         </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGridTextColumn.CellStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="EPrime" Binding="{Binding EPrime}" Visibility="Hidden">
-                            <DataGridTextColumn.CellStyle>
-                                <Style TargetType="DataGridCell">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding EPrime}"
-                                     Value="True">
-                                            <Setter Property="Background" Value="Yellow"/>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="EPrime" Visibility="Hidden">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Name="IMG" Height="13"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding EPrime}" Value="True">
+                                            <Setter Property="Source" Value="Images\eprime.png" TargetName="IMG"/>
                                         </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGridTextColumn.CellStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="ZTree" Binding="{Binding ZTree}" Visibility="Hidden">
-                            <DataGridTextColumn.CellStyle>
-                                <Style TargetType="DataGridCell">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ZTree}"
-                                     Value="True">
-                                            <Setter Property="Background" Value="Yellow"/>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="ZTree" Visibility="Hidden">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Name="IMG" Height="13"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding ZTree}" Value="True">
+                                            <Setter Property="Source" Value="Images\ztree.png" TargetName="IMG"/>
                                         </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGridTextColumn.CellStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="Chrome" Binding="{Binding Chrome}" Visibility="Hidden">
-                            <DataGridTextColumn.CellStyle>
-                                <Style TargetType="DataGridCell">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Chrome}"
-                                     Value="True">
-                                            <Setter Property="Background" Value="Yellow"/>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Chrome" Visibility="Hidden">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Name="IMG" Height="13"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Chrome}" Value="True">
+                                            <Setter Property="Source" Value="Images\chrome-logo.png" TargetName="IMG"/>
                                         </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGridTextColumn.CellStyle>
-                        </DataGridTextColumn>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Web" Visibility="Hidden">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Name="IMG" Height="13"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Web}" Value="True">
+                                            <Setter Property="Source" Value="Images\denied3.png" TargetName="IMG"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="ShareScr" Visibility="Hidden">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Name="IMG" Height="13"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding ShareScr}" Value="True">
+                                            <Setter Property="Source" Value="Images\sharingiscaring.png" TargetName="IMG"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Input" Visibility="Hidden">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Name="IMG" Height="13"/>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Input}" Value="True">
+                                            <Setter Property="Source" Value="Images\denied3.png" TargetName="IMG"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
 

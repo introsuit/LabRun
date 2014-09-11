@@ -36,7 +36,7 @@ namespace ServiceLibrary
             }
         }
 
-        public bool eprime { get; set; }
+        private bool eprime { get; set; }
         public bool EPrime
         {
             get { return eprime; }
@@ -50,7 +50,7 @@ namespace ServiceLibrary
             }
         }
 
-        public bool ztree { get; set; }
+        private bool ztree { get; set; }
         public bool ZTree
         {
             get { return ztree; }
@@ -64,7 +64,7 @@ namespace ServiceLibrary
             }
         }
 
-        public bool chrome { get; set; }
+        private bool chrome { get; set; }
         public bool Chrome
         {
             get { return chrome; }
@@ -74,6 +74,48 @@ namespace ServiceLibrary
                 {
                     chrome = value;
                     OnPropertyChanged("Chrome");
+                }
+            }
+        }
+
+        private bool web { get; set; }
+        public bool Web
+        {
+            get { return web; }
+            set
+            {
+                if (value != web)
+                {
+                    web = value;
+                    OnPropertyChanged("Web");
+                }
+            }
+        }
+
+        private bool shareScr { get; set; }
+        public bool ShareScr
+        {
+            get { return shareScr; }
+            set
+            {
+                if (value != shareScr)
+                {
+                    shareScr = value;
+                    OnPropertyChanged("ShareScr");
+                }
+            }
+        }
+
+        private bool input { get; set; }
+        public bool Input
+        {
+            get { return input; }
+            set
+            {
+                if (value != input)
+                {
+                    input = value;
+                    OnPropertyChanged("Input");
                 }
             }
         }

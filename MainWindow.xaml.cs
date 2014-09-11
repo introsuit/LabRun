@@ -182,6 +182,43 @@ namespace LabRun
             tabControls.Add(tC5);
         }
 
+        private void SetColumnVisibility(DataGridColumn column, bool visible)
+        {
+            if (visible)
+            {
+                column.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                column.Visibility = Visibility.Hidden;
+            }
+        }
+
+        public void SetFeatureActivity(Feature feature, List<LabClient> selectedClients, bool active)
+        {
+            bool exists = false;
+            DataGridColumn column = null;
+            switch (feature)
+            {
+                case Feature.WEB:
+                    selectedClients.ForEach(i => i.Web = active);
+                    exists = clients.Exists(i => i.Web == true);
+                    column = dgrClients.Columns[6];
+                    break;
+                case Feature.SHARESCR:
+                    selectedClients.ForEach(i => i.ShareScr = active);
+                    exists = clients.Exists(i => i.ShareScr == true);
+                    column = dgrClients.Columns[7];
+                    break;
+                case Feature.INPUT:
+                    selectedClients.ForEach(i => i.Input = active);
+                    exists = clients.Exists(i => i.Input == true);
+                    column = dgrClients.Columns[8];
+                    break;
+            }
+            SetColumnVisibility(column, exists);
+        }
+
         public void SetTabActivity(TabItem tabItem, List<LabClient> selectedClients, bool active)
         {
             if (!(tabItem.Header is TextBlock))
@@ -214,17 +251,7 @@ namespace LabRun
                     column = dgrClients.Columns[5];
                     break;             
             }
-            if (exists)
-            {
-                ((TextBlock)tabItem.Header).Foreground = Brushes.Red;
-                column.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                ((TextBlock)tabItem.Header).Foreground = Brushes.Black;
-                column.Visibility = Visibility.Hidden;
-            }
-            EnableColumn();
+            SetColumnVisibility(column, exists);
         }
 
         public List<LabClient> getSelectedClients()
@@ -365,27 +392,37 @@ namespace LabRun
 
         private void btnInputDisable_Click(object sender, RoutedEventArgs e)
         {
-            service.InputDisable(getSelectedClients());
+            List<LabClient> clients = getSelectedClients();
+            SetFeatureActivity(Feature.INPUT, clients, true);
+            service.InputDisable(clients);
         }
 
         private void btnInputEnable_Click(object sender, RoutedEventArgs e)
         {
-            service.InputEnable(getSelectedClients());
+            List<LabClient> clients = getSelectedClients();
+            SetFeatureActivity(Feature.INPUT, clients, false);
+            service.InputEnable(clients);
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            service.StartScreenSharing(getSelectedClients());
+            List<LabClient> clients = getSelectedClients();
+            SetFeatureActivity(Feature.SHARESCR, clients, true);
+            service.StartScreenSharing(clients);
         }
 
         private void btnNetDisable_Click(object sender, RoutedEventArgs e)
         {
-            service.NetDisable(getSelectedClients());
+            List<LabClient> clients = getSelectedClients();
+            SetFeatureActivity(Feature.WEB, clients, true);
+            service.NetDisable(clients);
         }
 
         private void btnNetEnable_Click(object sender, RoutedEventArgs e)
         {
-            service.NetEnable(getSelectedClients());
+            List<LabClient> clients = getSelectedClients();
+            SetFeatureActivity(Feature.WEB, clients, false);
+            service.NetEnable(clients);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -523,7 +560,9 @@ namespace LabRun
 
         private void btnStopSharing_Click(object sender, RoutedEventArgs e)
         {
-            service.StopScreenSharing(getSelectedClients());
+            List<LabClient> clients = getSelectedClients();
+            SetFeatureActivity(Feature.SHARESCR, clients, false);
+            service.StopScreenSharing(clients);
         }
 
         private void dgrClients_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
