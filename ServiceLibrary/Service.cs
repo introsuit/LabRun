@@ -29,6 +29,7 @@ namespace ServiceLibrary
         private static readonly string testFolder = @"C:\Cobe Lab\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
         private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
+        private static readonly string configFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"config.ini");
         private readonly string tempPath = System.IO.Path.GetTempPath();
 
         private List<WindowSize> windowSizes = new List<WindowSize>();
@@ -86,6 +87,11 @@ namespace ServiceLibrary
             catch (FileNotFoundException ex)
             {
                 throw new FileNotFoundException("auth.ini", ex);
+            }
+
+            if (!File.Exists(configFile))
+            {
+                throw new FileNotFoundException("config.ini");
             }
         }
 
@@ -923,6 +929,24 @@ Add-FirewallRule
             string projectsStr = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/projects?" + user.UniqueHash);
             string[] lines = projectsStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
             return new List<string>(lines); ;
+        }
+
+        public string GetConfigSetting(string arg)
+        {
+            string set = "";
+            using (System.IO.StreamReader file = new System.IO.StreamReader(authFile))
+            {
+                string line;
+                while ((line = file.ReadLine()) != null)
+                {
+                    if (line.Equals(arg))
+                    {
+                        set = file.ReadLine();
+                        break;
+                    }
+                }           
+            }
+            return set;
         }
     }
 }

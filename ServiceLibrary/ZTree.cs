@@ -14,7 +14,7 @@ namespace ServiceLibrary
     public class ZTree : TestApp
     {
         private readonly string pathToZTreeAdmin = @"C:\ZTree\ZTreeRun.vbs";
-        private readonly string dumpFolder = @"C:\ZTreeDump";
+        private readonly string dumpFolder = @"C:\ZTree\Dump";
 
         public ZTree()
             : base("ZTree", @"C:\Cobe Lab\ZTree\ZTree\zleaf.exe")
@@ -35,9 +35,23 @@ namespace ServiceLibrary
                 {
                     Directory.CreateDirectory(dumpFolder);
                 }
-                string path = @"\\asb.local\staff\users\labclient\ZTree\ZTree\ztree.exe";
-                string arguments = @"/language en /privdir " + dumpFolder + @" /datadir " + dumpFolder + @" /gsfdir " + dumpFolder;
-                service.LaunchCommandLineApp(path, arguments);
+                //string path = @"C:\ZTree\ztree.exe";
+                //string arguments = @"/language en /privdir " + dumpFolder + @" /datadir " + dumpFolder + @" /gsfdir " + dumpFolder;
+                //service.LaunchCommandLineApp(path, arguments);
+
+                //service.LaunchCommandLineApp(@"C:\ZTree\JustRun.vbs", "");
+                //Process.Start(@"C:\ZTree\JustRun.vbs");
+
+                string copyPath = Path.Combine(tempPath, "ztreeRun.bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+                {
+                    file.WriteLine("@echo off");
+                    string line = @"cd C:\ZTree";
+                    file.WriteLine(line);
+                    line = @"start """" ztree.exe /language en /privdir " + dumpFolder + @" /datadir " + dumpFolder + @" /gsfdir " + dumpFolder;
+                    file.WriteLine(line);
+                }
+                service.ExecuteCommandNoOutput(copyPath, true);
             }).Start();
         }
 
@@ -86,6 +100,7 @@ namespace ServiceLibrary
         public override Thread TransferResults(List<LabClient> clients)
         {
             var t = new Thread(() => ResTransfer(clients));
+            t.IsBackground = true;
             t.Start();
             return t;
         }

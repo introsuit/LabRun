@@ -82,7 +82,7 @@ namespace ServiceLibrary
                 }
 
                 file.WriteLine("@echo off");
-                          
+
                 string line = @"xcopy """ + srcDir + @""" """ + dstDir + @""" " + args;
                 file.WriteLine(line);
             }
@@ -302,6 +302,11 @@ namespace ServiceLibrary
                 service.ExecuteCommandNoOutput(pathDel, true);
                 //----end
             }).Start();
+        }
+
+        public virtual void OpenResultsFolder()
+        {
+            service.ProcessStartSimple(Path.Combine(service.TestFolder, resultsFolderName));
         }
     }
 }

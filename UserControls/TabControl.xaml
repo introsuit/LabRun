@@ -19,12 +19,14 @@
                     <ColumnDefinition Width="125*"/>
                     <ColumnDefinition Width="67*"/>
                 </Grid.ColumnDefinitions>
-                <Button IsEnabled="False" Content="Transfer Results" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="113" Name="btnGetResults" Height="24" Click="btnGetResults_Click" />
+                <Button IsEnabled="False" Content="Transfer Results" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="86" Name="btnGetResults" Height="22" Click="btnGetResults_Click" />
                 <Button IsEnabled="False" Name="btnExportDb" Content="Export to DMS" HorizontalAlignment="Left" Margin="10,51,0,0" VerticalAlignment="Top" Width="84" Height="22"/>
-                <Button IsEnabled="False" Name="btnDelResults" Content="Clean" HorizontalAlignment="Left" Margin="99,51,0,0" VerticalAlignment="Top" Width="84" Height="22" Click="btnDelResults_Click" Grid.ColumnSpan="2"/>
+                <Button IsEnabled="False" Name="btnDelResults" Content="Clean" HorizontalAlignment="Left" Margin="99,51,0,0" VerticalAlignment="Top" Width="86" Height="22" Click="btnDelResults_Click" Grid.ColumnSpan="2"/>
+                <Button Name="btnOpenRes" Content="Open Results" Margin="101,10,7,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Click="btnOpenRes_Click" Height="22" RenderTransformOrigin="0.451,0.456"/>
             </Grid>
         </GroupBox>
         <Grid Name="ztreeControls" Margin="0,-10,0,10">
+
 
 
 

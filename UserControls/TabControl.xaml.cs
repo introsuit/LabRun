@@ -203,6 +203,18 @@ namespace UserControls
         {
             testApp.ProjectName = projectName;
         }
+
+        private void btnOpenRes_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                testApp.OpenResultsFolder();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
     }
 
     public enum TabNames

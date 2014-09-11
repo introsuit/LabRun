@@ -123,34 +123,45 @@ namespace LabRun
             tabPsy.Content = tC;
             tC.TabItem = tabPsy;
             tabControls.Add(tC);
+            tabPsy.Header = new TextBlock
+            {
+                Text = tabPsy.Header.ToString(),
+            };
 
             UserControls.TabControl tC2 = new UserControls.TabControl(this, new EPrime());
             tC2.setTestLogo(@"\Images\eprime.png");
             tabEPrime.Content = tC2;
             tC2.TabItem = tabEPrime;
             tabControls.Add(tC2);
+            tabEPrime.Header = new TextBlock
+            {
+                Text = tabEPrime.Header.ToString(),
+            };
 
             UserControls.TabControl tC3 = new UserControls.TabControl(this, new ZTree());
             tC3.setTestLogo(@"\Images\ztree.png");
             tabZTree.Content = tC3;
             tC3.TabItem = tabZTree;
             tabControls.Add(tC3);
+            tabZTree.Header = new TextBlock 
+                {
+                    Text = tabZTree.Header.ToString(), 
+                };        
 
-            //((Label)tC3.FindName("lblWindowSize")).Visibility = Visibility.Visible;
-            //ComboBox cmbWinSizes = (ComboBox)tC3.FindName("cmbWindowSizes");
-            //cmbWinSizes.Visibility = Visibility.Visible;
-            //cmbWinSizes.ItemsSource = service.WindowSizes;
             ((Button)tC3.FindName("btnRun")).Content = "Run Leaves";
             ((Button)tC3.FindName("btnBrowse")).Visibility = Visibility.Hidden;
             ((Label)tC3.FindName("lblBrowse")).Visibility = Visibility.Hidden;
             ((CheckBox)tC3.FindName("cbxCopyAll")).Visibility = Visibility.Hidden;
-            //((Label)tC3.FindName("lblZTreeInfo")).Visibility = Visibility.Visible;
 
             UserControls.ChromeTab tC4 = new UserControls.ChromeTab(this);
             tC4.setTestLogo(@"\Images\chrome-logo.png");
             tabChrome.Content = tC4;
             tC4.TabItem = tabChrome;
             tabControls.Add(tC4);
+            tabChrome.Header = new TextBlock
+            {
+                Text = tabChrome.Header.ToString(),
+            };
 
             UserControls.CustomRun tC5 = new UserControls.CustomRun(this);
 
@@ -160,6 +171,11 @@ namespace LabRun
 
         public void SetTabActivity(TabItem tabItem, List<LabClient> clients, bool active)
         {
+            if (!(tabItem.Header is TextBlock))
+            {
+                return;
+            }
+
             bool exists = false;
             switch (tabItem.Name.ToString())
             {
@@ -182,11 +198,11 @@ namespace LabRun
             }
             if (exists)
             {
-                tabItem.Foreground = Brushes.Red;
+                ((TextBlock)tabItem.Header).Foreground =  Brushes.Red;
             }
             else
             {
-                tabItem.Foreground = Brushes.Black;
+                ((TextBlock)tabItem.Header).Foreground = Brushes.Black;
             }
         }
 
