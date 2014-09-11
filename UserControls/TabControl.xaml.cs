@@ -94,7 +94,7 @@ namespace UserControls
 
                 btnRun.IsEnabled = true;
                 testApp.Initialize(testFullPath);
-                ButtonClickable(true);
+                SetClickable();
             }
         }
 
@@ -172,6 +172,14 @@ namespace UserControls
             //cmbWindowSizes.ItemsSource = Enum.GetValues(typeof(WindowSize)).Cast<WindowSize>();
         }
 
+        private void SetClickable()
+        {
+            btnKill.IsEnabled = clientSelected;
+            btnRun.IsEnabled = clientSelected && inited;
+            btnGetResults.IsEnabled = clientSelected;
+            btnDelResults.IsEnabled = clientSelected;
+        }
+
         public void ButtonClickable(bool enabled)
         {
             clientSelected = enabled;
@@ -180,10 +188,7 @@ namespace UserControls
                 clientSelected = true;
             }
             //btnBrowse.IsEnabled = enabled;
-            btnKill.IsEnabled = clientSelected;
-            btnRun.IsEnabled = clientSelected && inited;
-            btnGetResults.IsEnabled = clientSelected;
-            btnDelResults.IsEnabled = clientSelected;
+            SetClickable();
         }
 
         private void btnDelResults_Click(object sender, RoutedEventArgs e)
@@ -215,10 +220,5 @@ namespace UserControls
                 MessageBox.Show(ex.Message);
             }
         }
-    }
-
-    public enum TabNames
-    {
-        psychpoy, eprime, ztree, chrome, custom
     }
 }
