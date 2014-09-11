@@ -12,7 +12,7 @@ namespace ServiceLibrary
     {
         protected Service service = Service.getInstance();
         protected string applicationName;
-        protected string applicationExecutableName;
+        protected string ApplicationExecutableName { get; set; }
         protected string resultsFolderName = "Results";
         protected string completionFileName = "DONE";
         protected string tempPath = Path.GetTempPath();
@@ -27,7 +27,7 @@ namespace ServiceLibrary
         {
             get
             {
-                return Path.GetFileName(applicationExecutableName);
+                return Path.GetFileName(ApplicationExecutableName);
             }
         }
 
@@ -42,10 +42,10 @@ namespace ServiceLibrary
         //e.g.: "test1.py"
         protected string testFileName;
 
-        protected TestApp(string applicationName, string applicationExecutableName/*, string testFilePath*/)
+        protected TestApp(string applicationName/*, string applicationExecutableName, string testFilePath*/)
         {
             this.applicationName = applicationName;
-            this.applicationExecutableName = applicationExecutableName;
+            //this.applicationExecutableName = applicationExecutableName;
         }
 
         //must be called before any action!
@@ -108,7 +108,13 @@ namespace ServiceLibrary
                     }
                     string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" " + args;
 
-                    string runCmd = @"""" + applicationExecutableName + @""" """ + Path.Combine(service.TestFolder, applicationName, testFolderName, Path.GetFileName(testFilePath)) + @"""";
+                    Debug.WriteLine(ApplicationExecutableName + " app exe name");
+                    string runCmd = @"""" + Path.Combine(service.TestFolder, applicationName, testFolderName, Path.GetFileName(testFilePath)) + @"""";
+                    if (this is PsychoPy)
+                    {
+                        runCmd = @"""" + ApplicationExecutableName + @""" " + runCmd;
+                    }
+                    Debug.WriteLine(runCmd + " arun cmd");
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& start """" " + runCmd + @")";
 
                     file.WriteLine(line);
@@ -301,6 +307,10 @@ namespace ServiceLibrary
                 }
                 service.ExecuteCommandNoOutput(pathDel, true);
                 //----end
+
+                //-----notify ui
+                service.notifyStatus("Cleaning Complete");
+                //-----end
             }).Start();
         }
 

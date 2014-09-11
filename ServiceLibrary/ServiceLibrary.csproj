@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config.cs" />
     <Compile Include="MacAdress.cs" />
     <Compile Include="Credentials.cs" />
     <Compile Include="EPrime.cs" />

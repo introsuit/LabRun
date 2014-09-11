@@ -54,6 +54,12 @@ namespace LabRun
                     this.Close();
                     return;
                 }
+                if (message == "config.ini")
+                {
+                    string msg = "File config.ini was not found!";
+                    MessageBox.Show( msg, "File not found", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
             }
 
             service.ProgressUpdate += (s, e) =>

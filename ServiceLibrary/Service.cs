@@ -40,6 +40,7 @@ namespace ServiceLibrary
         public readonly object key = new object();
 
         private ScreenShare screenShare = ScreenShare.getInstance();
+        public Config Config; 
 
         public static Service getInstance()
         {
@@ -92,6 +93,10 @@ namespace ServiceLibrary
             if (!File.Exists(configFile))
             {
                 throw new FileNotFoundException("config.ini");
+            }
+            else
+            {
+                Config = new Config(configFile);
             }
         }
 
@@ -409,7 +414,8 @@ namespace ServiceLibrary
 
         }
 
-        public void CopyFilesToNetworkShare(string srcDir) {
+        public void CopyFilesToNetworkShare(string srcDir)
+        {
             //Copies a selected file to shared drive for distribution
             string copyPath = Path.Combine(tempPath, "localCopy.bat");
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
@@ -438,7 +444,7 @@ namespace ServiceLibrary
                 {
                     file.WriteLine("@echo off");
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
-                    string copyCmd = @"xcopy """+@"\\BSSFILES2\Dept\adm\labrun\temp\" + fileName + ""+@""" ""C:\labrun\temp"" /V /Y /Q ";
+                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\" + fileName + "" + @""" ""C:\labrun\temp"" /V /Y /Q ";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @")";
                     file.WriteLine(line);
@@ -481,7 +487,7 @@ namespace ServiceLibrary
         {
             //foreach (LabClient client in clients)
             //{
-                
+
             //        string batFileName = Path.Combine(tempPath, "CustomCopy" + client.ComputerName + ".bat");
             //        using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
             //        {
@@ -501,19 +507,21 @@ namespace ServiceLibrary
         /// Runs previously transferred file on selectedm clients.
         /// </summary>
         /// <returns>Nothing</returns> 
-       public void RunCustomFileOnClients(List<LabClient> clients, string filename){
-           foreach (LabClient client in clients){
-               string batFileName = Path.Combine(tempPath, "CustomRun" + client.ComputerName + ".bat"); 
-               using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
-               {
-                   file.WriteLine("@echo off");
-                   string runCmd = @"""" + @"C:\labrun\temp\" + filename + @"""";
-                   string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + runCmd + @")";
-                   file.WriteLine(line);
-               }
-               service.StartNewCmdThread(batFileName);
-           }
-       }
+        public void RunCustomFileOnClients(List<LabClient> clients, string filename)
+        {
+            foreach (LabClient client in clients)
+            {
+                string batFileName = Path.Combine(tempPath, "CustomRun" + client.ComputerName + ".bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
+                {
+                    file.WriteLine("@echo off");
+                    string runCmd = @"""" + @"C:\labrun\temp\" + filename + @"""";
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + runCmd + @")";
+                    file.WriteLine(line);
+                }
+                service.StartNewCmdThread(batFileName);
+            }
+        }
 
         public void InputDisable(List<LabClient> clients)
         {
@@ -577,7 +585,7 @@ namespace ServiceLibrary
                        powershell.AddCommand("Set-Variable");
                        powershell.AddParameter("Name", "cred");
                        powershell.AddParameter("Value", Credential);
-                       
+
                        powershell.AddScript(@"$s = New-PSSession -ComputerName '" + computerName + "' -Credential $cred");
                        powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdLet + " }");
                        powershell.AddScript(@"Remove-PSSession -Session $s");
@@ -764,7 +772,7 @@ namespace ServiceLibrary
             PSCredential Credential = new PSCredential(Credentials.UserAtDomain, ssLPassword);
 
 
-            
+
 
             foreach (LabClient client in clients)
             {
@@ -929,24 +937,6 @@ Add-FirewallRule
             string projectsStr = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/projects?" + user.UniqueHash);
             string[] lines = projectsStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
             return new List<string>(lines); ;
-        }
-
-        public string GetConfigSetting(string arg)
-        {
-            string set = "";
-            using (System.IO.StreamReader file = new System.IO.StreamReader(authFile))
-            {
-                string line;
-                while ((line = file.ReadLine()) != null)
-                {
-                    if (line.Equals(arg))
-                    {
-                        set = file.ReadLine();
-                        break;
-                    }
-                }           
-            }
-            return set;
         }
     }
 }

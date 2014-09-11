@@ -13,13 +13,16 @@ namespace ServiceLibrary
     /// </summary>
     public class ZTree : TestApp
     {
-        private readonly string pathToZTreeAdmin = @"C:\ZTree\ZTreeRun.vbs";
-        private readonly string dumpFolder = @"C:\ZTree\Dump";
+        private readonly string ztreeAdminExe;
+        private readonly string dumpFolder;
 
         public ZTree()
-            : base("ZTree", @"C:\Cobe Lab\ZTree\ZTree\zleaf.exe")
+            : base("ZTree")
         {
+            ApplicationExecutableName = service.Config.Ztreeleaf;
             applicationName = "ZTree";
+            ztreeAdminExe = service.Config.Ztreeadmin;
+            dumpFolder = service.Config.Ztreedump;
 
             resultExts.Add("xls");
             resultExts.Add("sbj");
@@ -46,9 +49,9 @@ namespace ServiceLibrary
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
                 {
                     file.WriteLine("@echo off");
-                    string line = @"cd C:\ZTree";
+                    string line = "cd " + Path.GetDirectoryName(ztreeAdminExe);
                     file.WriteLine(line);
-                    line = @"start """" ztree.exe /language en /privdir " + dumpFolder + @" /datadir " + dumpFolder + @" /gsfdir " + dumpFolder;
+                    line = @"start """" " + Path.GetFileName(ztreeAdminExe) + @" /language en /privdir " + dumpFolder + @" /datadir " + dumpFolder + @" /gsfdir " + dumpFolder;
                     file.WriteLine(line);
                 }
                 service.ExecuteCommandNoOutput(copyPath, true);
@@ -83,7 +86,7 @@ namespace ServiceLibrary
                     string windSize = "/size " + windowSize.Width + "x" + windowSize.Height;
                     string windPos = "/position " + windowSize.XPos + "," + windowSize.YPos;
 
-                    string runCmd = @"""" + applicationExecutableName + @""" /name Zleaf_" + zleafNo + @" /server " + adminCompName + @" /language en " + windSize + " " + windPos;
+                    string runCmd = @"""" + ApplicationExecutableName + @""" /name Zleaf_" + zleafNo + @" /server " + adminCompName + @" /language en " + windSize + " " + windPos;
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" " + runCmd;
                     file.WriteLine(line);
                 }
@@ -121,6 +124,10 @@ namespace ServiceLibrary
             }
             service.ExecuteCommandNoOutput(copyPath, true);
             //-----end
+
+            //-----notify ui
+            service.notifyStatus("Transfer Complete");
+            //-----end
         }
 
         public override void DeleteResults(List<LabClient> clients)
@@ -139,6 +146,10 @@ namespace ServiceLibrary
                 }
                 service.ExecuteCommandNoOutput(pathDel, true);
                 //----end
+
+                //-----notify ui
+                service.notifyStatus("Cleaning Complete");
+                //-----end
             }).Start();
         }
     }
