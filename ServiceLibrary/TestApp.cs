@@ -20,8 +20,8 @@ namespace ServiceLibrary
         public string ExtensionDescription { get; set; }
         private string timePrint = "";
 
-        protected string projectName = "UnknownProject";
-        public string ProjectName { get { return projectName; } set { this.projectName = ProjectName; } }
+        protected string projectName = "";
+        public string ProjectName { get { return projectName; } set { this.projectName = value; } }
 
         public string AppExeName
         {
@@ -39,6 +39,9 @@ namespace ServiceLibrary
         //e.g.: "E:\MyTest\test1.py"
         protected string testFilePath;
 
+        //e.g.: "test1.py"
+        protected string testFileName;
+
         protected TestApp(string applicationName, string applicationExecutableName/*, string testFilePath*/)
         {
             this.applicationName = applicationName;
@@ -49,27 +52,38 @@ namespace ServiceLibrary
         public void Initialize(string testFilePath)
         {
             this.testFilePath = testFilePath;
+            this.testFileName = Path.GetFileName(testFilePath);
             testFolderName = Path.GetFileName(Path.GetDirectoryName(testFilePath));
         }
 
-        public virtual Thread TransferAndRun(List<LabClient> selectedClients, string project)
+        public virtual Thread TransferAndRun(List<LabClient> selectedClients, bool copyAll)
         {
-            projectName = project;
-            var t = new Thread(() => xcopy(selectedClients));
+            var t = new Thread(() => xcopy(selectedClients, copyAll));
             t.Start();
             return t;
         }
 
-        private void xcopy(List<LabClient> selectedClients)
+        private void xcopy(List<LabClient> selectedClients, bool copyAll)
         {
+            string fileArgs = "/V /Y /Q";
+            string folderArgs = "/V /E /Y /Q /I";
+
             //-----local copy
             string copyPath = Path.Combine(tempPath, "localCopy.bat");
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
+                string srcDir = testFilePath;
+                string dstDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, testFolderName) + @"\";
+                string args = fileArgs;
+                if (copyAll)
+                {
+                    args = folderArgs;
+                    srcDir = Path.GetDirectoryName(testFilePath);
+                }
+
                 file.WriteLine("@echo off");
-                string srcDir = Path.GetDirectoryName(testFilePath);
-                string dstDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, testFolderName);
-                string line = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
+                          
+                string line = @"xcopy """ + srcDir + @""" """ + dstDir + @""" " + args;
                 file.WriteLine(line);
             }
             service.ExecuteCommandNoOutput(copyPath, true);
@@ -84,9 +98,15 @@ namespace ServiceLibrary
                 {
                     file.WriteLine("@echo off");
 
-                    string srcDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, testFolderName);
-                    string dstDir = Path.Combine(service.TestFolder, applicationName, testFolderName);
-                    string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
+                    string srcDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, testFolderName, testFileName);
+                    string dstDir = Path.Combine(service.TestFolder, applicationName, testFolderName) + @"\";
+                    string args = fileArgs;
+                    if (copyAll)
+                    {
+                        args = folderArgs;
+                        srcDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, testFolderName);
+                    }
+                    string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" " + args;
 
                     string runCmd = @"""" + applicationExecutableName + @""" """ + Path.Combine(service.TestFolder, applicationName, testFolderName, Path.GetFileName(testFilePath)) + @"""";
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& start """" " + runCmd + @")";
@@ -138,9 +158,8 @@ namespace ServiceLibrary
                 throw new TimeoutException();
         }
 
-        public virtual Thread TransferResults(List<LabClient> clients, string project)
+        public virtual Thread TransferResults(List<LabClient> clients)
         {
-            projectName = project;
             var t = new Thread(() => xcopyResults(clients));
             t.Start();
             return t;
@@ -168,7 +187,7 @@ namespace ServiceLibrary
                 string copyPathRemote = Path.Combine(tempPath, "remoteResultOne" + client.ComputerName + ".bat");
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                 {
-                    string src = Path.Combine(service.TestFolder, applicationName, testFolderName);
+                    string src = Path.Combine(service.TestFolder, applicationName);
 
                     file.WriteLine("@echo off");
                     //file.WriteLine(@"cd " + src);
@@ -176,7 +195,7 @@ namespace ServiceLibrary
                     //file.WriteLine(@"set /p time=<timestamp");
                     //file.WriteLine(@"echo %time% > timestamp");
 
-                    string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, client.BoothNo + "", timePrint, applicationName, testFolderName);
+                    string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, client.BoothNo + "", timePrint, applicationName);
 
                     string resultFiles = "";
                     foreach (string resultExt in resultExts)
@@ -232,13 +251,30 @@ namespace ServiceLibrary
             //-----end
         }
 
-        public void DeleteResults(List<LabClient> clients, string project)
+        public virtual void DeleteResults(List<LabClient> clients)
         {
-            projectName = project;
             new Thread(delegate()
             {
-                //----del results from client computers
+                //----del tests files from client computers
                 int i = 0;
+                foreach (LabClient client in clients)
+                {
+                    string copyPathRemote = Path.Combine(tempPath, "remoteTestDel" + client.ComputerName + ".bat");
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
+                    {
+                        Debug.WriteLine(copyPathRemote);
+                        string path = Path.Combine(service.TestFolder, applicationName);
+
+                        string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (rmdir /s /q """ + path + @""")";
+                        file.WriteLine(line);
+                    }
+                    service.StartNewCmdThread(copyPathRemote);
+                    i++;
+                }
+                //----end
+
+                //----del results from client computers
+                i = 0;
                 foreach (LabClient client in clients)
                 {
                     string copyPathRemote = Path.Combine(tempPath, "remoteResultDel" + client.ComputerName + ".bat");

@@ -13,21 +13,22 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ServiceLibrary;
 using System.Reflection;
+using System.ComponentModel;
 
 namespace UserControls
 {
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
-    public partial class TabControl : UserControl, ControlUnit
+    public partial class TabControl : UserControl, ControlUnit, INotifyPropertyChanged
     {
         private MainUI parent = null;
         private TestApp testApp = null;
         private Service service = Service.getInstance();
         private bool inited = false;
-        private String project = "UnknownProject";
         private bool clientSelected = false;
         private ZtreeControl ztreeCtrl = null;
+        public TabItem TabItem { get; set; }
 
         public TabControl(MainUI parent, TestApp testApp)
         {
@@ -41,6 +42,32 @@ namespace UserControls
 
                 ztreeCtrl = new ZtreeControl((ZTree)testApp);
                 ztreeControls.Children.Add(ztreeCtrl);
+                btnDelResults.IsEnabled = true;
+                btnGetResults.IsEnabled = true;
+            }
+        }
+
+        private bool active;
+        public bool Active
+        {
+            get { return active; }
+            set
+            {
+                if (value != active)
+                {
+                    active = value;
+                    OnPropertyChanged("Active");
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void OnPropertyChanged(string p)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(p));
             }
         }
 
@@ -87,27 +114,35 @@ namespace UserControls
                 return;
             }
 
+            parent.SetTabActivity(TabItem, computerNames, true);
             parent.updateStatus("In Progress...");
+
             if (testApp is ZTree)
             {
+                //MessageBox.Show("Make sure", "Attention", MessageBoxButton.OK, MessageBoxImage.Information);
                 WindowSize winSize = ztreeCtrl.GetSelectedWindowSize();
-                ((ZTree)testApp).TransferAndRun(computerNames, project, winSize);
+                ((ZTree)testApp).TransferAndRun(computerNames, winSize);
             }
             else
             {
-                testApp.TransferAndRun(computerNames, project);
+                bool copyAll = (bool)cbxCopyAll.IsChecked;
+                testApp.TransferAndRun(computerNames, copyAll);
             }
         }
 
         private void btnKill_Click(object sender, RoutedEventArgs e)
         {
+            List<LabClient> clients = parent.getSelectedClients();
+
             parent.updateStatus("In Progress...");
+            parent.SetTabActivity(TabItem, clients, false);
+
             string appExeName = testApp.AppExeName;
-            foreach (string computerName in parent.getSelectedClientsNames())
+            foreach (LabClient client in clients)
             {
                 try
                 {
-                    service.killRemoteProcess(computerName, appExeName);
+                    service.killRemoteProcess(client.ComputerName, appExeName);
                 }
                 catch (Exception ex)
                 {
@@ -122,7 +157,7 @@ namespace UserControls
 
             try
             {
-                testApp.TransferResults(parent.getSelectedClients(), project);
+                testApp.TransferResults(parent.getSelectedClients());
             }
             catch (TimeoutException ex)
             {
@@ -140,11 +175,15 @@ namespace UserControls
         public void ButtonClickable(bool enabled)
         {
             clientSelected = enabled;
+            if (testApp is ZTree)
+            {
+                clientSelected = true;
+            }
             //btnBrowse.IsEnabled = enabled;
             btnKill.IsEnabled = clientSelected;
             btnRun.IsEnabled = clientSelected && inited;
-            btnGetResults.IsEnabled = clientSelected && inited;
-            btnDelResults.IsEnabled = clientSelected && inited;
+            btnGetResults.IsEnabled = clientSelected;
+            btnDelResults.IsEnabled = clientSelected;
         }
 
         private void btnDelResults_Click(object sender, RoutedEventArgs e)
@@ -152,13 +191,22 @@ namespace UserControls
             MessageBoxResult result = MessageBox.Show("Are you sure you want to delete all result files from lab computers?\nMake sure you have a backup!", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
-                testApp.DeleteResults(parent.getSelectedClients(), project);
+                if (testApp is ZTree)
+                {
+                    MessageBoxResult check = MessageBox.Show("Make sure that ZTree admin application is not running!", "Are you sure?", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                testApp.DeleteResults(parent.getSelectedClients());
             }
         }
 
         public void SetProject(string projectName)
         {
-            project = projectName;
+            testApp.ProjectName = projectName;
         }
+    }
+
+    public enum TabNames
+    {
+        psychpoy, eprime, ztree, chrome, custom
     }
 }

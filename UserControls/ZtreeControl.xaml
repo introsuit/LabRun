@@ -8,7 +8,7 @@
     <Grid>
         <ComboBox HorizontalAlignment="Left" Margin="202,57,0,0" Name="cmbWindowSizes" SelectedIndex="0" Tag="ztree" VerticalAlignment="Top" Width="120" />
         <Label Content="Window Size:" HorizontalAlignment="Left" Margin="202,30,0,0" Name="lblWindowSize" Tag="ztree" VerticalAlignment="Top" />
-        <Label Content="Launch ZTree and then open your test file in it:" HorizontalAlignment="Left" Margin="10,10,0,0" Name="lblZTreeInfo" VerticalAlignment="Top" />
-        <Button Name="btnRunAdminZTree" Content="Run Admin ZTree" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Width="107"/>
+        <Label Content="Launch ZTree Admin and then launch selected Leaves" HorizontalAlignment="Left" Margin="10,10,0,0" Name="lblZTreeInfo" VerticalAlignment="Top" />
+        <Button Name="btnRunAdminZTree" Content="Run Admin ZTree" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Width="107" Click="btnRunAdminZTree_Click"/>
     </Grid>
 </UserControl>

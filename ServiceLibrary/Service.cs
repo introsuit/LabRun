@@ -23,8 +23,8 @@ namespace ServiceLibrary
         public Credentials Credentials { get; set; }
         private User user = null;
 
-        private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
-        //private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\";
+        //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
+        private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\";
         private readonly string inputBlockApp = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "InputBlocker", "InputBlocker.exe");
         private static readonly string testFolder = @"C:\Cobe Lab\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
@@ -97,38 +97,40 @@ namespace ServiceLibrary
         public void StartPingSvc(List<LabClient> clients)
         {
             new Thread(delegate()
-               {
-                   while (AppActive)
-                   {
-                       foreach (LabClient client in clients)
-                       {
-                           new Thread(delegate()
+            {
+                while (AppActive)
+                {
+                    foreach (LabClient client in clients)
+                    {
+                        Thread t = new Thread(delegate()
+                        {
+                            bool success = false;
+                            Ping ping = new Ping();
+                            try
                             {
-                                bool success = false;
-                                Ping ping = new Ping();
-                                try
+                                PingReply pingReply = ping.Send(client.ComputerName);
+                                if (pingReply.Status == IPStatus.Success)
                                 {
-                                    PingReply pingReply = ping.Send(client.ComputerName);
-                                    if (pingReply.Status == IPStatus.Success)
-                                    {
-                                        success = true;
-                                    }
+                                    success = true;
                                 }
-                                catch (Exception ex)
-                                {
-                                    Debug.WriteLine(ex.Message);
-                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine(ex.Message);
+                            }
 
-                                client.Active = success;
-                            }).Start();
-                       }
-                       //check again after x sec or interrupt if app is stopped 
-                       lock (key)
-                       {
-                           Monitor.Wait(key, new TimeSpan(0, 0, 30));
-                       }
-                   }
-               }).Start();
+                            client.Active = success;
+                        });
+                        t.IsBackground = true;
+                        t.Start();
+                    }
+                    //check again after x sec or interrupt if app is stopped 
+                    lock (key)
+                    {
+                        Monitor.Wait(key, new TimeSpan(0, 0, 30));
+                    }
+                }
+            }).Start();
         }
 
         /// <summary>
@@ -345,6 +347,31 @@ namespace ServiceLibrary
             }
         }
 
+        public void LaunchCommandLineApp(string path, string arguments)
+        {
+            // Use ProcessStartInfo class
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.CreateNoWindow = false;
+            startInfo.UseShellExecute = false;
+            startInfo.FileName = path;
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.Arguments = arguments;
+
+            try
+            {
+                // Start the process with the info we specified.
+                // Call WaitForExit and then the using statement will close.
+                using (Process exeProcess = Process.Start(startInfo))
+                {
+                    exeProcess.WaitForExit();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+        }
+
         public String ExecuteCommand(string command, bool waitForExit = false)
         {
             int exitCode;
@@ -376,9 +403,9 @@ namespace ServiceLibrary
 
         }
 
-        //Copies a selected file to shared drive for distribution
-        public void CopyFilesToNetworkShare(string srcDir) {
-           
+        public void CopyFilesToNetworkShare(string srcDir)
+        {
+            //Copies a selected file to shared drive for distribution
             string copyPath = Path.Combine(tempPath, "localCopy.bat");
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
@@ -398,6 +425,7 @@ namespace ServiceLibrary
         public void CopyFilesFromNetworkShareToClients(string srcPath, string fileName, List<LabClient> clients)
         {
 
+            //
             foreach (LabClient client in clients)
             {
                 string batFileName = Path.Combine(tempPath, "CustomCopy" + client.ComputerName + ".bat");
@@ -405,64 +433,9 @@ namespace ServiceLibrary
                 {
                     file.WriteLine("@echo off");
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
-                    string copyCmd = @"xcopy """+@"\\BSSFILES2\Dept\adm\labrun\temp\" + fileName + ""+@""" ""C:\labrun\temp"" /V /Y /Q ";
+                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\" + fileName + "" + @""" ""C:\labrun\temp"" /V /Y /Q ";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @")";
-                    file.WriteLine(line);
-                }
-                service.StartNewCmdThread(batFileName);
-            }
-        }
-
-        /// <summary>
-        /// Transfers a folder first to the shared drive then to each selected labclient.
-        /// Uses PSExec delegated batch files, running on each client.
-        /// Then runs selected file using same PSExec batch.
-        /// </summary>
-        /// <returns>Nothing</returns>
-        public void CopyEntireFolder(List<LabClient> clients, string folderPath, string filePath) {
-            
-            //Get folder name without path
-            string folderName = "";
-            string[] words = folderPath.Split('\\');
-            foreach (string word in words)
-            {
-                folderName = word;
-            }
-
-            //Get file name without path
-            string fileName = "";
-            string[] words2 = filePath.Split('\\');
-            foreach (string word in words2)
-            {
-                fileName = word;
-            }
-
-
-            // Copy to network drive
-            string copyPath = Path.Combine(tempPath, "localCopy.bat");
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                string dstDir = @"\\BSSFILES2\Dept\adm\labrun\temp\"+folderName;
-                string line = @"xcopy """ + folderPath + @""" """ + dstDir + @""" /i /s /e /V /Y /Q";
-                file.WriteLine(line);
-            }
-            service.ExecuteCommandNoOutput(copyPath, true);
-
-            // From Network drive, to clients
-            foreach (LabClient client in clients)
-            {
-                string batFileName = Path.Combine(tempPath, "CopyFolder" + client.ComputerName + ".bat");
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
-                {
-                    file.WriteLine("@echo off");
-                    // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
-                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\" + folderName + @"""" + @" ""C:\labrun\temp\"+folderName+@""""+@" /i /s /e /V /Y /Q ";
-                    // Build runcommand to embed in bat also
-                    string runCmd = @"""" + @"C:\labrun\temp\" + folderName + filePath + @"""";
-                    // Deploy and run batfile FROM Server TO labclient using PSTools
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);
@@ -496,44 +469,48 @@ namespace ServiceLibrary
         }
 
         /// <summary>
-        /// Deletes the temp directory containing transferred files on the supplied clients.
+        /// Deletes the files contained in supplied hashset on the supplied clients.
         /// </summary>
         /// <returns>Nothing</returns> 
-        public void deleteFiles(List<LabClient> clients)
+        public void deleteFiles(HashSet<string> files, List<LabClient> clients)
         {
-            foreach (LabClient client in clients)
-            {
-                
-                    string batFileName = Path.Combine(tempPath, "DeleteTemp" + client.ComputerName + ".bat");
-                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
-                    {
-                        file.WriteLine("@echo off");
+            //foreach (LabClient client in clients)
+            //{
 
-                        string deleteCmd = @"rmdir /S /Q C:\labrun\temp";
-                        string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + deleteCmd + @")";
-                        file.WriteLine(line);
-                    }
-                    service.StartNewCmdThread(batFileName);
-            }
+            //        string batFileName = Path.Combine(tempPath, "CustomCopy" + client.ComputerName + ".bat");
+            //        using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
+            //        {
+            //            file.WriteLine("@echo off");
+            //            foreach (string fileLine in files)
+            //            {
+            //                string deleteCmd = @"delete C:\labrun\temp" + fileLine +" /Q ";
+            //            }
+            //            string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+            //            file.WriteLine(line);
+            //        }
+            //        service.StartNewCmdThread(batFileName);
+            //}
         }
 
         /// <summary>
         /// Runs previously transferred file on selectedm clients.
         /// </summary>
         /// <returns>Nothing</returns> 
-       public void RunCustomFileOnClients(List<LabClient> clients, string filename){
-           foreach (LabClient client in clients){
-               string batFileName = Path.Combine(tempPath, "CustomRun" + client.ComputerName + ".bat"); 
-               using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
-               {
-                   file.WriteLine("@echo off");
-                   string runCmd = @"""" + @"C:\labrun\temp\" + filename + @"""";
-                   string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + runCmd + @")";
-                   file.WriteLine(line);
-               }
-               service.StartNewCmdThread(batFileName);
-           }
-       }
+        public void RunCustomFileOnClients(List<LabClient> clients, string filename)
+        {
+            foreach (LabClient client in clients)
+            {
+                string batFileName = Path.Combine(tempPath, "CustomRun" + client.ComputerName + ".bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
+                {
+                    file.WriteLine("@echo off");
+                    string runCmd = @"""" + @"C:\labrun\temp\" + filename + @"""";
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + runCmd + @")";
+                    file.WriteLine(line);
+                }
+                service.StartNewCmdThread(batFileName);
+            }
+        }
 
         public void InputDisable(List<LabClient> clients)
         {
@@ -583,39 +560,41 @@ namespace ServiceLibrary
 
         public void RunRemotePSCmdLet(string computerName, string cmdLet)
         {
-            new Thread(delegate()
-               {
-                   var LocalPassword = Credentials.Password;
-                   var ssLPassword = new System.Security.SecureString();
-                   foreach (char c in LocalPassword)
-                       ssLPassword.AppendChar(c);
+            Thread t = new Thread(delegate()
+            {
+                var LocalPassword = Credentials.Password;
+                var ssLPassword = new System.Security.SecureString();
+                foreach (char c in LocalPassword)
+                    ssLPassword.AppendChar(c);
 
-                   PSCredential Credential = new PSCredential(Credentials.UserAtDomain, ssLPassword);
+                PSCredential Credential = new PSCredential(Credentials.UserAtDomain, ssLPassword);
 
-                   using (PowerShell powershell = PowerShell.Create())
-                   {
-                       powershell.AddCommand("Set-Variable");
-                       powershell.AddParameter("Name", "cred");
-                       powershell.AddParameter("Value", Credential);
-                       
-                       powershell.AddScript(@"$s = New-PSSession -ComputerName '" + computerName + "' -Credential $cred");
-                       powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdLet + " }");
-                       powershell.AddScript(@"Remove-PSSession -Session $s");
-                       powershell.AddScript(@"echo $a");
+                using (PowerShell powershell = PowerShell.Create())
+                {
+                    powershell.AddCommand("Set-Variable");
+                    powershell.AddParameter("Name", "cred");
+                    powershell.AddParameter("Value", Credential);
 
-                       var results = powershell.Invoke();
+                    powershell.AddScript(@"$s = New-PSSession -ComputerName '" + computerName + "' -Credential $cred");
+                    powershell.AddScript(@"$a = Invoke-Command -Session $s -ScriptBlock { " + cmdLet + " }");
+                    powershell.AddScript(@"Remove-PSSession -Session $s");
+                    powershell.AddScript(@"echo $a");
 
-                       foreach (var item in results)
-                       {
-                           Debug.WriteLine(item);
-                       }
+                    var results = powershell.Invoke();
 
-                       if (powershell.Streams.Error.Count > 0)
-                       {
-                           Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
-                       }
-                   }
-               }).Start();
+                    foreach (var item in results)
+                    {
+                        Debug.WriteLine(item);
+                    }
+
+                    if (powershell.Streams.Error.Count > 0)
+                    {
+                        Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
+                    }
+                }
+            });
+            t.IsBackground = true;
+            t.Start();
         }
 
         public void InputEnable(List<LabClient> clients)
@@ -735,17 +714,20 @@ namespace ServiceLibrary
 
         public void CloseRemoteChrome(List<LabClient> computers)
         {
-            new Thread(() =>
+            Thread t = new Thread(() =>
             {
                 string processName = "Chrome.exe";
                 foreach (LabClient computer in computers)
                 {
                     string cmdlet = @"Taskkill /IM " + processName + @" /F
-                    $a = $env:LOCALAPPDATA + ""\Google\Chrome\User Data\Default\Preferences""
-(gc $a) -replace '""exited_cleanly"": false','""exited_cleanly"": true' | Out-File $a";
+                    $a = $env:LOCALAPPDATA + ""\Google\Chrome\User Data\Default\Preferences"" 
+                    $content = get-content $a | % { $_ -replace '""exited_cleanly"": false', '""exited_cleanly"": true' } | % { $_ -replace '""exit_type"": ""Crashed""', '""exit_type"": ""Normal""' }
+                    $content | set-content $a";
                     RunRemotePSCmdLet(computer.ComputerName, cmdlet);
                 }
-            }).Start();
+            });
+            t.IsBackground = true;
+            t.Start();
         }
 
         public void killRemoteProcess(string computerName, string processName)
@@ -779,7 +761,7 @@ namespace ServiceLibrary
             PSCredential Credential = new PSCredential(Credentials.UserAtDomain, ssLPassword);
 
 
-            
+
 
             foreach (LabClient client in clients)
             {
@@ -945,5 +927,87 @@ Add-FirewallRule
             string[] lines = projectsStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
             return new List<string>(lines); ;
         }
-    }
+
+        /// <summary>
+        /// Deletes the temp directory containing transferred files on the supplied clients.
+        /// </summary>
+        /// <returns>Nothing</returns> 
+        public void deleteFiles(List<LabClient> clients)
+        {
+            foreach (LabClient client in clients)
+            {
+                
+
+                    string batFileName = Path.Combine(tempPath, "DeleteTemp" + client.ComputerName + ".bat");
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
+                    {
+                        file.WriteLine("@echo off");
+
+                        string deleteCmd = @"rmdir /S /Q C:\labrun\temp";
+                        string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + deleteCmd + @")";
+                        file.WriteLine(line);
+                    }
+                    service.StartNewCmdThread(batFileName);
+               }
+    
+            }
+
+        /// <summary>
+        /// Transfers a folder first to the shared drive then to each selected labclient.
+        /// Uses PSExec delegated batch files, running on each client.
+        /// Then runs selected file using same PSExec batch.
+        /// </summary>
+        /// <returns>Nothing</returns>
+        public void CopyEntireFolder(List<LabClient> clients, string folderPath, string filePath)
+        {
+
+            //Get folder name without path
+            string folderName = "";
+            string[] words = folderPath.Split('\\');
+            foreach (string word in words)
+            {
+                folderName = word;
+            }
+
+            //Get file name without path
+            string fileName = "";
+            string[] words2 = filePath.Split('\\');
+            foreach (string word in words2)
+            {
+                fileName = word;
+            }
+
+
+            // Copy to network drive
+            string copyPath = Path.Combine(tempPath, "localCopy.bat");
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                string dstDir = @"\\BSSFILES2\Dept\adm\labrun\temp\" + folderName;
+                string line = @"xcopy """ + folderPath + @""" """ + dstDir + @""" /i /s /e /V /Y /Q";
+                file.WriteLine(line);
+            }
+            service.ExecuteCommandNoOutput(copyPath, true);
+
+            // From Network drive, to clients
+            foreach (LabClient client in clients)
+            {
+                string batFileName = Path.Combine(tempPath, "CopyFolder" + client.ComputerName + ".bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
+                {
+                    file.WriteLine("@echo off");
+                    // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
+                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\" + folderName + @"""" + @" ""C:\labrun\temp\" + folderName + @"""" + @" /i /s /e /V /Y /Q ";
+                    // Build runcommand to embed in bat also
+                    string runCmd = @"""" + @"C:\labrun\temp\" + folderName + filePath + @"""";
+                    // Deploy and run batfile FROM Server TO labclient using PSTools
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+                    file.WriteLine(line);
+                }
+                service.StartNewCmdThread(batFileName);
+            }
+        }
+
+
+      }
 }

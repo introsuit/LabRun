@@ -37,7 +37,7 @@ namespace UserControls
 
         private void btnRunAdminZTree_Click(object sender, RoutedEventArgs e)
         {
-
+            ztree.RunAdminZTree();
         }
     }
 }

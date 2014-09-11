@@ -70,6 +70,25 @@ namespace LabRun
             SetProject(unnamedProject);
             service.StartPingSvc(clients);
         }
+
+        private void FitToContent()
+        {
+            // where dg is my data grid's name...
+            foreach (DataGridColumn column in dgrClients.Columns)
+            {
+                //if you want to size ur column as per the cell content
+                column.Width = new DataGridLength(1.0, DataGridLengthUnitType.SizeToCells);
+                //if you want to size ur column as per the column header
+                column.Width = new DataGridLength(1.0, DataGridLengthUnitType.SizeToHeader);
+                //if you want to size ur column as per both header and cell content
+                column.Width = new DataGridLength(1.0, DataGridLengthUnitType.Auto);
+            }
+            Thickness margin = tabControl1.Margin;
+            MessageBox.Show(dgrClients.ActualWidth + " act width");
+            margin.Left = dgrClients.ActualWidth + 20;
+            tabControl1.Margin = margin;
+        }
+
         public void initClients()
         {
             try
@@ -102,16 +121,19 @@ namespace LabRun
             UserControls.TabControl tC = new UserControls.TabControl(this, new PsychoPy());
             tC.setTestLogo(@"\Images\Psychopy.png");
             tabPsy.Content = tC;
+            tC.TabItem = tabPsy;
             tabControls.Add(tC);
 
             UserControls.TabControl tC2 = new UserControls.TabControl(this, new EPrime());
             tC2.setTestLogo(@"\Images\eprime.png");
             tabEPrime.Content = tC2;
+            tC2.TabItem = tabEPrime;
             tabControls.Add(tC2);
 
             UserControls.TabControl tC3 = new UserControls.TabControl(this, new ZTree());
             tC3.setTestLogo(@"\Images\ztree.png");
             tabZTree.Content = tC3;
+            tC3.TabItem = tabZTree;
             tabControls.Add(tC3);
 
             //((Label)tC3.FindName("lblWindowSize")).Visibility = Visibility.Visible;
@@ -121,17 +143,51 @@ namespace LabRun
             ((Button)tC3.FindName("btnRun")).Content = "Run Leaves";
             ((Button)tC3.FindName("btnBrowse")).Visibility = Visibility.Hidden;
             ((Label)tC3.FindName("lblBrowse")).Visibility = Visibility.Hidden;
+            ((CheckBox)tC3.FindName("cbxCopyAll")).Visibility = Visibility.Hidden;
             //((Label)tC3.FindName("lblZTreeInfo")).Visibility = Visibility.Visible;
 
             UserControls.ChromeTab tC4 = new UserControls.ChromeTab(this);
             tC4.setTestLogo(@"\Images\chrome-logo.png");
             tabChrome.Content = tC4;
+            tC4.TabItem = tabChrome;
             tabControls.Add(tC4);
 
             UserControls.CustomRun tC5 = new UserControls.CustomRun(this);
 
             tabCustom.Content = tC5;
             tabControls.Add(tC5);
+        }
+
+        public void SetTabActivity(TabItem tabItem, List<LabClient> clients, bool active)
+        {
+            bool exists = false;
+            switch (tabItem.Name.ToString())
+            {
+                case "tabPsy":
+                    clients.ForEach(i => i.PsychoPy = active);
+                    exists = clients.Exists(i => i.PsychoPy == true);
+                    break;
+                case "tabEPrime":
+                    clients.ForEach(i => i.EPrime = active);
+                    exists = clients.Exists(i => i.EPrime == true);
+                    break;
+                case "tabZTree":
+                    clients.ForEach(i => i.ZTree = active);
+                    exists = clients.Exists(i => i.ZTree == true);
+                    break;
+                case "tabChrome":
+                    clients.ForEach(i => i.Chrome = active);
+                    exists = clients.Exists(i => i.Chrome == true);
+                    break;
+            }
+            if (exists)
+            {
+                tabItem.Foreground = Brushes.Red;
+            }
+            else
+            {
+                tabItem.Foreground = Brushes.Black;
+            }
         }
 
         public List<LabClient> getSelectedClients()
@@ -525,6 +581,11 @@ namespace LabRun
         {
             Process.Start("http://bss.au.dk/research/research-labs/cognition-and-behavior-lab/");
         }
+
+        private void dgrClients_Loaded(object sender, RoutedEventArgs e)
+        {
+            
+        }      
     }
 }
 
