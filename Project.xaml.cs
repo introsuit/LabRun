@@ -32,12 +32,17 @@ namespace LabRun
             lstProjects.ItemsSource = projects;
         }
 
-        private void btnOK_Click(object sender, RoutedEventArgs e)
+        private void UpdateSelectedProject(string project)
         {
-            string project = (string)lstProjects.SelectedValue;
             if (project == null)
                 return;
             parent.SetProject(project);
+        }
+
+        private void btnOK_Click(object sender, RoutedEventArgs e)
+        {
+            string project = (string)lstProjects.SelectedValue;
+            UpdateSelectedProject(project);
             this.Close();
         }
 
@@ -56,6 +61,13 @@ namespace LabRun
             {
                 btnOK.IsEnabled = false;
             }
+        }
+
+        protected void HandleDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var project = ((ListBoxItem)sender).Content as string; //Casting back to the binded Track
+            UpdateSelectedProject(project);
+            this.Close();
         }
 
         private void lstProjects_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)

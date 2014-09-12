@@ -435,7 +435,6 @@ namespace ServiceLibrary
         /// <returns>Nothing</returns>
         public void CopyFilesFromNetworkShareToClients(string srcPath, string fileName, List<LabClient> clients)
         {
-
             //
             foreach (LabClient client in clients)
             {
@@ -459,8 +458,6 @@ namespace ServiceLibrary
         /// <returns>Nothing</returns>
         public void CopyAndRunFilesFromNetworkShareToClients(string srcPath, string fileName, List<LabClient> clients)
         {
-
-            //
             foreach (LabClient client in clients)
             {
                 string batFileName = Path.Combine(tempPath, "CustomCopy" + client.ComputerName + ".bat");
@@ -616,7 +613,6 @@ namespace ServiceLibrary
 
         public void InputEnable(List<LabClient> clients)
         {
-
             foreach (LabClient client in clients)
             {
                 killRemoteProcess(client.ComputerName, "InputBlocker.exe");
@@ -626,7 +622,6 @@ namespace ServiceLibrary
                 notifyStatus("Input Enabled");
                 //-----end
             }
-
         }
 
         public void runRemoteProgram(List<LabClient> compList, string path, string param = "")
@@ -634,8 +629,6 @@ namespace ServiceLibrary
             foreach (LabClient client in compList)
             {
                 string compName = client.ComputerName.ToString();
-
-
                 string copyPathRemote = Path.Combine(tempPath, "remoteRun" + compName + ".bat");
 
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
@@ -752,6 +745,19 @@ namespace ServiceLibrary
             new Thread(() => KillProcThread(computerName, processName)).Start();
         }
 
+        public void killRemoteProcess(List<LabClient> computers, string processName)
+        {
+            Thread t = new Thread(() =>
+                {
+                    foreach (LabClient client in computers)
+                    {
+                        service.killRemoteProcess(client.ComputerName, processName);
+                    }
+                });
+            t.IsBackground = true;
+            t.Start();
+        }
+
         private void KillProcThread(string computerName, string processName)
         {
             string cmdlet = "Taskkill /IM " + processName + " /F";
@@ -776,9 +782,6 @@ namespace ServiceLibrary
                 ssLPassword.AppendChar(c);
 
             PSCredential Credential = new PSCredential(Credentials.UserAtDomain, ssLPassword);
-
-
-
 
             foreach (LabClient client in clients)
             {
@@ -842,7 +845,6 @@ namespace ServiceLibrary
                 {
                     file.WriteLine("@echo off");
 
-
                     string copyCmd = @"xcopy ""\\BSSFILES2\dept\adm\labrun\scr-viewer"" ""C:\labrun\scr-viewer"" /V /E /Y /Q /I";
                     string runCmd = @"""" + @"C:\labrun\scr-viewer\scr-viewer.exe" + @"""";
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
@@ -889,8 +891,11 @@ Add-FirewallRule
 
         public void NetEnable(List<LabClient> clients)
         {
-            string script = @"$fw = New-Object -ComObject hnetcfg.fwpolicy2 
-                            $fw.Rules.Remove(""Block http(s) ports"")";
+            string script = @"$ruleName = ""Block http(s) ports""
+                            $fw = New-Object -ComObject hnetcfg.fwpolicy2 
+                            foreach ($rule in ($fw.Rules | where-object {$_.name -eq $ruleName } )) {
+                                $fw.Rules.Remove($ruleName)
+                            }";
 
             foreach (LabClient client in clients)
             {
@@ -953,8 +958,6 @@ Add-FirewallRule
         {
             foreach (LabClient client in clients)
             {
-
-
                 string batFileName = Path.Combine(tempPath, "DeleteTemp" + client.ComputerName + ".bat");
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
                 {
@@ -966,7 +969,6 @@ Add-FirewallRule
                 }
                 service.StartNewCmdThread(batFileName);
             }
-
         }
 
         /// <summary>
@@ -993,7 +995,6 @@ Add-FirewallRule
             {
                 fileName = word;
             }
-
 
             // Copy to network drive
             string copyPath = Path.Combine(tempPath, "localCopy.bat");
@@ -1024,7 +1025,6 @@ Add-FirewallRule
                 service.StartNewCmdThread(batFileName);
             }
         }
-
 
     }
 }

@@ -96,10 +96,6 @@ namespace LabRun
                 //if you want to size ur column as per both header and cell content
                 column.Width = new DataGridLength(1.0, DataGridLengthUnitType.Auto);
             }
-            Thickness margin = tabControl1.Margin;
-            MessageBox.Show(dgrClients.ActualWidth + " act width");
-            margin.Left = dgrClients.ActualWidth + 20;
-            tabControl1.Margin = margin;
         }
 
         public void initClients()
@@ -192,6 +188,7 @@ namespace LabRun
             {
                 column.Visibility = Visibility.Hidden;
             }
+            dgrClients.Items.Refresh();
         }
 
         public void SetFeatureActivity(Feature feature, List<LabClient> selectedClients, bool active)
@@ -250,6 +247,14 @@ namespace LabRun
                     exists = clients.Exists(i => i.Chrome == true);
                     column = dgrClients.Columns[5];
                     break;             
+            }
+            if (exists)
+            {
+                ((TextBlock)tabItem.Header).Foreground = Brushes.Red;
+            }
+            else
+            {
+                ((TextBlock)tabItem.Header).Foreground = Brushes.Black;
             }
             SetColumnVisibility(column, exists);
         }

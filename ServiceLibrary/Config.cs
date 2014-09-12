@@ -48,6 +48,12 @@ namespace ServiceLibrary
                     {
                         Ztreedump = line.Remove(0, "ztreedump".Length + 1);
                     }
+
+
+                    if (line.StartsWith("chrome"))
+                    {
+                        Chrome = line.Remove(0, "chrome".Length + 1);
+                    }
                 }
             }
         }
@@ -57,5 +63,6 @@ namespace ServiceLibrary
         public string Ztreeadmin { get; set; }
         public string Ztreeleaf { get; set; }
         public string Ztreedump { get; set; }
+        public string Chrome { get; set; }
     }
 }

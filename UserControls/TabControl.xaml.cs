@@ -138,16 +138,13 @@ namespace UserControls
             parent.SetTabActivity(TabItem, clients, false);
 
             string appExeName = testApp.AppExeName;
-            foreach (LabClient client in clients)
+            try
             {
-                try
-                {
-                    service.killRemoteProcess(client.ComputerName, appExeName);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
+                service.killRemoteProcess(clients, appExeName);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
 
