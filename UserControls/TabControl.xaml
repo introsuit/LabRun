@@ -5,10 +5,16 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:UserControls"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
-    <Grid Name="MainGrid" Background="#FFE5E5E5" Margin="0,0,-30,0">
+              Width="Auto">
+    <Grid Name="MainGrid" Background="#FFE5E5E5" Margin="0,0,0,0">
         <Button IsEnabled='True' Name="btnBrowse" Content="Browse" Height="30" HorizontalAlignment="Left" Margin="10,22,0,0" VerticalAlignment="Top" Width="76" Click="button1_Click" />
-        <Label Name="lblBrowse" Content="..." Height="28" HorizontalAlignment="Left" Margin="91,22,0,0" VerticalAlignment="Top" />
+        <TextBlock Name="txbBrowse" TextTrimming="CharacterEllipsis" Text="..." Height="28" HorizontalAlignment="Left" Margin="91,32,0,0" VerticalAlignment="Top">
+            <TextBlock.ToolTip>
+                <ToolTip DataContext="{Binding Path=PlacementTarget, RelativeSource={x:Static RelativeSource.Self}}">
+                    <TextBlock TextWrapping="Wrap" Text="{Binding Text}"/>
+                </ToolTip>
+            </TextBlock.ToolTip> 
+            </TextBlock>
         <Button IsEnabled='False' Content="Run" Height="28" HorizontalAlignment="Left" Margin="10,60,0,0" Name="btnRun" VerticalAlignment="Top" Width="75" Click="btnRun_Click" />
         <Button IsEnabled='False' Content="Kill" Height="28" HorizontalAlignment="Left" Margin="91,60,0,0" Name="btnKill" VerticalAlignment="Top" Width="75" Click="btnKill_Click" />
         <Image Name="imgTest" HorizontalAlignment="Left" Height="100" Margin="230,190,0,0" VerticalAlignment="Top" Width="100"/>
@@ -26,9 +32,6 @@
             </Grid>
         </GroupBox>
         <Grid Name="ztreeControls" Margin="0,-10,0,10">
-
-
-
 
         </Grid>
     </Grid>

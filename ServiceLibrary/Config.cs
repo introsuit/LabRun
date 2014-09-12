@@ -49,7 +49,6 @@ namespace ServiceLibrary
                         Ztreedump = line.Remove(0, "ztreedump".Length + 1);
                     }
 
-
                     if (line.StartsWith("chrome"))
                     {
                         Chrome = line.Remove(0, "chrome".Length + 1);

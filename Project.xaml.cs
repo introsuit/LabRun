@@ -69,14 +69,5 @@ namespace LabRun
             UpdateSelectedProject(project);
             this.Close();
         }
-
-        private void lstProjects_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            //int index = lstProjects.inde(e.Location);
-            //if (index != System.Windows.Forms.ListBox.NoMatches)
-            //{
-            //    MessageBox.Show(index.ToString());
-            //}
-        }
     }
 }

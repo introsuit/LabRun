@@ -33,7 +33,7 @@ namespace LabRun
         private List<LabClient> clients = new List<LabClient>();
         private List<ControlUnit> tabControls = new List<ControlUnit>();
         public int labNo = 1;
-        private Boolean isSelectionByCmbbx = false;
+        private Boolean isSelectionByCmbbx = false; 
         private readonly string unnamedProject = "UnnamedProject";
         private string project = "";
 
@@ -159,7 +159,7 @@ namespace LabRun
 
             ((Button)tC3.FindName("btnRun")).Content = "Run Leaves";
             ((Button)tC3.FindName("btnBrowse")).Visibility = Visibility.Hidden;
-            ((Label)tC3.FindName("lblBrowse")).Visibility = Visibility.Hidden;
+            ((TextBlock)tC3.FindName("txbBrowse")).Visibility = Visibility.Hidden;
             ((CheckBox)tC3.FindName("cbxCopyAll")).Visibility = Visibility.Hidden;
 
             UserControls.ChromeTab tC4 = new UserControls.ChromeTab(this);
@@ -180,14 +180,7 @@ namespace LabRun
 
         private void SetColumnVisibility(DataGridColumn column, bool visible)
         {
-            if (visible)
-            {
-                column.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                column.Visibility = Visibility.Hidden;
-            }
+            column.Visibility = visible ? Visibility.Visible : Visibility.Hidden;
             dgrClients.Items.Refresh();
         }
 
@@ -248,14 +241,7 @@ namespace LabRun
                     column = dgrClients.Columns[5];
                     break;             
             }
-            if (exists)
-            {
-                ((TextBlock)tabItem.Header).Foreground = Brushes.Red;
-            }
-            else
-            {
-                ((TextBlock)tabItem.Header).Foreground = Brushes.Black;
-            }
+            ((TextBlock)tabItem.Header).Foreground = exists ? Brushes.Red : Brushes.Black;
             SetColumnVisibility(column, exists);
         }
 
@@ -616,7 +602,7 @@ namespace LabRun
         public void SetProject(string projectName)
         {
             project = projectName;
-            lblProject.Content = project;
+            lblProject.Text = project;
             foreach (ControlUnit cUnit in tabControls)
             {
                 cUnit.SetProject(project);
@@ -665,6 +651,18 @@ namespace LabRun
         private void dgrClients_Loaded(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void lblProject_IsMouseDirectlyOverChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            bool isMouseOver = (bool)e.NewValue;
+            if (!isMouseOver)
+                return;
+            TextBlock textBlock = (TextBlock)sender;
+            bool needed = textBlock.ActualWidth >
+                (this.btnSelProject as Button).ActualWidth;
+            ((ToolTip)textBlock.ToolTip).Visibility =
+                needed ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

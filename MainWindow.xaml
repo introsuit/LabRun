@@ -9,7 +9,7 @@
                     <Setter Property="Background" Value="Red" />
                 </DataTrigger>
             </Style.Triggers>
-        </Style>      
+        </Style>
     </Window.Resources>
     <StackPanel Orientation="Vertical">
         <Menu Height="22" Name="menu1" Width="Auto" Margin="0, 0, 0, 0" HorizontalAlignment="Left" VerticalAlignment="Top"  Background="White">
@@ -50,7 +50,7 @@
                     <DataGrid.CellStyle>
                         <Style TargetType="{x:Type DataGridCell}">
                             <Style.Triggers>
-                                
+
                                 <Trigger Property="IsSelected" Value="True">
                                     <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                                     <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
@@ -178,12 +178,20 @@
                 </GroupBox>
 
             </StackPanel>
-            
+
             <StackPanel Orientation="Vertical" Margin="10">
                 <GroupBox Header="User and Project Options" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="83" Width="365">
                     <Grid>
                         <Button Name="btnSelProject" Content="Set Project Name" HorizontalAlignment="Left" Margin="210,10,0,0" VerticalAlignment="Top" Width="131" Click="btnSelProject_Click"/>
-                        <Label Name="lblProject" Content="..." HorizontalAlignment="Left" Margin="210,32,0,0" VerticalAlignment="Top" RenderTransformOrigin="3.012,0.285"/>
+                        <Label HorizontalAlignment="Left" Margin="210,32,0,0" VerticalAlignment="Top" RenderTransformOrigin="3.012,0.285">
+                            <TextBlock Name="lblProject" TextTrimming="CharacterEllipsis" Text="...">
+                                <TextBlock.ToolTip>
+                                    <ToolTip DataContext="{Binding Path=PlacementTarget, RelativeSource={x:Static RelativeSource.Self}}">
+                                        <TextBlock TextWrapping="Wrap"  Text="{Binding Text}"/>
+                                    </ToolTip>
+                                </TextBlock.ToolTip> 
+                            </TextBlock>
+                        </Label>
                         <Button Name="btnLogin" Content="Login" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="131" Click="btnLogin_Click"/>
                         <Label Name="lblLogin" Content="Logged in as Guest" HorizontalAlignment="Left" Margin="10,32,0,0" VerticalAlignment="Top"/>
                     </Grid>
@@ -214,7 +222,7 @@
                     <Grid Margin="0,0,0,0">
                         <Button IsEnabled="False" Name="btnInputDisable" Content="Disable Input" HorizontalAlignment="Left" Margin="186,10,0,0" VerticalAlignment="Top" Width="75" Click="btnInputDisable_Click"/>
                         <Button IsEnabled="False" Name="btnInputEnable" Content="Enable Input" HorizontalAlignment="Left" Margin="266,10,0,0" VerticalAlignment="Top" Width="75" Click="btnInputEnable_Click"/>
-                        <Button IsEnabled="False" Name="BtnScrShare" Content="Share screen" HorizontalAlignment="Left" Margin="10,10,0,0" Width="75" Click="Button_Click_2" Height="23" VerticalAlignment="Top"/>
+                        <Button IsEnabled="False" Name="BtnScrShare" Content="Share screen" HorizontalAlignment="Left" Margin="10,10,0,0" Width="75" Click="Button_Click_2" Height="22" VerticalAlignment="Top"/>
                         <Button IsEnabled="False" Name="btnStopSharing" Content="Stop Scr. Shr." HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Width="75" Click="btnStopSharing_Click"/>
                     </Grid>
                 </GroupBox>

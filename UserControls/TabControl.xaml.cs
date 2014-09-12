@@ -89,7 +89,7 @@ namespace UserControls
                 // Open document 
                 string testFullPath = dlg.FileName;
 
-                lblBrowse.Content = testFullPath;
+                txbBrowse.Text = testFullPath;
                 inited = true;
 
                 btnRun.IsEnabled = true;

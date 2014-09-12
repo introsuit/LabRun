@@ -4,8 +4,8 @@
         Title="ProjectName" Height="198.507" Width="231.343">
     <Grid>
         <Label Content="Set Your Projet Name:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="txbProjectName" HorizontalAlignment="Left" Height="23" Margin="10,36,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="192"/>
-        <Button Name="btnOk" Content="OK" HorizontalAlignment="Left" Margin="10,97,0,0" VerticalAlignment="Top" Width="75" Click="btnOk_Click"/>
+        <TextBox Name="txbProjectName" HorizontalAlignment="Left" Height="23" Margin="10,36,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="192" TextChanged="txbProjectName_TextChanged"/>
+        <Button IsDefault="True" Name="btnOk" Content="OK" HorizontalAlignment="Left" Margin="10,97,0,0" VerticalAlignment="Top" Width="75" Click="btnOk_Click"/>
         <Button Name="btnCancel" Content="Cancel" HorizontalAlignment="Left" Margin="127,97,0,0" VerticalAlignment="Top" Width="75" Click="btnCancel_Click"/>
 
     </Grid>

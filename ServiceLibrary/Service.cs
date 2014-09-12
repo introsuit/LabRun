@@ -39,6 +39,8 @@ namespace ServiceLibrary
         public event EventHandler ProgressUpdate;
         public readonly object key = new object();
 
+        private List<string> projects = new List<string>();
+
         private ScreenShare screenShare = ScreenShare.getInstance();
         public Config Config;
 
@@ -942,12 +944,22 @@ Add-FirewallRule
             return user != null;
         }
 
+        public void InitProjects()
+        {
+            Thread t = new Thread(() =>
+                {
+                    WebClient webClient = new WebClient();
+                    string projectsStr = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/projects?" + user.UniqueHash);
+                    string[] lines = projectsStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+                    projects = new List<string>(lines);
+                });
+            t.IsBackground = true;
+            t.Start();
+        }
+
         public List<string> GetProjects()
         {
-            WebClient webClient = new WebClient();
-            string projectsStr = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/projects?" + user.UniqueHash);
-            string[] lines = projectsStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            return new List<string>(lines); ;
+            return projects;
         }
 
         /// <summary>
