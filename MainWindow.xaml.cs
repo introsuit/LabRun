@@ -33,7 +33,7 @@ namespace LabRun
         private List<LabClient> clients = new List<LabClient>();
         private List<ControlUnit> tabControls = new List<ControlUnit>();
         public int labNo = 1;
-        private Boolean isSelectionByCmbbx = false; 
+        private Boolean isSelectionByCmbbx = false;
         private readonly string unnamedProject = "UnnamedProject";
         private string project = "";
 
@@ -239,7 +239,7 @@ namespace LabRun
                     selectedClients.ForEach(i => i.Chrome = active);
                     exists = clients.Exists(i => i.Chrome == true);
                     column = dgrClients.Columns[5];
-                    break;             
+                    break;
             }
             ((TextBlock)tabItem.Header).Foreground = exists ? Brushes.Red : Brushes.Black;
             SetColumnVisibility(column, exists);
@@ -275,8 +275,12 @@ namespace LabRun
 
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
         {
-            lblStatus.Content = "In Progress...";
-            service.ShutdownComputers(getSelectedClients());
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to shutdown selected computers?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                lblStatus.Content = "In Progress...";
+                service.ShutdownComputers(getSelectedClients());
+            }
         }
 
         public IEnumerable<DataGridRow> GetDataGridRows(DataGrid grid)
