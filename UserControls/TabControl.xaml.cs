@@ -217,5 +217,17 @@ namespace UserControls
                 MessageBox.Show(ex.Message);
             }
         }
+
+        private void btnExportDb_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                testApp.ToDms();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
     }
 }

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 
@@ -167,6 +169,7 @@ namespace ServiceLibrary
         public virtual Thread TransferResults(List<LabClient> clients)
         {
             var t = new Thread(() => xcopyResults(clients));
+            t.IsBackground = true;
             t.Start();
             return t;
         }
@@ -186,7 +189,7 @@ namespace ServiceLibrary
 
             //----copy results from client computers to shared network folder
             DateTime timeStamp = DateTime.Now;
-            timePrint = String.Format("{0:yyyyMMddhhmm}", timeStamp);
+            timePrint = String.Format("{0:yyyyMMdd_hhmmss}", timeStamp);
             int i = 0;
             foreach (LabClient client in clients)
             {
@@ -317,6 +320,93 @@ namespace ServiceLibrary
         public virtual void OpenResultsFolder()
         {
             service.ProcessStartSimple(Path.Combine(service.TestFolder, resultsFolderName));
+        }
+
+        public void ToDms()
+        {
+            if (service.User == null)
+                throw new Exception("You must login first!");
+
+            string projPath = Path.Combine(service.TestFolder, resultsFolderName, projectName);
+            DirectoryInfo[] subjects = new DirectoryInfo(projPath).GetDirectories();
+
+            //get all subjects from project
+            WebClient webClient = new WebClient();
+            string subjStr = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/subjectswithcode?" + service.User.UniqueHash + "&projectCode=" + projectName);
+            string[] lines = subjStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            List<string> dmsSubjects = new List<string>(lines);
+
+            foreach (DirectoryInfo subject in subjects)
+            {
+                foreach (DirectoryInfo timeline in subject.GetDirectories())
+                {
+                    foreach (DirectoryInfo modality in timeline.GetDirectories())
+                    {
+                        if (modality.Name != applicationName)
+                        {
+                            continue;
+                        }
+                        int boothId = Convert.ToInt32(subject.Name);
+                        string subjId = GetSubjId(dmsSubjects, boothId);
+
+                        string dirToZip = Path.Combine(projPath, subject.Name, timeline.Name, applicationName);
+                        string zipFileName = ProjectName + "." + subjId + "." + timeline.Name + "." + applicationName + ".zip";
+                        string zipPath = Path.Combine(projPath, zipFileName);
+                        ZipDirectory(dirToZip, zipPath);
+                        UploadZip(zipPath);
+                    }
+                }
+            }
+        }
+
+        private string GetSubjId(List<string> subjects, int boothNo)
+        {
+            string subjId = "";   
+
+            //check if subj exists
+            bool exists = false;
+            foreach (string subject in subjects)
+            {
+                if (subject.Length != 8)
+                    continue;
+                string subjNoStr = subject.Remove(subject.Length - 4).TrimStart('0');
+                int subjNo = Convert.ToInt32(subjNoStr);
+                if (subjNo == boothNo)
+                {
+                    subjId = subject;
+                    exists = true;
+                    break;
+                }
+            }
+
+            //if exists retrieve id, else create new and get id
+            if (!exists)
+            {
+                WebClient webClient = new WebClient();
+                string url = "https://cobelab.au.dk/modules/StormDb/extract/createsubject?subjectNo=" + boothNo + "&subjectName=Booth" + boothNo + "&" + service.User.UniqueHash + "&projectCode=" + projectName;
+                subjId = webClient.DownloadString(url);
+                if (subjId.Contains("error"))
+                    throw new Exception("Failed to create new subject for BoothNo " + boothNo);
+            }
+            return subjId;
+        }
+
+        private void ZipDirectory(string dirToZip, string zipPath)
+        {
+            if (File.Exists(zipPath))
+            {
+                File.Delete(zipPath);
+            }
+            ZipFile.CreateFromDirectory(@dirToZip, zipPath);
+        }
+
+        private void UploadZip(string zipPath)
+        {           
+            //upload zip
+            //using (NetworkShareAccesser.Access(REMOTE_COMPUTER_NAME, DOMAIN, USER_NAME, PASSWORD))
+            //{
+            //    File.Copy(@"C:\Some\File\To\copy.txt", @"\\REMOTE-COMPUTER\My\Shared\Target\file.txt");
+            //}
         }
     }
 }

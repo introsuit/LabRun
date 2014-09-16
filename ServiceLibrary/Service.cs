@@ -13,6 +13,7 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.IO.Compression;
 
 namespace ServiceLibrary
 {
@@ -22,6 +23,7 @@ namespace ServiceLibrary
 
         public Credentials Credentials { get; set; }
         private User user = null;
+        public User User { get { return this.user; } }
 
         //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
         private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\";
@@ -46,6 +48,7 @@ namespace ServiceLibrary
 
         public static Service getInstance()
         {
+            ZipFile.CreateFromDirectory(@"C:\\Cobe Lab\\zippy", "C:\\Cobe Lab\\DM_test.0025_SI9.20140916_000000.BIOPAC.zip");
             if (service == null)
                 service = new Service();
             return service;
@@ -1036,7 +1039,6 @@ Add-FirewallRule
                 }
                 service.StartNewCmdThread(batFileName);
             }
-        }
-
+        }    
     }
 }
