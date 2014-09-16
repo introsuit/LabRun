@@ -48,7 +48,7 @@ namespace ServiceLibrary
 
         public static Service getInstance()
         {
-            ZipFile.CreateFromDirectory(@"C:\\Cobe Lab\\zippy", "C:\\Cobe Lab\\DM_test.0025_SI9.20140916_000000.BIOPAC.zip");
+            //ZipFile.CreateFromDirectory(@"C:\\Cobe Lab\\zippy", "C:\\Cobe Lab\\DM_test.0025_SI9.20140916_000000.BIOPAC.zip");
             if (service == null)
                 service = new Service();
             return service;

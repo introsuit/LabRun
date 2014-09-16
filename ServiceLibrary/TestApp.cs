@@ -336,6 +336,7 @@ namespace ServiceLibrary
             string[] lines = subjStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
             List<string> dmsSubjects = new List<string>(lines);
 
+            //iterate through all subjects and their results
             foreach (DirectoryInfo subject in subjects)
             {
                 foreach (DirectoryInfo timeline in subject.GetDirectories())
@@ -352,6 +353,23 @@ namespace ServiceLibrary
                         string dirToZip = Path.Combine(projPath, subject.Name, timeline.Name, applicationName);
                         string zipFileName = ProjectName + "." + subjId + "." + timeline.Name + "." + applicationName + ".zip";
                         string zipPath = Path.Combine(projPath, zipFileName);
+
+                        //move all files to one dir without subfolders (currently the only way to upload)
+                        string dirForZip = Path.Combine(projPath, subject.Name + "tozip");
+                        if (Directory.Exists(dirForZip))
+                        {
+                            Directory.Delete(dirForZip);
+                        }
+                        Directory.CreateDirectory(dirForZip);
+
+                        string[] files = Directory.GetFiles(dirToZip, "*", SearchOption.AllDirectories);
+                        foreach (string file in files)
+                        {
+                            File.Copy(file, Path.Combine(dirForZip, Path.GetFileName(file)));
+                        }
+                        dirToZip = dirForZip;
+                        //end
+
                         ZipDirectory(dirToZip, zipPath);
                         UploadZip(zipPath);
                     }
@@ -361,12 +379,13 @@ namespace ServiceLibrary
 
         private string GetSubjId(List<string> subjects, int boothNo)
         {
-            string subjId = "";   
+            string subjId = "";
 
             //check if subj exists
             bool exists = false;
             foreach (string subject in subjects)
             {
+                //subject number structure: "0001_ABC"
                 if (subject.Length != 8)
                     continue;
                 string subjNoStr = subject.Remove(subject.Length - 4).TrimStart('0');
@@ -379,7 +398,7 @@ namespace ServiceLibrary
                 }
             }
 
-            //if exists retrieve id, else create new and get id
+            //if exists - retrieve id, else create new subj and get its id
             if (!exists)
             {
                 WebClient webClient = new WebClient();
@@ -397,16 +416,34 @@ namespace ServiceLibrary
             {
                 File.Delete(zipPath);
             }
-            ZipFile.CreateFromDirectory(@dirToZip, zipPath);
+            ZipFile.CreateFromDirectory(@dirToZip, @zipPath);
         }
 
         private void UploadZip(string zipPath)
-        {           
-            //upload zip
-            //using (NetworkShareAccesser.Access(REMOTE_COMPUTER_NAME, DOMAIN, USER_NAME, PASSWORD))
-            //{
-            //    File.Copy(@"C:\Some\File\To\copy.txt", @"\\REMOTE-COMPUTER\My\Shared\Target\file.txt");
-            //}
+        {
+            string uploadPath = @service.Config.DmsUpload;
+            string copyPath = tempPath + "zipUpload.bat";
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                file.WriteLine(@"net use """ + uploadPath + @""" " + service.User.Password + @" /user:" + service.User.Username);
+
+                file.WriteLine(":copy");
+                string line = @"xcopy """ + zipPath + @""" """ + uploadPath + @""" /V /E /Y /Q /I";
+                file.WriteLine(line);
+                file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
+                file.WriteLine("goto end");
+
+                file.WriteLine(":disconnect");
+                file.WriteLine(@"net use """ + uploadPath + @""" /delete");
+                file.WriteLine("goto end");
+                file.WriteLine(":end");
+            }
+            //MessageBox.Show(copyPath);
+            //service.ExecuteCommandNoOutput(copyPath, true);
+
+            //if (File.Exists(copyPath))
+            //    File.Delete(copyPath);
         }
     }
 }
