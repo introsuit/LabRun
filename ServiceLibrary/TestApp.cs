@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace ServiceLibrary
@@ -336,6 +337,8 @@ namespace ServiceLibrary
             string[] lines = subjStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
             List<string> dmsSubjects = new List<string>(lines);
 
+            List<string> zipsForUpload = new List<string>();
+
             //iterate through all subjects and their results
             foreach (DirectoryInfo subject in subjects)
             {
@@ -351,30 +354,17 @@ namespace ServiceLibrary
                         string subjId = GetSubjId(dmsSubjects, boothId);
 
                         string dirToZip = Path.Combine(projPath, subject.Name, timeline.Name, applicationName);
-                        string zipFileName = ProjectName + "." + subjId + "." + timeline.Name + "." + applicationName + ".zip";
+                        string zipFileName = ProjectName + "." + subjId + "." + timeline.Name + "." + applicationName + ".zip";                      
                         string zipPath = Path.Combine(projPath, zipFileName);
 
-                        //move all files to one dir without subfolders (currently the only way to upload)
-                        string dirForZip = Path.Combine(projPath, subject.Name + "tozip");
-                        if (Directory.Exists(dirForZip))
-                        {
-                            Directory.Delete(dirForZip);
-                        }
-                        Directory.CreateDirectory(dirForZip);
-
-                        string[] files = Directory.GetFiles(dirToZip, "*", SearchOption.AllDirectories);
-                        foreach (string file in files)
-                        {
-                            File.Copy(file, Path.Combine(dirForZip, Path.GetFileName(file)));
-                        }
-                        dirToZip = dirForZip;
-                        //end
-
                         ZipDirectory(dirToZip, zipPath);
-                        UploadZip(zipPath);
+                        zipsForUpload.Add(zipPath);
                     }
                 }
             }
+
+            //finally upload all the zips to network drive
+            UploadZips(zipsForUpload);
         }
 
         private string GetSubjId(List<string> subjects, int boothNo)
@@ -403,7 +393,10 @@ namespace ServiceLibrary
             {
                 WebClient webClient = new WebClient();
                 string url = "https://cobelab.au.dk/modules/StormDb/extract/createsubject?subjectNo=" + boothNo + "&subjectName=Booth" + boothNo + "&" + service.User.UniqueHash + "&projectCode=" + projectName;
-                subjId = webClient.DownloadString(url);
+                string result = webClient.DownloadString(url);
+                //cut "\n" - new line seperators from result
+                result = Regex.Replace(result, @"\n", String.Empty);
+                subjId = result;
                 if (subjId.Contains("error"))
                     throw new Exception("Failed to create new subject for BoothNo " + boothNo);
             }
@@ -419,31 +412,35 @@ namespace ServiceLibrary
             ZipFile.CreateFromDirectory(@dirToZip, @zipPath);
         }
 
-        private void UploadZip(string zipPath)
+        private void UploadZips(List<string> zips)
         {
             string uploadPath = @service.Config.DmsUpload;
-            string copyPath = tempPath + "zipUpload.bat";
+            string copyPath = tempPath + "zipsUpload.bat";
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
                 file.WriteLine("@echo off");
                 file.WriteLine(@"net use """ + uploadPath + @""" " + service.User.Password + @" /user:" + service.User.Username);
 
-                file.WriteLine(":copy");
-                string line = @"xcopy """ + zipPath + @""" """ + uploadPath + @""" /V /E /Y /Q /I";
-                file.WriteLine(line);
-                file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
-                file.WriteLine("goto end");
+                //file.WriteLine(":copy");
+                foreach (string zip in zips)
+                {
+                    string line = @"xcopy """ + zip + @""" """ + uploadPath + @""" /V /Y /Q /I";
+                    file.WriteLine(line);
+                }
+                
+                //file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
+                //file.WriteLine("goto disconnect");
 
-                file.WriteLine(":disconnect");
+                //file.WriteLine(":disconnect");
                 file.WriteLine(@"net use """ + uploadPath + @""" /delete");
-                file.WriteLine("goto end");
-                file.WriteLine(":end");
+                //file.WriteLine("goto end");
+                //file.WriteLine(":end");
+                file.WriteLine("exit");
             }
-            //MessageBox.Show(copyPath);
-            //service.ExecuteCommandNoOutput(copyPath, true);
+            service.ExecuteCommandNoOutput(copyPath, true);
 
-            //if (File.Exists(copyPath))
-            //    File.Delete(copyPath);
+            if (File.Exists(copyPath))
+                File.Delete(copyPath);
         }
     }
 }

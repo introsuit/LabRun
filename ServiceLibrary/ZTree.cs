@@ -17,10 +17,9 @@ namespace ServiceLibrary
         private readonly string dumpFolder;
 
         public ZTree()
-            : base("ZTree")
+            : base("ztree")
         {
             ApplicationExecutableName = service.Config.Ztreeleaf;
-            applicationName = "ZTree";
             ztreeAdminExe = service.Config.Ztreeadmin;
             dumpFolder = service.Config.Ztreedump;
 
