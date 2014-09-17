@@ -94,7 +94,7 @@ namespace UserControls
 
         private void btnDelete_Click(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult result = MessageBox.Show("Are you sure you want to delete the entire transferred directory? Verify that result files are backed up and that nothing of value remains in the directory! Do you wish to continue?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            MessageBoxResult result = MessageBox.Show(@"Are you sure you want to delete the entire ""Transferred files"" directory? Verify that result files are backed up and that nothing of value remains in the directory! Do you wish to continue?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
                 service.deleteFiles(parent.getSelectedClients());
@@ -102,9 +102,12 @@ namespace UserControls
         }
 
         private void btnRun_Click(object sender, RoutedEventArgs e)
-        {
+        {   string param = "";
+            if (txtboxParam.Text != null)
+                param = txtboxParam.Text;
+
             Service.getInstance().CopyFilesToNetworkShare(this.filePath);
-            Service.getInstance().CopyAndRunFilesFromNetworkShareToClients(this.filePath,this.fileName,parent.getSelectedClients());
+            Service.getInstance().CopyAndRunFilesFromNetworkShareToClients(this.filePath,this.fileName,parent.getSelectedClients(), param);
             btnDelete.IsEnabled = true;
         }
 
@@ -152,8 +155,11 @@ namespace UserControls
 
         private void launchDirectory_Click(object sender, RoutedEventArgs e)
         {
+            string param = "";
+            if (txtboxParam != null)
+                param = txtboxParam.Text;
             MessageBox.Show(this.DirFileName);
-            Service.getInstance().CopyEntireFolder(parent.getSelectedClients(), this.DirPath, this.DirFileNameWithExtraDir);
+            Service.getInstance().CopyEntireFolder(parent.getSelectedClients(), this.DirPath, this.DirFileNameWithExtraDir, param);
         }
 
 

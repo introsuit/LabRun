@@ -446,7 +446,7 @@ namespace ServiceLibrary
         /// Transfers and runs a file from the shared drive to each selected lab client.
         /// </summary>
         /// <returns>Nothing</returns>
-        public void CopyAndRunFilesFromNetworkShareToClients(string srcPath, string fileName, List<LabClient> clients)
+        public void CopyAndRunFilesFromNetworkShareToClients(string srcPath, string fileName, List<LabClient> clients, string param)
         {
 
             //
@@ -459,7 +459,7 @@ namespace ServiceLibrary
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
                     string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\" + fileName + "" + @""" ""C:\labrun\temp"" /V /Y /Q ";
                     // Run file on client after copied to local drive
-                    string runCmd = @"""" + @"C:\labrun\temp\" + fileName + @"""";
+                    string runCmd = @"""" + @"C:\labrun\temp\" + fileName + @""" """ + param + @"""";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);
@@ -958,7 +958,7 @@ Add-FirewallRule
         /// Then runs selected file using same PSExec batch.
         /// </summary>
         /// <returns>Nothing</returns>
-        public void CopyEntireFolder(List<LabClient> clients, string folderPath, string filePath)
+        public void CopyEntireFolder(List<LabClient> clients, string folderPath, string filePath, string parameter)
         {
 
             //Get folder name without path
@@ -999,7 +999,7 @@ Add-FirewallRule
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
                     string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\" + folderName + @"""" + @" ""C:\labrun\temp\" + folderName + @"""" + @" /i /s /e /V /Y /Q ";
                     // Build runcommand to embed in bat also
-                    string runCmd = @"""" + @"C:\labrun\temp\" + folderName + filePath + @"""";
+                    string runCmd = @"""" + @"C:\labrun\temp\" + folderName + filePath + @""" """ + parameter + @"""";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);

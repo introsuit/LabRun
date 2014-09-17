@@ -1,7 +1,7 @@
 ﻿<Window x:Class="LabRun.MainWindow"
          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="LabRun" Height="653.671" Width="Auto" Closing="Window_Closing"  SizeToContent="WidthAndHeight">
+        Title="LabRun" Height="712.338" Width="709.333" Closing="Window_Closing"  SizeToContent="WidthAndHeight">
     <Window.Resources>
         <Style TargetType="DataGridRow">
             <Style.Triggers>
@@ -42,7 +42,7 @@
             </MenuItem>
         </Menu>
 
-        <DataGrid ColumnWidth="Auto" IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="11,110,0,0" VerticalAlignment="Top" Height="332" Width="Auto" SelectionChanged="dgrClients_SelectionChanged" MouseLeftButtonDown="dgrClients_MouseLeftButtonDown" MouseLeftButtonUp="dgrClients_MouseLeftButtonUp_1" MouseUp="dgrClients_MouseUp_1" Loaded="dgrClients_Loaded">
+        <DataGrid ColumnWidth="Auto" IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="11,110,0,0" VerticalAlignment="Top" Height="377" Width="168" SelectionChanged="dgrClients_SelectionChanged" MouseLeftButtonDown="dgrClients_MouseLeftButtonDown" MouseLeftButtonUp="dgrClients_MouseLeftButtonUp_1" MouseUp="dgrClients_MouseUp_1" Loaded="dgrClients_Loaded">
             <DataGrid.CellStyle>
                 <Style TargetType="{x:Type DataGridCell}">
                     <Style.Triggers>
@@ -62,9 +62,9 @@
             </DataGrid.Columns>
         </DataGrid>
         <Label Content="Lab Clients:" HorizontalAlignment="Left" Margin="11,84,0,0" VerticalAlignment="Top"/>
-        <TabControl Name="tabControl1"  HorizontalAlignment="Left" Height="332" Margin="196,110,0,0" VerticalAlignment="Top" Width="365">
+        <TabControl Name="tabControl1"  HorizontalAlignment="Left" Height="373" Margin="196,110,0,0" VerticalAlignment="Top" Width="497">
             <TabItem Header="PsychoPy" Name="tabPsy">
-                <Grid Background="#FFE5E5E5" />
+                <Grid Background="#FFE5E5E5" Margin="0,0,0.333,-3" />
             </TabItem>
             <TabItem Header="E-Prime" Name="tabEPrime">
                 <Grid Background="#FFE5E5E5"/>
@@ -78,13 +78,13 @@
             <TabItem Header="Chrome" Name="tabChrome">
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
-            
+
         </TabControl>
-        <Label Content="Select Lab Clients:" HorizontalAlignment="Left" Margin="13,448,0,0" VerticalAlignment="Top"/>
+        <Label Content="Select Lab Clients:" HorizontalAlignment="Left" Margin="14,506,0,0" VerticalAlignment="Top"/>
 
 
 
-        <Label x:Name="lblStatus" Content="Idle" HorizontalAlignment="Left" Margin="198,445,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="lblStatus" Content="Idle" HorizontalAlignment="Left" Margin="198,488,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="cmbBxLabSelect" SelectedIndex="0" HorizontalAlignment="Left" Margin="11,48,0,0" VerticalAlignment="Top" Width="168" SelectionChanged="cmbBxLabSelect_SelectionChanged">
 
             <ComboBoxItem Name="lab1" Tag="lab1">Computer lab no. 1</ComboBoxItem>
@@ -96,7 +96,7 @@
 
 
         <Label Content="Select lab:" HorizontalAlignment="Left" Margin="10,22,0,0" VerticalAlignment="Top"/>
-        <ComboBox SelectedIndex="0" Name="cmbSelectionClients" HorizontalAlignment="Left" Margin="14,479,0,0" VerticalAlignment="Top" Width="168" SelectionChanged="cmbSelectionClients_SelectionChanged">
+        <ComboBox SelectedIndex="0" Name="cmbSelectionClients" HorizontalAlignment="Left" Margin="14,544,0,0" VerticalAlignment="Top" Width="168" SelectionChanged="cmbSelectionClients_SelectionChanged">
 
 
             <ComboBoxItem Tag="none">None</ComboBoxItem>
@@ -107,13 +107,13 @@
             <ComboBoxItem Tag="zagzig">Zag-Zig</ComboBoxItem>
             <ComboBoxItem Tag="all">All</ComboBoxItem>
         </ComboBox>
-        <GroupBox Header="Power Options" HorizontalAlignment="Left" Margin="14,547,0,0" VerticalAlignment="Top" Height="61" Width="168">
+        <GroupBox Header="Power Options" HorizontalAlignment="Left" Margin="14,587,0,0" VerticalAlignment="Top" Height="61" Width="168">
             <Grid>
                 <Button IsEnabled="False" Name="btnStartUp" Height="23" Content="Startup" Margin="0,9,90,0" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="56" RenderTransformOrigin="3.56,0.515"/>
                 <Button IsEnabled="False" Content="Shutdown" Height="23" HorizontalAlignment="Left" Margin="83,9,0,0" Name="btnShutdown" VerticalAlignment="Top" Width="62" Click="btnShutdown_Click" />
             </Grid>
         </GroupBox>
-        <GroupBox Header="Input Options" HorizontalAlignment="Left" Margin="198,471,0,0" VerticalAlignment="Top" Height="61" Width="363">
+        <GroupBox Header="Input Options" HorizontalAlignment="Left" Margin="196,518,0,0" VerticalAlignment="Top" Height="61" Width="363">
             <Grid Margin="0,0,0,0">
                 <Button IsEnabled="False" Name="btnInputDisable" Content="Disable Input" HorizontalAlignment="Left" Margin="186,10,0,0" VerticalAlignment="Top" Width="75" Click="btnInputDisable_Click"/>
                 <Button IsEnabled="False" Name="btnInputEnable" Content="Enable Input" HorizontalAlignment="Left" Margin="266,10,0,0" VerticalAlignment="Top" Width="75" Click="btnInputEnable_Click"/>
@@ -121,7 +121,7 @@
                 <Button IsEnabled="False" Name="btnStopSharing" Content="Stop Scr. Shr." HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Width="75" Click="btnStopSharing_Click"/>
             </Grid>
         </GroupBox>
-        <GroupBox Header="Network Options" HorizontalAlignment="Left" Margin="198,548,0,0" VerticalAlignment="Top" Height="61" Width="363">
+        <GroupBox Header="Network Options" HorizontalAlignment="Left" Margin="198,587,0,0" VerticalAlignment="Top" Height="61" Width="363">
             <Grid Margin="0,0,0,0">
                 <Button IsEnabled="False" Name="btnNetDisable" Content="Disable Web" HorizontalAlignment="Left" Margin="186,6,0,0" VerticalAlignment="Top" Width="75" Click="btnNetDisable_Click"/>
                 <Button IsEnabled="False" Name="btnNetEnable" Content="Enable Web" HorizontalAlignment="Left" Margin="266,6,0,0" VerticalAlignment="Top" Width="75" Click="btnNetEnable_Click"/>
