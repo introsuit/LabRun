@@ -29,6 +29,7 @@ namespace ServiceLibrary
         private static readonly string testFolder = @"C:\Cobe Lab\";
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
         private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
+        private static readonly string configFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"config.ini");
         private readonly string tempPath = System.IO.Path.GetTempPath();
 
         private List<WindowSize> windowSizes = new List<WindowSize>();
@@ -38,7 +39,10 @@ namespace ServiceLibrary
         public event EventHandler ProgressUpdate;
         public readonly object key = new object();
 
+        private List<string> projects = new List<string>();
+
         private ScreenShare screenShare = ScreenShare.getInstance();
+        public Config Config;
 
         public static Service getInstance()
         {
@@ -86,6 +90,15 @@ namespace ServiceLibrary
             catch (FileNotFoundException ex)
             {
                 throw new FileNotFoundException("auth.ini", ex);
+            }
+
+            if (!File.Exists(configFile))
+            {
+                throw new FileNotFoundException("config.ini");
+            }
+            else
+            {
+                Config = new Config(configFile);
             }
         }
 
@@ -424,7 +437,6 @@ namespace ServiceLibrary
         /// <returns>Nothing</returns>
         public void CopyFilesFromNetworkShareToClients(string srcPath, string fileName, List<LabClient> clients)
         {
-
             //
             foreach (LabClient client in clients)
             {
@@ -448,8 +460,6 @@ namespace ServiceLibrary
         /// <returns>Nothing</returns>
         public void CopyAndRunFilesFromNetworkShareToClients(string srcPath, string fileName, List<LabClient> clients, string param)
         {
-
-            //
             foreach (LabClient client in clients)
             {
                 string batFileName = Path.Combine(tempPath, "CustomCopy" + client.ComputerName + ".bat");
@@ -514,48 +524,53 @@ namespace ServiceLibrary
 
         public void InputDisable(List<LabClient> clients)
         {
-            string blockerDirName = Path.GetFileName(Path.GetDirectoryName(inputBlockApp));
-
-            //-----local copy
-            string copyPath = Path.Combine(tempPath, "localCopy.bat");
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                string srcDir = Path.GetDirectoryName(inputBlockApp);
-                string dstDir = Path.Combine(service.SharedNetworkTempFolder, blockerDirName);
-                string line = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
-                file.WriteLine(line);
-            }
-            service.ExecuteCommandNoOutput(copyPath, true);
-            //-----end
-
-            //service.runRemoteProgram(compList, inputBlockApp);
-            //---onecall to client: copy and run
-            int i = 0;
-            foreach (LabClient client in clients)
-            {
-                string copyPathRemote = Path.Combine(tempPath, "remoteCopyRun" + client.ComputerName + ".bat");
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
+            Thread t = new Thread(delegate()
                 {
-                    file.WriteLine("@echo off");
+                    string blockerDirName = Path.GetFileName(Path.GetDirectoryName(inputBlockApp));
 
-                    string srcDir = Path.Combine(service.SharedNetworkTempFolder, blockerDirName);
-                    string dstDir = Path.Combine(service.TestFolder, Path.GetFileName(Path.GetDirectoryName(inputBlockApp)));
-                    string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
+                    //-----local copy
+                    string copyPath = Path.Combine(tempPath, "localCopy.bat");
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+                    {
+                        file.WriteLine("@echo off");
+                        string srcDir = Path.GetDirectoryName(inputBlockApp);
+                        string dstDir = Path.Combine(service.SharedNetworkTempFolder, blockerDirName);
+                        string line = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
+                        file.WriteLine(line);
+                    }
+                    service.ExecuteCommandNoOutput(copyPath, true);
+                    //-----end
 
-                    string runLocation = Path.Combine(dstDir, Path.GetFileName(inputBlockApp));
-                    string runCmd = @"start """" """ + runLocation + @"""";
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+                    //service.runRemoteProgram(compList, inputBlockApp);
+                    //---onecall to client: copy and run
+                    int i = 0;
+                    foreach (LabClient client in clients)
+                    {
+                        string copyPathRemote = Path.Combine(tempPath, "remoteCopyRun" + client.ComputerName + ".bat");
+                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
+                        {
+                            file.WriteLine("@echo off");
 
-                    file.WriteLine(line);
-                }
-                service.StartNewCmdThread(copyPathRemote);
-                i++;
-            }
+                            string srcDir = Path.Combine(service.SharedNetworkTempFolder, blockerDirName);
+                            string dstDir = Path.Combine(service.TestFolder, Path.GetFileName(Path.GetDirectoryName(inputBlockApp)));
+                            string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V /E /Y /Q /I";
 
-            //-----notify ui
-            service.notifyStatus("Input Disable Request Sent");
-            //-----end
+                            string runLocation = Path.Combine(dstDir, Path.GetFileName(inputBlockApp));
+                            string runCmd = @"start """" """ + runLocation + @"""";
+                            string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+
+                            file.WriteLine(line);
+                        }
+                        service.StartNewCmdThread(copyPathRemote);
+                        i++;
+                    }
+
+                    //-----notify ui
+                    service.notifyStatus("Input Disable Request Sent");
+                    //-----end
+                });
+            t.IsBackground = true;
+            t.Start();
         }
 
         public void RunRemotePSCmdLet(string computerName, string cmdLet)
@@ -593,13 +608,13 @@ namespace ServiceLibrary
                     }
                 }
             });
+
             t.IsBackground = true;
             t.Start();
         }
 
         public void InputEnable(List<LabClient> clients)
         {
-
             foreach (LabClient client in clients)
             {
                 killRemoteProcess(client.ComputerName, "InputBlocker.exe");
@@ -609,7 +624,6 @@ namespace ServiceLibrary
                 notifyStatus("Input Enabled");
                 //-----end
             }
-
         }
 
         public void runRemoteProgram(List<LabClient> compList, string path, string param = "")
@@ -617,8 +631,6 @@ namespace ServiceLibrary
             foreach (LabClient client in compList)
             {
                 string compName = client.ComputerName.ToString();
-
-
                 string copyPathRemote = Path.Combine(tempPath, "remoteRun" + compName + ".bat");
 
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
@@ -735,6 +747,19 @@ namespace ServiceLibrary
             new Thread(() => KillProcThread(computerName, processName)).Start();
         }
 
+        public void killRemoteProcess(List<LabClient> computers, string processName)
+        {
+            Thread t = new Thread(() =>
+                {
+                    foreach (LabClient client in computers)
+                    {
+                        service.killRemoteProcess(client.ComputerName, processName);
+                    }
+                });
+            t.IsBackground = true;
+            t.Start();
+        }
+
         private void KillProcThread(string computerName, string processName)
         {
             string cmdlet = "Taskkill /IM " + processName + " /F";
@@ -759,9 +784,6 @@ namespace ServiceLibrary
                 ssLPassword.AppendChar(c);
 
             PSCredential Credential = new PSCredential(Credentials.UserAtDomain, ssLPassword);
-
-
-
 
             foreach (LabClient client in clients)
             {
@@ -825,7 +847,6 @@ namespace ServiceLibrary
                 {
                     file.WriteLine("@echo off");
 
-
                     string copyCmd = @"xcopy ""\\BSSFILES2\dept\adm\labrun\scr-viewer"" ""C:\labrun\scr-viewer"" /V /E /Y /Q /I";
                     string runCmd = @"""" + @"C:\labrun\scr-viewer\scr-viewer.exe" + @"""";
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
@@ -872,8 +893,11 @@ Add-FirewallRule
 
         public void NetEnable(List<LabClient> clients)
         {
-            string script = @"$fw = New-Object -ComObject hnetcfg.fwpolicy2 
-                            $fw.Rules.Remove(""Block http(s) ports"")";
+            string script = @"$ruleName = ""Block http(s) ports""
+                            $fw = New-Object -ComObject hnetcfg.fwpolicy2 
+                            foreach ($rule in ($fw.Rules | where-object {$_.name -eq $ruleName } )) {
+                                $fw.Rules.Remove($ruleName)
+                            }";
 
             foreach (LabClient client in clients)
             {
@@ -920,12 +944,22 @@ Add-FirewallRule
             return user != null;
         }
 
+        public void InitProjects()
+        {
+            Thread t = new Thread(() =>
+                {
+                    WebClient webClient = new WebClient();
+                    string projectsStr = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/projects?" + user.UniqueHash);
+                    string[] lines = projectsStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+                    projects = new List<string>(lines);
+                });
+            t.IsBackground = true;
+            t.Start();
+        }
+
         public List<string> GetProjects()
         {
-            WebClient webClient = new WebClient();
-            string projectsStr = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/projects?" + user.UniqueHash);
-            string[] lines = projectsStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            return new List<string>(lines); ;
+            return projects;
         }
 
         /// <summary>
@@ -936,21 +970,18 @@ Add-FirewallRule
         {
             foreach (LabClient client in clients)
             {
-                
+                string batFileName = Path.Combine(tempPath, "DeleteTemp" + client.ComputerName + ".bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
+                {
+                    file.WriteLine("@echo off");
 
-                    string batFileName = Path.Combine(tempPath, "DeleteTemp" + client.ComputerName + ".bat");
-                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
-                    {
-                        file.WriteLine("@echo off");
-
-                        string deleteCmd = @"rmdir /S /Q C:\labrun\temp";
-                        string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + deleteCmd + @")";
-                        file.WriteLine(line);
-                    }
-                    service.StartNewCmdThread(batFileName);
-               }
-    
+                    string deleteCmd = @"rmdir /S /Q C:\labrun\temp";
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + deleteCmd + @")";
+                    file.WriteLine(line);
+                }
+                service.StartNewCmdThread(batFileName);
             }
+        }
 
         /// <summary>
         /// Transfers a folder first to the shared drive then to each selected labclient.
@@ -976,7 +1007,6 @@ Add-FirewallRule
             {
                 fileName = word;
             }
-
 
             // Copy to network drive
             string copyPath = Path.Combine(tempPath, "localCopy.bat");
@@ -1008,6 +1038,5 @@ Add-FirewallRule
             }
         }
 
-
-      }
+    }
 }

@@ -85,7 +85,7 @@ namespace UserControls
             }
             param += " " + urlTxtBox.Text.ToString();
             parent.SetTabActivity(TabItem, clients, true);
-            service.runRemoteProgram(clients, @"C:\Program Files (x86)\Google\Chrome\Application\Chrome.exe", param);
+            service.runRemoteProgram(clients, service.Config.Chrome, param);
         }
 
         private void btnClose_Click(object sender, RoutedEventArgs e)

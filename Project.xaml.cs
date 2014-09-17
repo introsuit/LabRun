@@ -32,12 +32,17 @@ namespace LabRun
             lstProjects.ItemsSource = projects;
         }
 
-        private void btnOK_Click(object sender, RoutedEventArgs e)
+        private void UpdateSelectedProject(string project)
         {
-            string project = (string)lstProjects.SelectedValue;
             if (project == null)
                 return;
             parent.SetProject(project);
+        }
+
+        private void btnOK_Click(object sender, RoutedEventArgs e)
+        {
+            string project = (string)lstProjects.SelectedValue;
+            UpdateSelectedProject(project);
             this.Close();
         }
 
@@ -58,13 +63,11 @@ namespace LabRun
             }
         }
 
-        private void lstProjects_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        protected void HandleDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            //int index = lstProjects.inde(e.Location);
-            //if (index != System.Windows.Forms.ListBox.NoMatches)
-            //{
-            //    MessageBox.Show(index.ToString());
-            //}
+            var project = ((ListBoxItem)sender).Content as string; //Casting back to the binded Track
+            UpdateSelectedProject(project);
+            this.Close();
         }
     }
 }

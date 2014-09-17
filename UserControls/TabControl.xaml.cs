@@ -89,12 +89,12 @@ namespace UserControls
                 // Open document 
                 string testFullPath = dlg.FileName;
 
-                lblBrowse.Content = testFullPath;
+                txbBrowse.Text = testFullPath;
                 inited = true;
 
                 btnRun.IsEnabled = true;
                 testApp.Initialize(testFullPath);
-                ButtonClickable(true);
+                SetClickable();
             }
         }
 
@@ -138,16 +138,13 @@ namespace UserControls
             parent.SetTabActivity(TabItem, clients, false);
 
             string appExeName = testApp.AppExeName;
-            foreach (LabClient client in clients)
+            try
             {
-                try
-                {
-                    service.killRemoteProcess(client.ComputerName, appExeName);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
+                service.killRemoteProcess(clients, appExeName);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -172,6 +169,14 @@ namespace UserControls
             //cmbWindowSizes.ItemsSource = Enum.GetValues(typeof(WindowSize)).Cast<WindowSize>();
         }
 
+        private void SetClickable()
+        {
+            btnKill.IsEnabled = clientSelected;
+            btnRun.IsEnabled = clientSelected && inited;
+            btnGetResults.IsEnabled = clientSelected;
+            btnDelResults.IsEnabled = clientSelected;
+        }
+
         public void ButtonClickable(bool enabled)
         {
             clientSelected = enabled;
@@ -180,10 +185,7 @@ namespace UserControls
                 clientSelected = true;
             }
             //btnBrowse.IsEnabled = enabled;
-            btnKill.IsEnabled = clientSelected;
-            btnRun.IsEnabled = clientSelected && inited;
-            btnGetResults.IsEnabled = clientSelected;
-            btnDelResults.IsEnabled = clientSelected;
+            SetClickable();
         }
 
         private void btnDelResults_Click(object sender, RoutedEventArgs e)
@@ -203,10 +205,17 @@ namespace UserControls
         {
             testApp.ProjectName = projectName;
         }
-    }
 
-    public enum TabNames
-    {
-        psychpoy, eprime, ztree, chrome, custom
+        private void btnOpenRes_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                testApp.OpenResultsFolder();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
     }
 }

@@ -7,8 +7,9 @@ namespace ServiceLibrary
 {
     public class EPrime : TestApp
     {
-        public EPrime() : base("EPrime", @"C:\Program Files (x86)\PST\E-Prime 2.0 Runtime (2.0.10.242)\Program\E-Run.exe") 
+        public EPrime() : base("EPrime") 
         {
+            ApplicationExecutableName = service.Config.EPrime;
             Extension = "ebs2";
             ExtensionDescription = "E-Prime Test Files (*.ebs2)|*.ebs2";
 

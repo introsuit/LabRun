@@ -42,6 +42,7 @@ namespace LabRun
             {
                 //MessageBox.Show("Login Failed! Username and/or password was incorrect.", "Login Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 parent.SetLogin(user);
+                service.InitProjects();
                 this.Close();
             }
         }

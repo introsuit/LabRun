@@ -13,13 +13,16 @@ namespace ServiceLibrary
     /// </summary>
     public class ZTree : TestApp
     {
-        private readonly string pathToZTreeAdmin = @"C:\ZTree\ZTreeRun.vbs";
-        private readonly string dumpFolder = @"C:\ZTreeDump";
+        private readonly string ztreeAdminExe;
+        private readonly string dumpFolder;
 
         public ZTree()
-            : base("ZTree", @"C:\Cobe Lab\ZTree\ZTree\zleaf.exe")
+            : base("ZTree")
         {
+            ApplicationExecutableName = service.Config.Ztreeleaf;
             applicationName = "ZTree";
+            ztreeAdminExe = service.Config.Ztreeadmin;
+            dumpFolder = service.Config.Ztreedump;
 
             resultExts.Add("xls");
             resultExts.Add("sbj");
@@ -35,9 +38,23 @@ namespace ServiceLibrary
                 {
                     Directory.CreateDirectory(dumpFolder);
                 }
-                string path = @"\\asb.local\staff\users\labclient\ZTree\ZTree\ztree.exe";
-                string arguments = @"/language en /privdir " + dumpFolder + @" /datadir " + dumpFolder + @" /gsfdir " + dumpFolder;
-                service.LaunchCommandLineApp(path, arguments);
+                //string path = @"C:\ZTree\ztree.exe";
+                //string arguments = @"/language en /privdir " + dumpFolder + @" /datadir " + dumpFolder + @" /gsfdir " + dumpFolder;
+                //service.LaunchCommandLineApp(path, arguments);
+
+                //service.LaunchCommandLineApp(@"C:\ZTree\JustRun.vbs", "");
+                //Process.Start(@"C:\ZTree\JustRun.vbs");
+
+                string copyPath = Path.Combine(tempPath, "ztreeRun.bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+                {
+                    file.WriteLine("@echo off");
+                    string line = "cd " + Path.GetDirectoryName(ztreeAdminExe);
+                    file.WriteLine(line);
+                    line = @"start """" " + Path.GetFileName(ztreeAdminExe) + @" /language en /privdir " + dumpFolder + @" /datadir " + dumpFolder + @" /gsfdir " + dumpFolder;
+                    file.WriteLine(line);
+                }
+                service.ExecuteCommandNoOutput(copyPath, true);
             }).Start();
         }
 
@@ -69,7 +86,7 @@ namespace ServiceLibrary
                     string windSize = "/size " + windowSize.Width + "x" + windowSize.Height;
                     string windPos = "/position " + windowSize.XPos + "," + windowSize.YPos;
 
-                    string runCmd = @"""" + applicationExecutableName + @""" /name Zleaf_" + zleafNo + @" /server " + adminCompName + @" /language en " + windSize + " " + windPos;
+                    string runCmd = @"""" + ApplicationExecutableName + @""" /name Zleaf_" + zleafNo + @" /server " + adminCompName + @" /language en " + windSize + " " + windPos;
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" " + runCmd;
                     file.WriteLine(line);
                 }
@@ -86,6 +103,7 @@ namespace ServiceLibrary
         public override Thread TransferResults(List<LabClient> clients)
         {
             var t = new Thread(() => ResTransfer(clients));
+            t.IsBackground = true;
             t.Start();
             return t;
         }
@@ -106,6 +124,10 @@ namespace ServiceLibrary
             }
             service.ExecuteCommandNoOutput(copyPath, true);
             //-----end
+
+            //-----notify ui
+            service.notifyStatus("Transfer Complete");
+            //-----end
         }
 
         public override void DeleteResults(List<LabClient> clients)
@@ -124,6 +146,10 @@ namespace ServiceLibrary
                 }
                 service.ExecuteCommandNoOutput(pathDel, true);
                 //----end
+
+                //-----notify ui
+                service.notifyStatus("Cleaning Complete");
+                //-----end
             }).Start();
         }
     }

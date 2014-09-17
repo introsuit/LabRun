@@ -54,6 +54,12 @@ namespace LabRun
                     this.Close();
                     return;
                 }
+                if (message == "config.ini")
+                {
+                    string msg = "File config.ini was not found!";
+                    MessageBox.Show(msg, "File not found", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
             }
 
             service.ProgressUpdate += (s, e) =>
@@ -71,6 +77,13 @@ namespace LabRun
             service.StartPingSvc(clients);
         }
 
+        private void EnableColumn()
+        {
+            if (clients.Exists(i => i.PsychoPy == true))
+                dgrClients.Columns[2].Visibility = Visibility.Visible;
+            else dgrClients.Columns[2].Visibility = Visibility.Hidden;
+        }
+
         private void FitToContent()
         {
             // where dg is my data grid's name...
@@ -83,10 +96,6 @@ namespace LabRun
                 //if you want to size ur column as per both header and cell content
                 column.Width = new DataGridLength(1.0, DataGridLengthUnitType.Auto);
             }
-            Thickness margin = tabControl1.Margin;
-            MessageBox.Show(dgrClients.ActualWidth + " act width");
-            margin.Left = dgrClients.ActualWidth + 20;
-            tabControl1.Margin = margin;
         }
 
         public void initClients()
@@ -123,34 +132,45 @@ namespace LabRun
             tabPsy.Content = tC;
             tC.TabItem = tabPsy;
             tabControls.Add(tC);
+            tabPsy.Header = new TextBlock
+            {
+                Text = tabPsy.Header.ToString(),
+            };
 
             UserControls.TabControl tC2 = new UserControls.TabControl(this, new EPrime());
             tC2.setTestLogo(@"\Images\eprime.png");
             tabEPrime.Content = tC2;
             tC2.TabItem = tabEPrime;
             tabControls.Add(tC2);
+            tabEPrime.Header = new TextBlock
+            {
+                Text = tabEPrime.Header.ToString(),
+            };
 
             UserControls.TabControl tC3 = new UserControls.TabControl(this, new ZTree());
             tC3.setTestLogo(@"\Images\ztree.png");
             tabZTree.Content = tC3;
             tC3.TabItem = tabZTree;
             tabControls.Add(tC3);
+            tabZTree.Header = new TextBlock
+                {
+                    Text = tabZTree.Header.ToString(),
+                };
 
-            //((Label)tC3.FindName("lblWindowSize")).Visibility = Visibility.Visible;
-            //ComboBox cmbWinSizes = (ComboBox)tC3.FindName("cmbWindowSizes");
-            //cmbWinSizes.Visibility = Visibility.Visible;
-            //cmbWinSizes.ItemsSource = service.WindowSizes;
             ((Button)tC3.FindName("btnRun")).Content = "Run Leaves";
             ((Button)tC3.FindName("btnBrowse")).Visibility = Visibility.Hidden;
-            ((Label)tC3.FindName("lblBrowse")).Visibility = Visibility.Hidden;
+            ((TextBlock)tC3.FindName("txbBrowse")).Visibility = Visibility.Hidden;
             ((CheckBox)tC3.FindName("cbxCopyAll")).Visibility = Visibility.Hidden;
-            //((Label)tC3.FindName("lblZTreeInfo")).Visibility = Visibility.Visible;
 
             UserControls.ChromeTab tC4 = new UserControls.ChromeTab(this);
             tC4.setTestLogo(@"\Images\chrome-logo.png");
             tabChrome.Content = tC4;
             tC4.TabItem = tabChrome;
             tabControls.Add(tC4);
+            tabChrome.Header = new TextBlock
+            {
+                Text = tabChrome.Header.ToString(),
+            };
 
             UserControls.CustomRun tC5 = new UserControls.CustomRun(this);
 
@@ -158,36 +178,71 @@ namespace LabRun
             tabControls.Add(tC5);
         }
 
-        public void SetTabActivity(TabItem tabItem, List<LabClient> clients, bool active)
+        private void SetColumnVisibility(DataGridColumn column, bool visible)
+        {
+            column.Visibility = visible ? Visibility.Visible : Visibility.Hidden;
+            dgrClients.Items.Refresh();
+        }
+
+        public void SetFeatureActivity(Feature feature, List<LabClient> selectedClients, bool active)
         {
             bool exists = false;
+            DataGridColumn column = null;
+            switch (feature)
+            {
+                case Feature.WEB:
+                    selectedClients.ForEach(i => i.Web = active);
+                    exists = clients.Exists(i => i.Web == true);
+                    column = dgrClients.Columns[6];
+                    break;
+                case Feature.SHARESCR:
+                    selectedClients.ForEach(i => i.ShareScr = active);
+                    exists = clients.Exists(i => i.ShareScr == true);
+                    column = dgrClients.Columns[7];
+                    break;
+                case Feature.INPUT:
+                    selectedClients.ForEach(i => i.Input = active);
+                    exists = clients.Exists(i => i.Input == true);
+                    column = dgrClients.Columns[8];
+                    break;
+            }
+            SetColumnVisibility(column, exists);
+        }
+
+        public void SetTabActivity(TabItem tabItem, List<LabClient> selectedClients, bool active)
+        {
+            if (!(tabItem.Header is TextBlock))
+            {
+                return;
+            }
+
+            bool exists = false;
+            DataGridColumn column = null;
             switch (tabItem.Name.ToString())
             {
                 case "tabPsy":
-                    clients.ForEach(i => i.PsychoPy = active);
+                    selectedClients.ForEach(i => i.PsychoPy = active);
                     exists = clients.Exists(i => i.PsychoPy == true);
+                    column = dgrClients.Columns[2];
                     break;
                 case "tabEPrime":
-                    clients.ForEach(i => i.EPrime = active);
+                    selectedClients.ForEach(i => i.EPrime = active);
                     exists = clients.Exists(i => i.EPrime == true);
+                    column = dgrClients.Columns[3];
                     break;
                 case "tabZTree":
-                    clients.ForEach(i => i.ZTree = active);
+                    selectedClients.ForEach(i => i.ZTree = active);
                     exists = clients.Exists(i => i.ZTree == true);
+                    column = dgrClients.Columns[4];
                     break;
                 case "tabChrome":
-                    clients.ForEach(i => i.Chrome = active);
+                    selectedClients.ForEach(i => i.Chrome = active);
                     exists = clients.Exists(i => i.Chrome == true);
+                    column = dgrClients.Columns[5];
                     break;
             }
-            if (exists)
-            {
-                tabItem.Foreground = Brushes.Red;
-            }
-            else
-            {
-                tabItem.Foreground = Brushes.Black;
-            }
+            ((TextBlock)tabItem.Header).Foreground = exists ? Brushes.Red : Brushes.Black;
+            SetColumnVisibility(column, exists);
         }
 
         public List<LabClient> getSelectedClients()
@@ -220,8 +275,12 @@ namespace LabRun
 
         private void btnShutdown_Click(object sender, RoutedEventArgs e)
         {
-            lblStatus.Content = "In Progress...";
-            service.ShutdownComputers(getSelectedClients());
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to shutdown selected computers?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                lblStatus.Content = "In Progress...";
+                service.ShutdownComputers(getSelectedClients());
+            }
         }
 
         public IEnumerable<DataGridRow> GetDataGridRows(DataGrid grid)
@@ -328,27 +387,37 @@ namespace LabRun
 
         private void btnInputDisable_Click(object sender, RoutedEventArgs e)
         {
-            service.InputDisable(getSelectedClients());
+            List<LabClient> clients = getSelectedClients();
+            SetFeatureActivity(Feature.INPUT, clients, true);
+            service.InputDisable(clients);
         }
 
         private void btnInputEnable_Click(object sender, RoutedEventArgs e)
         {
-            service.InputEnable(getSelectedClients());
+            List<LabClient> clients = getSelectedClients();
+            SetFeatureActivity(Feature.INPUT, clients, false);
+            service.InputEnable(clients);
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            service.StartScreenSharing(getSelectedClients());
+            List<LabClient> clients = getSelectedClients();
+            SetFeatureActivity(Feature.SHARESCR, clients, true);
+            service.StartScreenSharing(clients);
         }
 
         private void btnNetDisable_Click(object sender, RoutedEventArgs e)
         {
-            service.NetDisable(getSelectedClients());
+            List<LabClient> clients = getSelectedClients();
+            SetFeatureActivity(Feature.WEB, clients, true);
+            service.NetDisable(clients);
         }
 
         private void btnNetEnable_Click(object sender, RoutedEventArgs e)
         {
-            service.NetEnable(getSelectedClients());
+            List<LabClient> clients = getSelectedClients();
+            SetFeatureActivity(Feature.WEB, clients, false);
+            service.NetEnable(clients);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -486,8 +555,9 @@ namespace LabRun
 
         private void btnStopSharing_Click(object sender, RoutedEventArgs e)
         {
-            service.StopScreenSharing(getSelectedClients());
-
+            List<LabClient> clients = getSelectedClients();
+            SetFeatureActivity(Feature.SHARESCR, clients, false);
+            service.StopScreenSharing(clients);
         }
 
         private void dgrClients_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -536,7 +606,7 @@ namespace LabRun
         public void SetProject(string projectName)
         {
             project = projectName;
-            lblProject.Content = project;
+            lblProject.Text = project;
             foreach (ControlUnit cUnit in tabControls)
             {
                 cUnit.SetProject(project);
@@ -584,8 +654,20 @@ namespace LabRun
 
         private void dgrClients_Loaded(object sender, RoutedEventArgs e)
         {
-            
-        }      
+
+        }
+
+        private void lblProject_IsMouseDirectlyOverChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            bool isMouseOver = (bool)e.NewValue;
+            if (!isMouseOver)
+                return;
+            TextBlock textBlock = (TextBlock)sender;
+            bool needed = textBlock.ActualWidth >
+                (this.btnSelProject as Button).ActualWidth;
+            ((ToolTip)textBlock.ToolTip).Visibility =
+                needed ? Visibility.Visible : Visibility.Collapsed;
+        }
     }
 }
 

@@ -22,10 +22,103 @@ namespace ServiceLibrary
             }
         }
 
-        public bool PsychoPy { get; set; }
-        public bool EPrime { get; set; }
-        public bool ZTree { get; set; }
-        public bool Chrome { get; set; }
+        private bool psychoPy;
+        public bool PsychoPy
+        {
+            get { return psychoPy; }
+            set
+            {
+                if (value != psychoPy)
+                {
+                    psychoPy = value;
+                    OnPropertyChanged("PsychoPy");
+                }
+            }
+        }
+
+        private bool eprime { get; set; }
+        public bool EPrime
+        {
+            get { return eprime; }
+            set
+            {
+                if (value != eprime)
+                {
+                    eprime = value;
+                    OnPropertyChanged("EPrime");
+                }
+            }
+        }
+
+        private bool ztree { get; set; }
+        public bool ZTree
+        {
+            get { return ztree; }
+            set
+            {
+                if (value != ztree)
+                {
+                    ztree = value;
+                    OnPropertyChanged("ZTree");
+                }
+            }
+        }
+
+        private bool chrome { get; set; }
+        public bool Chrome
+        {
+            get { return chrome; }
+            set
+            {
+                if (value != chrome)
+                {
+                    chrome = value;
+                    OnPropertyChanged("Chrome");
+                }
+            }
+        }
+
+        private bool web { get; set; }
+        public bool Web
+        {
+            get { return web; }
+            set
+            {
+                if (value != web)
+                {
+                    web = value;
+                    OnPropertyChanged("Web");
+                }
+            }
+        }
+
+        private bool shareScr { get; set; }
+        public bool ShareScr
+        {
+            get { return shareScr; }
+            set
+            {
+                if (value != shareScr)
+                {
+                    shareScr = value;
+                    OnPropertyChanged("ShareScr");
+                }
+            }
+        }
+
+        private bool input { get; set; }
+        public bool Input
+        {
+            get { return input; }
+            set
+            {
+                if (value != input)
+                {
+                    input = value;
+                    OnPropertyChanged("Input");
+                }
+            }
+        }
 
         public int RoomNo { get; set; }
         public string ComputerName { get; set; }
@@ -80,6 +173,6 @@ namespace ServiceLibrary
             int hash = 13;
             hash = (hash * 7) + ComputerName.GetHashCode();
             return hash;
-        }    
+        }
     }
 }

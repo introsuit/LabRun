@@ -43,5 +43,11 @@ namespace LabRun
         {
             this.Close();
         }
+
+        private void txbProjectName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string content = ((TextBox)e.Source).Text;
+            btnOk.IsEnabled = !content.Equals("");
+        }
     }
 }
