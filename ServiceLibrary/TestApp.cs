@@ -190,7 +190,7 @@ namespace ServiceLibrary
 
             //----copy results from client computers to shared network folder
             DateTime timeStamp = DateTime.Now;
-            timePrint = String.Format("{0:yyyyMMdd_hhmmss}", timeStamp);
+            timePrint = String.Format("{0:yyyyMMdd_HHmmss}", timeStamp);
             int i = 0;
             foreach (LabClient client in clients)
             {
@@ -331,11 +331,11 @@ namespace ServiceLibrary
             string projPath = Path.Combine(service.TestFolder, resultsFolderName, projectName);
             DirectoryInfo[] subjects = new DirectoryInfo(projPath).GetDirectories();
 
-            //get all subjects from project
-            WebClient webClient = new WebClient();
-            string subjStr = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/subjectswithcode?" + service.User.UniqueHash + "&projectCode=" + projectName);
-            string[] lines = subjStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            List<string> dmsSubjects = new List<string>(lines);
+            ////get all subjects from project
+            //WebClient webClient = new WebClient();
+            //string subjStr = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/subjectswithcode?" + service.User.UniqueHash + "&projectCode=" + projectName);
+            //string[] lines = subjStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            //List<string> dmsSubjects = new List<string>(lines);
 
             List<string> zipsForUpload = new List<string>();
 
@@ -351,10 +351,10 @@ namespace ServiceLibrary
                             continue;
                         }
                         int boothId = Convert.ToInt32(subject.Name);
-                        string subjId = GetSubjId(dmsSubjects, boothId);
+                        string subjId = CreateSubject(boothId);
 
                         string dirToZip = Path.Combine(projPath, subject.Name, timeline.Name, applicationName);
-                        string zipFileName = ProjectName + "." + subjId + "." + timeline.Name + "." + applicationName + ".zip";                      
+                        string zipFileName = ProjectName + "." + subjId + "." + timeline.Name + "." + applicationName + ".zip";
                         string zipPath = Path.Combine(projPath, zipFileName);
 
                         ZipDirectory(dirToZip, zipPath);
@@ -367,39 +367,40 @@ namespace ServiceLibrary
             UploadZips(zipsForUpload);
         }
 
-        private string GetSubjId(List<string> subjects, int boothNo)
+        //creates subject and returns subject number
+        private string CreateSubject(int boothNo)
         {
             string subjId = "";
 
-            //check if subj exists
-            bool exists = false;
-            foreach (string subject in subjects)
-            {
-                //subject number structure: "0001_ABC"
-                if (subject.Length != 8)
-                    continue;
-                string subjNoStr = subject.Remove(subject.Length - 4).TrimStart('0');
-                int subjNo = Convert.ToInt32(subjNoStr);
-                if (subjNo == boothNo)
-                {
-                    subjId = subject;
-                    exists = true;
-                    break;
-                }
-            }
+            ////check if subj exists
+            //bool exists = false;
+            //foreach (string subject in subjects)
+            //{
+            //    //subject number structure: "0001_ABC"
+            //    if (subject.Length != 8)
+            //        continue;
+            //    string subjNoStr = subject.Remove(subject.Length - 4).TrimStart('0');
+            //    int subjNo = Convert.ToInt32(subjNoStr);
+            //    if (subjNo == boothNo)
+            //    {
+            //        subjId = subject;
+            //        exists = true;
+            //        break;
+            //    }
+            //}
 
-            //if exists - retrieve id, else create new subj and get its id
-            if (!exists)
-            {
-                WebClient webClient = new WebClient();
-                string url = "https://cobelab.au.dk/modules/StormDb/extract/createsubject?subjectNo=" + boothNo + "&subjectName=Booth" + boothNo + "&" + service.User.UniqueHash + "&projectCode=" + projectName;
-                string result = webClient.DownloadString(url);
-                //cut "\n" - new line seperators from result
-                result = Regex.Replace(result, @"\n", String.Empty);
-                subjId = result;
-                if (subjId.Contains("error"))
-                    throw new Exception("Failed to create new subject for BoothNo " + boothNo);
-            }
+            ////if exists - retrieve id, else create new subj and get its id
+            //if (!exists)
+            //{
+            WebClient webClient = new WebClient();
+            string url = "https://cobelab.au.dk/modules/StormDb/extract/createsubject?subjectName=Booth" + boothNo + "&" + service.User.UniqueHash + "&projectCode=" + projectName;
+            string result = webClient.DownloadString(url);
+            //cut "\n" - new line seperators from result
+            result = Regex.Replace(result, @"\n", String.Empty);
+            subjId = result;
+            if (subjId.Contains("error"))
+                throw new Exception("Failed to create new subject for BoothNo " + boothNo);
+            //}
             return subjId;
         }
 
@@ -421,20 +422,20 @@ namespace ServiceLibrary
                 file.WriteLine("@echo off");
                 file.WriteLine(@"net use """ + uploadPath + @""" " + service.User.Password + @" /user:" + service.User.Username);
 
-                //file.WriteLine(":copy");
+                file.WriteLine(":copy");
                 foreach (string zip in zips)
                 {
                     string line = @"xcopy """ + zip + @""" """ + uploadPath + @""" /V /Y /Q /I";
                     file.WriteLine(line);
                 }
-                
-                //file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
-                //file.WriteLine("goto disconnect");
 
-                //file.WriteLine(":disconnect");
+                file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
+                file.WriteLine("goto disconnect");
+
+                file.WriteLine(":disconnect");
                 file.WriteLine(@"net use """ + uploadPath + @""" /delete");
-                //file.WriteLine("goto end");
-                //file.WriteLine(":end");
+                file.WriteLine("goto end");
+                file.WriteLine(":end");
                 file.WriteLine("exit");
             }
             service.ExecuteCommandNoOutput(copyPath, true);
