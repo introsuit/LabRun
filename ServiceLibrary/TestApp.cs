@@ -51,12 +51,19 @@ namespace ServiceLibrary
             //this.applicationExecutableName = applicationExecutableName;
         }
 
-        //must be called before any action!
+        //must be called before "Run" action!
         public void Initialize(string testFilePath)
         {
             this.testFilePath = testFilePath;
             this.testFileName = Path.GetFileName(testFilePath);
             testFolderName = Path.GetFileName(Path.GetDirectoryName(testFilePath));
+        }
+
+        //returns timestamp in yyyyMMdd_HHmmss format
+        public string GetCurrentTimestamp()
+        {
+            DateTime timeStamp = DateTime.Now;
+            return String.Format("{0:yyyyMMdd_HHmmss}", timeStamp);
         }
 
         public virtual Thread TransferAndRun(List<LabClient> selectedClients, bool copyAll)
@@ -75,8 +82,10 @@ namespace ServiceLibrary
             string copyPath = Path.Combine(tempPath, "localCopy.bat");
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
+                timePrint = GetCurrentTimestamp();
+
                 string srcDir = testFilePath;
-                string dstDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, testFolderName) + @"\";
+                string dstDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, timePrint) + @"\";
                 string args = fileArgs;
                 if (copyAll)
                 {
@@ -101,24 +110,24 @@ namespace ServiceLibrary
                 {
                     file.WriteLine("@echo off");
 
-                    string srcDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, testFolderName, testFileName);
-                    string dstDir = Path.Combine(service.TestFolder, applicationName, testFolderName) + @"\";
+                    string srcDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, timePrint, testFileName);
+                    string dstDir = Path.Combine(service.TestFolder, applicationName, timePrint, applicationName) + @"\";
                     string args = fileArgs;
                     if (copyAll)
                     {
                         args = folderArgs;
-                        srcDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, testFolderName);
+                        srcDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, timePrint);
                     }
                     string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" " + args;
 
                     Debug.WriteLine(ApplicationExecutableName + " app exe name");
-                    string runCmd = @"""" + Path.Combine(service.TestFolder, applicationName, testFolderName, Path.GetFileName(testFilePath)) + @"""";
+                    string runCmd = @"""" + Path.Combine(dstDir, Path.GetFileName(testFilePath)) + @"""";
                     if (this is PsychoPy)
                     {
                         runCmd = @"""" + ApplicationExecutableName + @""" " + runCmd;
                     }
                     Debug.WriteLine(runCmd + " arun cmd");
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& start """" " + runCmd + @")";
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& cd """ + dstDir + @""" ^& start """" " + runCmd + @")";
 
                     file.WriteLine(line);
 
@@ -189,8 +198,6 @@ namespace ServiceLibrary
             //-----end
 
             //----copy results from client computers to shared network folder
-            DateTime timeStamp = DateTime.Now;
-            timePrint = String.Format("{0:yyyyMMdd_HHmmss}", timeStamp);
             int i = 0;
             foreach (LabClient client in clients)
             {
@@ -200,12 +207,8 @@ namespace ServiceLibrary
                     string src = Path.Combine(service.TestFolder, applicationName);
 
                     file.WriteLine("@echo off");
-                    //file.WriteLine(@"cd " + src);
-                    //file.WriteLine(@"IF NOT EXIST timestamp (echo timeis2014 > timestamp)");
-                    //file.WriteLine(@"set /p time=<timestamp");
-                    //file.WriteLine(@"echo %time% > timestamp");
 
-                    string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, client.BoothNo + "", timePrint, applicationName);
+                    string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, client.BoothNo + "");
 
                     string resultFiles = "";
                     foreach (string resultExt in resultExts)
@@ -254,6 +257,9 @@ namespace ServiceLibrary
                 file.WriteLine(line);
             }
             service.ExecuteCommandNoOutput(copyPath, true);
+            //string sharedPath = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName);
+            //if (Directory.Exists(sharedPath))
+            //    Directory.Delete(sharedPath, true);
             //-----end
 
             //-----notify ui
@@ -291,7 +297,7 @@ namespace ServiceLibrary
                     using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                     {
                         Debug.WriteLine(copyPathRemote);
-                        string path = Path.Combine(service.TestFolder, applicationName, testFolderName);
+                        string path = Path.Combine(service.TestFolder, applicationName);
 
                         string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (rmdir /s /q """ + path + @""")";
                         file.WriteLine(line);
@@ -325,73 +331,48 @@ namespace ServiceLibrary
 
         public void ToDms()
         {
-            if (service.User == null)
-                throw new Exception("You must login first!");
-
-            string projPath = Path.Combine(service.TestFolder, resultsFolderName, projectName);
-            DirectoryInfo[] subjects = new DirectoryInfo(projPath).GetDirectories();
-
-            ////get all subjects from project
-            //WebClient webClient = new WebClient();
-            //string subjStr = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/subjectswithcode?" + service.User.UniqueHash + "&projectCode=" + projectName);
-            //string[] lines = subjStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-            //List<string> dmsSubjects = new List<string>(lines);
-
-            List<string> zipsForUpload = new List<string>();
-
-            //iterate through all subjects and their results
-            foreach (DirectoryInfo subject in subjects)
-            {
-                foreach (DirectoryInfo timeline in subject.GetDirectories())
+            service.RunInNewThread(() =>
                 {
-                    foreach (DirectoryInfo modality in timeline.GetDirectories())
+                    if (service.User == null)
+                        throw new Exception("You must login first!");
+
+                    string projPath = Path.Combine(service.TestFolder, resultsFolderName, projectName);
+                    DirectoryInfo[] subjects = new DirectoryInfo(projPath).GetDirectories();
+                    List<string> zipsForUpload = new List<string>();
+
+                    //iterate through all subjects and their results
+                    foreach (DirectoryInfo subject in subjects)
                     {
-                        if (modality.Name != applicationName)
+                        foreach (DirectoryInfo timeline in subject.GetDirectories())
                         {
-                            continue;
+                            foreach (DirectoryInfo modality in timeline.GetDirectories())
+                            {
+                                if (modality.Name != applicationName)
+                                {
+                                    continue;
+                                }
+                                string subjId = CreateSubject(subject.Name);
+
+                                string dirToZip = Path.Combine(projPath, subject.Name, timeline.Name, applicationName);
+                                string zipFileName = ProjectName + "." + subjId + "." + timeline.Name + "." + applicationName + ".zip";
+                                string zipPath = Path.Combine(projPath, zipFileName);
+
+                                ZipDirectory(dirToZip, zipPath);
+                                zipsForUpload.Add(zipPath);
+                            }
                         }
-                        int boothId = Convert.ToInt32(subject.Name);
-                        string subjId = CreateSubject(boothId);
-
-                        string dirToZip = Path.Combine(projPath, subject.Name, timeline.Name, applicationName);
-                        string zipFileName = ProjectName + "." + subjId + "." + timeline.Name + "." + applicationName + ".zip";
-                        string zipPath = Path.Combine(projPath, zipFileName);
-
-                        ZipDirectory(dirToZip, zipPath);
-                        zipsForUpload.Add(zipPath);
                     }
-                }
-            }
 
-            //finally upload all the zips to network drive
-            UploadZips(zipsForUpload);
+                    //finally upload all the zips to network drive
+                    UploadZips(zipsForUpload);
+                });
         }
 
         //creates subject and returns subject number
-        private string CreateSubject(int boothNo)
+        private string CreateSubject(string boothNo)
         {
             string subjId = "";
 
-            ////check if subj exists
-            //bool exists = false;
-            //foreach (string subject in subjects)
-            //{
-            //    //subject number structure: "0001_ABC"
-            //    if (subject.Length != 8)
-            //        continue;
-            //    string subjNoStr = subject.Remove(subject.Length - 4).TrimStart('0');
-            //    int subjNo = Convert.ToInt32(subjNoStr);
-            //    if (subjNo == boothNo)
-            //    {
-            //        subjId = subject;
-            //        exists = true;
-            //        break;
-            //    }
-            //}
-
-            ////if exists - retrieve id, else create new subj and get its id
-            //if (!exists)
-            //{
             WebClient webClient = new WebClient();
             string url = "https://cobelab.au.dk/modules/StormDb/extract/createsubject?subjectName=Booth" + boothNo + "&" + service.User.UniqueHash + "&projectCode=" + projectName;
             string result = webClient.DownloadString(url);

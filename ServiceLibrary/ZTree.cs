@@ -33,9 +33,10 @@ namespace ServiceLibrary
         {
             new Thread(() =>
             {
-                if (!Directory.Exists(dumpFolder))
+                string resultsFolder = Path.Combine(dumpFolder, GetCurrentTimestamp(), applicationName);
+                if (!Directory.Exists(resultsFolder))
                 {
-                    Directory.CreateDirectory(dumpFolder);
+                    Directory.CreateDirectory(resultsFolder);
                 }
                 //string path = @"C:\ZTree\ztree.exe";
                 //string arguments = @"/language en /privdir " + dumpFolder + @" /datadir " + dumpFolder + @" /gsfdir " + dumpFolder;
@@ -50,7 +51,8 @@ namespace ServiceLibrary
                     file.WriteLine("@echo off");
                     string line = "cd " + Path.GetDirectoryName(ztreeAdminExe);
                     file.WriteLine(line);
-                    line = @"start """" " + Path.GetFileName(ztreeAdminExe) + @" /language en /privdir " + dumpFolder + @" /datadir " + dumpFolder + @" /gsfdir " + dumpFolder;
+                  
+                    line = @"start """" " + Path.GetFileName(ztreeAdminExe) + @" /language en /privdir " + resultsFolder + @" /datadir " + resultsFolder + @" /gsfdir " + resultsFolder;
                     file.WriteLine(line);
                 }
                 service.ExecuteCommandNoOutput(copyPath, true);
@@ -76,7 +78,7 @@ namespace ServiceLibrary
                     file.WriteLine("@echo off");
                     string adminCompName = System.Environment.MachineName;
 
-                    //may need adding zero in front for <10no leaves
+                    //adds zero in front for <10no leaves
                     string zleafNo = client.BoothNo + "";
                     if (client.BoothNo < 9)
                         zleafNo = "0" + zleafNo;
@@ -115,7 +117,7 @@ namespace ServiceLibrary
             {
                 file.WriteLine("@echo off");
                 string src = dumpFolder;
-                string dst = Path.Combine(service.TestFolder, resultsFolderName, projectName, "ZTreeSubject", applicationName);
+                string dst = Path.Combine(service.TestFolder, resultsFolderName, projectName, "ZTreeSubject");
                 string line = @"xcopy """ + src + @""" """ + dst + @""" /V /E /Y /Q /I";
                 file.WriteLine(line);
                 //line = @"del /s /q " + Path.Combine(dst, completionFileName + @"*");

@@ -745,6 +745,13 @@ namespace ServiceLibrary
             t.Start();
         }
 
+        public void RunInNewThread(ThreadStart ts)
+        {
+            Thread t = new Thread(ts);
+            t.IsBackground = true;
+            t.Start();
+        }
+
         public void killRemoteProcess(string computerName, string processName)
         {
             new Thread(() => KillProcThread(computerName, processName)).Start();
