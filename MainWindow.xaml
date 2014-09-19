@@ -207,7 +207,7 @@
                     <TabItem Header="E-Prime" Name="tabEPrime">
                         <Grid Background="#FFE5E5E5"/>
                     </TabItem>
-                    <TabItem Header="Z-Tree" Name="tabZTree">
+                    <TabItem Header="z-tree" Name="tabZTree">
                         <Grid Background="#FFE5E5E5"/>
                     </TabItem>
                     <TabItem Header="Custom program" Name="tabCustom">

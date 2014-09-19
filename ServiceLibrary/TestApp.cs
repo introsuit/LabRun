@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace ServiceLibrary
@@ -12,6 +15,7 @@ namespace ServiceLibrary
     {
         protected Service service = Service.getInstance();
         protected string applicationName;
+        public string ApplicationName { get { return applicationName; } }
         protected string ApplicationExecutableName { get; set; }
         protected string resultsFolderName = "Results";
         protected string completionFileName = "DONE";
@@ -48,12 +52,19 @@ namespace ServiceLibrary
             //this.applicationExecutableName = applicationExecutableName;
         }
 
-        //must be called before any action!
+        //must be called before "Run" action!
         public void Initialize(string testFilePath)
         {
             this.testFilePath = testFilePath;
             this.testFileName = Path.GetFileName(testFilePath);
             testFolderName = Path.GetFileName(Path.GetDirectoryName(testFilePath));
+        }
+
+        //returns timestamp in yyyyMMdd_HHmmss format
+        public string GetCurrentTimestamp()
+        {
+            DateTime timeStamp = DateTime.Now;
+            return String.Format("{0:yyyyMMdd_HHmmss}", timeStamp);
         }
 
         public virtual Thread TransferAndRun(List<LabClient> selectedClients, bool copyAll)
@@ -72,8 +83,10 @@ namespace ServiceLibrary
             string copyPath = Path.Combine(tempPath, "localCopy.bat");
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
+                timePrint = GetCurrentTimestamp();
+
                 string srcDir = testFilePath;
-                string dstDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, testFolderName) + @"\";
+                string dstDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, timePrint) + @"\";
                 string args = fileArgs;
                 if (copyAll)
                 {
@@ -98,24 +111,24 @@ namespace ServiceLibrary
                 {
                     file.WriteLine("@echo off");
 
-                    string srcDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, testFolderName, testFileName);
-                    string dstDir = Path.Combine(service.TestFolder, applicationName, testFolderName) + @"\";
+                    string srcDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, timePrint, testFileName);
+                    string dstDir = Path.Combine(service.TestFolder, applicationName, timePrint, applicationName) + @"\";
                     string args = fileArgs;
                     if (copyAll)
                     {
                         args = folderArgs;
-                        srcDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, testFolderName);
+                        srcDir = Path.Combine(service.SharedNetworkTempFolder, applicationName, timePrint);
                     }
                     string copyCmd = @"xcopy """ + srcDir + @""" """ + dstDir + @""" " + args;
 
                     Debug.WriteLine(ApplicationExecutableName + " app exe name");
-                    string runCmd = @"""" + Path.Combine(service.TestFolder, applicationName, testFolderName, Path.GetFileName(testFilePath)) + @"""";
+                    string runCmd = @"""" + Path.Combine(dstDir, Path.GetFileName(testFilePath)) + @"""";
                     if (this is PsychoPy)
                     {
                         runCmd = @"""" + ApplicationExecutableName + @""" " + runCmd;
                     }
                     Debug.WriteLine(runCmd + " arun cmd");
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& start """" " + runCmd + @")";
+                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& cd """ + dstDir + @""" ^& start """" " + runCmd + @")";
 
                     file.WriteLine(line);
 
@@ -147,7 +160,7 @@ namespace ServiceLibrary
 
         private void waitForTransferCompletion(List<LabClient> selectedClients)
         {
-            long timeoutPeriod = 120000;
+            long timeoutPeriod = 150000;
             int sleepTime = 5000;
 
             bool timedOut = false;
@@ -167,6 +180,7 @@ namespace ServiceLibrary
         public virtual Thread TransferResults(List<LabClient> clients)
         {
             var t = new Thread(() => xcopyResults(clients));
+            t.IsBackground = true;
             t.Start();
             return t;
         }
@@ -185,8 +199,6 @@ namespace ServiceLibrary
             //-----end
 
             //----copy results from client computers to shared network folder
-            DateTime timeStamp = DateTime.Now;
-            timePrint = String.Format("{0:yyyyMMddhhmm}", timeStamp);
             int i = 0;
             foreach (LabClient client in clients)
             {
@@ -196,12 +208,8 @@ namespace ServiceLibrary
                     string src = Path.Combine(service.TestFolder, applicationName);
 
                     file.WriteLine("@echo off");
-                    //file.WriteLine(@"cd " + src);
-                    //file.WriteLine(@"IF NOT EXIST timestamp (echo timeis2014 > timestamp)");
-                    //file.WriteLine(@"set /p time=<timestamp");
-                    //file.WriteLine(@"echo %time% > timestamp");
 
-                    string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, client.BoothNo + "", timePrint, applicationName);
+                    string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, client.BoothNo + "");
 
                     string resultFiles = "";
                     foreach (string resultExt in resultExts)
@@ -250,6 +258,9 @@ namespace ServiceLibrary
                 file.WriteLine(line);
             }
             service.ExecuteCommandNoOutput(copyPath, true);
+            //string sharedPath = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName);
+            //if (Directory.Exists(sharedPath))
+            //    Directory.Delete(sharedPath, true);
             //-----end
 
             //-----notify ui
@@ -287,7 +298,7 @@ namespace ServiceLibrary
                     using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                     {
                         Debug.WriteLine(copyPathRemote);
-                        string path = Path.Combine(service.TestFolder, applicationName, testFolderName);
+                        string path = Path.Combine(service.TestFolder, applicationName);
 
                         string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (rmdir /s /q """ + path + @""")";
                         file.WriteLine(line);
@@ -309,14 +320,37 @@ namespace ServiceLibrary
                 //----end
 
                 //-----notify ui
-                service.notifyStatus("Cleaning Complete");
+                service.notifyStatus("Local Cleaning Complete. Request sent to delete from labclients");
                 //-----end
             }).Start();
         }
 
+        public void CreateProjectDir()
+        {
+            string path = Path.Combine(service.TestFolder, resultsFolderName, projectName);
+            Directory.CreateDirectory(path);
+        }
+
         public virtual void OpenResultsFolder()
         {
-            service.ProcessStartSimple(Path.Combine(service.TestFolder, resultsFolderName));
+            string path = Path.Combine(service.TestFolder, resultsFolderName, projectName);
+            if (!Directory.Exists(path))
+            {
+                throw new DirectoryNotFoundException(path);
+            }
+            service.ProcessStartSimple(path);
         }
+
+        public void ToDms()
+        {
+            string projPath = Path.Combine(service.TestFolder, resultsFolderName, projectName);
+            if (!Directory.Exists(projPath))
+            {
+                throw new DirectoryNotFoundException(projPath);
+            }
+            Dms dms = new Dms(this);
+            service.RunInNewThread(() => dms.DmsTransfer(projPath));
+        }
+
     }
 }

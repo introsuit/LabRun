@@ -656,18 +656,6 @@ namespace LabRun
         {
 
         }
-
-        private void lblProject_IsMouseDirectlyOverChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            bool isMouseOver = (bool)e.NewValue;
-            if (!isMouseOver)
-                return;
-            TextBlock textBlock = (TextBlock)sender;
-            bool needed = textBlock.ActualWidth >
-                (this.btnSelProject as Button).ActualWidth;
-            ((ToolTip)textBlock.ToolTip).Visibility =
-                needed ? Visibility.Visible : Visibility.Collapsed;
-        }
     }
 }
 

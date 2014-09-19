@@ -8,7 +8,7 @@ namespace ServiceLibrary
     public class PsychoPy : TestApp
     {
         public PsychoPy()
-            : base("Psychopy")
+            : base("PsychoPy")
         {
             ApplicationExecutableName = service.Config.Psychopy;
             Extension = "py";
