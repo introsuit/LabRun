@@ -15,6 +15,7 @@ namespace ServiceLibrary
     {
         protected Service service = Service.getInstance();
         protected string applicationName;
+        public string ApplicationName { get { return applicationName; } }
         protected string ApplicationExecutableName { get; set; }
         protected string resultsFolderName = "Results";
         protected string completionFileName = "DONE";
@@ -159,7 +160,7 @@ namespace ServiceLibrary
 
         private void waitForTransferCompletion(List<LabClient> selectedClients)
         {
-            long timeoutPeriod = 120000;
+            long timeoutPeriod = 150000;
             int sleepTime = 5000;
 
             bool timedOut = false;
@@ -319,110 +320,37 @@ namespace ServiceLibrary
                 //----end
 
                 //-----notify ui
-                service.notifyStatus("Cleaning Complete");
+                service.notifyStatus("Local Cleaning Complete. Request sent to delete from labclients");
                 //-----end
             }).Start();
         }
 
+        public void CreateProjectDir()
+        {
+            string path = Path.Combine(service.TestFolder, resultsFolderName, projectName);
+            Directory.CreateDirectory(path);
+        }
+
         public virtual void OpenResultsFolder()
         {
-            service.ProcessStartSimple(Path.Combine(service.TestFolder, resultsFolderName));
+            string path = Path.Combine(service.TestFolder, resultsFolderName, projectName);
+            if (!Directory.Exists(path))
+            {
+                throw new DirectoryNotFoundException(path);
+            }
+            service.ProcessStartSimple(path);
         }
 
         public void ToDms()
         {
-            service.RunInNewThread(() =>
-                {
-                    if (service.User == null)
-                        throw new Exception("You must login first!");
-
-                    string projPath = Path.Combine(service.TestFolder, resultsFolderName, projectName);
-                    DirectoryInfo[] subjects = new DirectoryInfo(projPath).GetDirectories();
-                    List<string> zipsForUpload = new List<string>();
-
-                    //iterate through all subjects and their results
-                    foreach (DirectoryInfo subject in subjects)
-                    {
-                        foreach (DirectoryInfo timeline in subject.GetDirectories())
-                        {
-                            foreach (DirectoryInfo modality in timeline.GetDirectories())
-                            {
-                                if (modality.Name != applicationName)
-                                {
-                                    continue;
-                                }
-                                string subjId = CreateSubject(subject.Name);
-
-                                string dirToZip = Path.Combine(projPath, subject.Name, timeline.Name, applicationName);
-                                string zipFileName = ProjectName + "." + subjId + "." + timeline.Name + "." + applicationName + ".zip";
-                                string zipPath = Path.Combine(projPath, zipFileName);
-
-                                ZipDirectory(dirToZip, zipPath);
-                                zipsForUpload.Add(zipPath);
-                            }
-                        }
-                    }
-
-                    //finally upload all the zips to network drive
-                    UploadZips(zipsForUpload);
-                });
-        }
-
-        //creates subject and returns subject number
-        private string CreateSubject(string boothNo)
-        {
-            string subjId = "";
-
-            WebClient webClient = new WebClient();
-            string url = "https://cobelab.au.dk/modules/StormDb/extract/createsubject?subjectName=Booth" + boothNo + "&" + service.User.UniqueHash + "&projectCode=" + projectName;
-            string result = webClient.DownloadString(url);
-            //cut "\n" - new line seperators from result
-            result = Regex.Replace(result, @"\n", String.Empty);
-            subjId = result;
-            if (subjId.Contains("error"))
-                throw new Exception("Failed to create new subject for BoothNo " + boothNo);
-            //}
-            return subjId;
-        }
-
-        private void ZipDirectory(string dirToZip, string zipPath)
-        {
-            if (File.Exists(zipPath))
+            string projPath = Path.Combine(service.TestFolder, resultsFolderName, projectName);
+            if (!Directory.Exists(projPath))
             {
-                File.Delete(zipPath);
+                throw new DirectoryNotFoundException(projPath);
             }
-            ZipFile.CreateFromDirectory(@dirToZip, @zipPath);
+            Dms dms = new Dms(this);
+            service.RunInNewThread(() => dms.DmsTransfer(projPath));
         }
 
-        private void UploadZips(List<string> zips)
-        {
-            string uploadPath = @service.Config.DmsUpload;
-            string copyPath = tempPath + "zipsUpload.bat";
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-            {
-                file.WriteLine("@echo off");
-                file.WriteLine(@"net use """ + uploadPath + @""" " + service.User.Password + @" /user:" + service.User.Username);
-
-                file.WriteLine(":copy");
-                foreach (string zip in zips)
-                {
-                    string line = @"xcopy """ + zip + @""" """ + uploadPath + @""" /V /Y /Q /I";
-                    file.WriteLine(line);
-                }
-
-                file.WriteLine("IF ERRORLEVEL 0 goto disconnect");
-                file.WriteLine("goto disconnect");
-
-                file.WriteLine(":disconnect");
-                file.WriteLine(@"net use """ + uploadPath + @""" /delete");
-                file.WriteLine("goto end");
-                file.WriteLine(":end");
-                file.WriteLine("exit");
-            }
-            service.ExecuteCommandNoOutput(copyPath, true);
-
-            if (File.Exists(copyPath))
-                File.Delete(copyPath);
-        }
     }
 }

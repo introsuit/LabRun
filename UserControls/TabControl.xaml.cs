@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using ServiceLibrary;
 using System.Reflection;
 using System.ComponentModel;
+using System.IO;
 
 namespace UserControls
 {
@@ -150,23 +151,25 @@ namespace UserControls
 
         private void btnGetResults_Click(object sender, RoutedEventArgs e)
         {
-            parent.updateStatus("In Progress...");
-
-            try
+            MessageBoxResult result = MessageBoxResult.Yes;
+            if (!(testApp is ZTree))
             {
-                testApp.TransferResults(parent.getSelectedClients());
+                result = MessageBox.Show("Are you sure you have selected all the labclients that you want to transfer results from?\n\nClick Yes to continue.", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             }
-            catch (TimeoutException ex)
+            if (result == MessageBoxResult.Yes)
             {
-                MessageBox.Show("Transfer timed out: " + ex.Message, "Transfer Failure", MessageBoxButton.OK, MessageBoxImage.Error);
-                parent.updateStatus("Idle");
-                return;
-            }
-        }
+                parent.updateStatus("In Progress...");
 
-        private void cmbWindowSizes_Loaded(object sender, RoutedEventArgs e)
-        {
-            //cmbWindowSizes.ItemsSource = Enum.GetValues(typeof(WindowSize)).Cast<WindowSize>();
+                try
+                {
+                    testApp.TransferResults(parent.getSelectedClients());
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Transfer timed out: " + ex.Message + "\n\nNot all results might be transferred.", "Transfer Failure", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    parent.updateStatus("Idle");
+                }
+            }
         }
 
         private void SetClickable()
@@ -174,7 +177,6 @@ namespace UserControls
             btnKill.IsEnabled = clientSelected;
             btnRun.IsEnabled = clientSelected && inited;
             btnGetResults.IsEnabled = clientSelected;
-            btnDelResults.IsEnabled = clientSelected;
         }
 
         public void ButtonClickable(bool enabled)
@@ -184,18 +186,23 @@ namespace UserControls
             {
                 clientSelected = true;
             }
-            //btnBrowse.IsEnabled = enabled;
             SetClickable();
         }
 
         private void btnDelResults_Click(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult result = MessageBox.Show("Are you sure you want to delete all result files from lab computers?\nMake sure you have a backup!", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            string msg = "Are you sure you want to delete all result files from lab computers and admin computer?\nMake sure you have a backup!";
+            if (!(testApp is ZTree))
+            {
+                msg = "Make sure you have selected all lab computers that you want results to be deleted from!\n\n" + msg;
+            }
+
+            MessageBoxResult result = MessageBox.Show(msg, "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
                 if (testApp is ZTree)
                 {
-                    MessageBoxResult check = MessageBox.Show("Make sure that ZTree admin application is not running!", "Are you sure?", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Make sure that ZTree admin application is not running!", "Are you sure?", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 testApp.DeleteResults(parent.getSelectedClients());
             }
@@ -206,27 +213,57 @@ namespace UserControls
             testApp.ProjectName = projectName;
         }
 
+        private void CreateDir()
+        {
+            try
+            {
+                testApp.CreateProjectDir();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Failed to create directory", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private void btnOpenRes_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 testApp.OpenResultsFolder();
             }
-            catch (Exception ex)
+            catch (DirectoryNotFoundException ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBoxResult result = MessageBox.Show("Project directory: \"" + ex.Message + "\" was not found.\n\nDo you want to create a folder for this project?", "Directory not found", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    CreateDir();
+                    btnOpenRes_Click(sender, e);
+                }
             }
         }
 
         private void btnExportDb_Click(object sender, RoutedEventArgs e)
         {
-            try
+            if (service.User == null)
             {
-                testApp.ToDms();
+                MessageBox.Show(@"You must be logged in to do that.", "Login required", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                return;
             }
-            catch (Exception ex)
+            MessageBoxResult result = MessageBox.Show("All results data from your project will be copied to DMS\nTo see what will be transferred, click \"Open Results\" to view your project folder.\n\nAre you sure you want to continue?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
             {
-                MessageBox.Show(ex.Message);
+                try
+                {
+                    testApp.ToDms();
+                }
+                catch (DirectoryNotFoundException ex)
+                {
+                    MessageBox.Show("Project folder: \"" + ex.Message + "\" was not found! Make sure that you have transferred results to this project.", "Directory Not Found", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }
