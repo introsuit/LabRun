@@ -1,7 +1,7 @@
 ﻿<Window x:Class="LabRun.Project"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Project" Height="396.02" Width="345.771">
+        Title="Project" Height="396.02" Width="345.771" ResizeMode="CanMinimize">
     <Window.Resources>
         <Style x:Key="itemstyle" TargetType="{x:Type ListBoxItem}">
             <EventSetter Event="MouseDoubleClick" Handler="HandleDoubleClick" />

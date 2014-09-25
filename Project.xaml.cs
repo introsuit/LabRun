@@ -22,12 +22,13 @@ namespace LabRun
     {
         private Service service = Service.getInstance();
         private List<string> projects = new List<string>();
-        private MainUI parent = null;
+        private MainWindow parent = null;
 
-        public Project(MainUI parent)
+        public Project(MainWindow parent)
         {
             InitializeComponent();
             this.parent = parent;
+            this.Owner = parent;
             projects = service.GetProjects();
             lstProjects.ItemsSource = projects;
         }
@@ -36,7 +37,7 @@ namespace LabRun
         {
             if (project == null)
                 return;
-            parent.SetProject(project);
+            parent.SetProject(project, true);
         }
 
         private void btnOK_Click(object sender, RoutedEventArgs e)

@@ -1,18 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using ServiceLibrary;
-using System.Reflection;
 using System.ComponentModel;
 using System.IO;
 
@@ -78,7 +70,8 @@ namespace UserControls
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
 
             // Set filter for file extension and default file extension 
-            dlg.DefaultExt = testApp.Extension;
+            //dlg.DefaultExt = testApp.Extension;
+
             dlg.Filter = testApp.ExtensionDescription;
 
             // Display OpenFileDialog by calling ShowDialog method 
@@ -196,14 +189,14 @@ namespace UserControls
             {
                 msg = "Make sure you have selected all lab computers that you want results to be deleted from!\n\n" + msg;
             }
+            else
+            {
+                msg = msg + "\n\nIf you have a running ztree application it will be closed!";
+            }
 
             MessageBoxResult result = MessageBox.Show(msg, "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
-                if (testApp is ZTree)
-                {
-                    MessageBox.Show("Make sure that ZTree admin application is not running!", "Are you sure?", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
                 testApp.DeleteResults(parent.getSelectedClients());
             }
         }

@@ -49,7 +49,7 @@
 
                 <Label Content="Lab Clients:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"/>
 
-                <DataGrid ColumnWidth="Auto" IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="332" Width="Auto" SelectionChanged="dgrClients_SelectionChanged" MouseLeftButtonDown="dgrClients_MouseLeftButtonDown" MouseLeftButtonUp="dgrClients_MouseLeftButtonUp_1" MouseUp="dgrClients_MouseUp_1" Loaded="dgrClients_Loaded">
+                <DataGrid ColumnWidth="Auto" IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="332" Width="Auto" SelectionChanged="dgrClients_SelectionChanged" MouseLeftButtonDown="dgrClients_MouseLeftButtonDown" MouseLeftButtonUp="dgrClients_MouseLeftButtonUp_1" MouseUp="dgrClients_MouseUp_1">
                     <DataGrid.CellStyle>
                         <Style TargetType="{x:Type DataGridCell}">
                             <Style.Triggers>

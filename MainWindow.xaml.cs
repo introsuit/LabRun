@@ -1,26 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.DirectoryServices;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Navigation;
-using System.Reflection;
 using System.Threading;
-using System.Net;
 using ServiceLibrary;
 using System.Collections;
-using System.Data;
 using UserControls;
-using System.Net.NetworkInformation;
 
 namespace LabRun
 {
@@ -36,6 +27,8 @@ namespace LabRun
         private Boolean isSelectionByCmbbx = false;
         private readonly string unnamedProject = "UnnamedProject";
         private string project = "";
+        public string Project { get { return this.project; } }
+        private Login login;
 
         public MainWindow()
         {
@@ -330,7 +323,7 @@ namespace LabRun
 
         private void About_Click(object sender, RoutedEventArgs e)
         {
-            new About().Show();
+            new About(this).Show();
         }
 
         public void updateStatus(string msg)
@@ -590,21 +583,55 @@ namespace LabRun
             cmbSelectionClients.SelectedIndex = 1;
         }
 
+        private Project projectWnd;
+        private ProjectName projectNameWnd;
+
         private void btnSelProject_Click(object sender, RoutedEventArgs e)
         {
+            //if(project Wnd is already open, just show in foreground)
+            if (this.projectWnd != null)
+            {
+                this.projectWnd.Focus();
+                return;
+            }
+
+            //if(projectName Wnd is already open, just show in foreground)
+            if (this.projectNameWnd != null)
+            {
+                this.projectNameWnd.Focus();
+                return;
+            }
+
             if (service.LoggedIn())
             {
-                Project project = new Project(this);
-                project.Show();
+                this.projectWnd = new Project(this);
+                this.projectWnd.Closed += (senders, args) => this.projectWnd = null;
+                this.projectWnd.Show();
             }
             else
             {
-                new ProjectName(this, project).Show();
+                this.projectNameWnd = new ProjectName(this, project);
+                this.projectNameWnd.Closed += (senders, args) => this.projectNameWnd = null;
+                this.projectNameWnd.Show();
             }
         }
 
-        public void SetProject(string projectName)
+        public void SetProject(string projectName, bool checkForExistingProject = false)
         {
+            if (checkForExistingProject && service.LocalProjectExists(project))
+            {
+                MessageBoxResult result = MessageBox.Show("Previous project had some data! Would you like to move that data from the old project to this new project?", "Warning", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.Cancel)
+                {
+                    return;
+                }
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    service.MoveProject(project, projectName);
+                }
+            }
+
             project = projectName;
             lblProject.Text = project;
             foreach (ControlUnit cUnit in tabControls)
@@ -617,8 +644,15 @@ namespace LabRun
         {
             if (!service.LoggedIn())
             {
-                Login login = new Login(this);
-                login.Show();
+                //if(login is already open, just show in foreground)
+                if (this.login != null)
+                {
+                    this.login.Focus();
+                    return;
+                }
+                this.login = new Login(this);
+                this.login.Closed += (senders, args) => this.login = null;
+                this.login.Show();
             }
             else
             {
@@ -650,11 +684,6 @@ namespace LabRun
         private void COBELAB_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("http://bss.au.dk/research/research-labs/cognition-and-behavior-lab/");
-        }
-
-        private void dgrClients_Loaded(object sender, RoutedEventArgs e)
-        {
-
         }
     }
 }

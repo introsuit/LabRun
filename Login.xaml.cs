@@ -1,17 +1,6 @@
 ﻿using ServiceLibrary;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace LabRun
 {
@@ -26,14 +15,25 @@ namespace LabRun
         public Login(MainWindow parent)
         {
             InitializeComponent();
+            this.Owner = parent;
             this.parent = parent;
             txbName.Text = "";
             txbPass.Password = "";
+            txbName.Focus();
         }
 
         private void btnLogin_Click(object sender, RoutedEventArgs e)
         {
-            User user = service.Login(txbName.Text, txbPass.Password);
+            User user = null;
+            try
+            {
+                user = service.Login(txbName.Text, txbPass.Password);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Unable to connect to server. Please contant your system administrator.\n\n" + ex.Message, "Timed out", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             if (user == null)
             {
                 MessageBox.Show("Login Failed! Username and/or password was incorrect.", "Login failed", MessageBoxButton.OK, MessageBoxImage.Error);
