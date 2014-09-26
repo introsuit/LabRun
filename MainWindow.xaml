@@ -47,7 +47,7 @@
                     <ComboBoxItem Name="both" Tag="both">Both labs</ComboBoxItem>
                 </ComboBox>
 
-                <Label Content="Lab Clients:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"/>
+                <Label Content="Lab Clients:" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top"/>
 
                 <DataGrid ColumnWidth="Auto" IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="332" Width="Auto" SelectionChanged="dgrClients_SelectionChanged" MouseLeftButtonDown="dgrClients_MouseLeftButtonDown" MouseLeftButtonUp="dgrClients_MouseLeftButtonUp_1" MouseUp="dgrClients_MouseUp_1">
                     <DataGrid.CellStyle>
@@ -160,7 +160,7 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <Label Content="Select Lab Clients:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"/>
+                <Label Content="Select Lab Clients:" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top"/>
 
                 <ComboBox SelectedIndex="0" Name="cmbSelectionClients" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Width="168" SelectionChanged="cmbSelectionClients_SelectionChanged">
 
@@ -200,7 +200,7 @@
                     </Grid>
                 </GroupBox>
 
-                <TabControl Name="tabControl1"  HorizontalAlignment="Left" Height="332" Margin="0,0,0,0" VerticalAlignment="Top" Width="365">
+                <TabControl Name="tabControl1"  HorizontalAlignment="Left" Height="332" Margin="0,10,0,0" VerticalAlignment="Top" Width="365">
                     <TabItem Header="PsychoPy" Name="tabPsy">
                         <Grid Background="#FFE5E5E5" />
                     </TabItem>

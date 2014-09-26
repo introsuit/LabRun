@@ -266,7 +266,7 @@ namespace ServiceLibrary
 
         public virtual void DeleteResults(List<LabClient> clients)
         {
-            new Thread(delegate()
+            ThreadStart ts = delegate()
             {
                 //----del tests files from client computers
                 int i = 0;
@@ -316,9 +316,10 @@ namespace ServiceLibrary
                 //----end
 
                 //-----notify ui
-                service.notifyStatus("Local Cleaning Complete. Request sent to delete from labclients");
+                service.notifyStatus("Local cleaning complete. Request sent to delete from Labclients");
                 //-----end
-            }).Start();
+            };
+            service.RunInNewThread(ts);
         }
 
         public void CreateProjectDir()
@@ -344,6 +345,7 @@ namespace ServiceLibrary
             {
                 throw new DirectoryNotFoundException(projPath);
             }
+            service.notifyStatus("Uploading...");
             Dms dms = new Dms();
             service.RunInNewThread(() => dms.DmsTransfer(projPath, this));
         }

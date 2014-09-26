@@ -799,30 +799,25 @@ namespace ServiceLibrary
 
         public void killRemoteProcess(string computerName, string processName, bool waitForFinish = false)
         {
-            new Thread(() => KillProcThread(computerName, processName)).Start();
+            KillProcThread(computerName, processName, waitForFinish);
         }
 
-        public void killRemoteProcess(List<LabClient> computers, string processName)
+        public void killRemoteProcess(List<LabClient> computers, string processName, bool waitForFinish = false)
         {
-            Thread t = new Thread(() =>
-                {
-                    foreach (LabClient client in computers)
-                    {
-                        service.killRemoteProcess(client.ComputerName, processName);
-                    }
-                });
-            t.IsBackground = true;
-            t.Start();
+            foreach (LabClient client in computers)
+            {
+                service.killRemoteProcess(client.ComputerName, processName, waitForFinish);
+            }
+
+            //-----notify ui
+            notifyStatus("Task Kill Completed");
+            //-----end
         }
 
         public void KillProcThread(string computerName, string processName, bool waitForFinish = false)
         {
             string cmdlet = "Taskkill /IM " + processName + " /F";
-            RunRemotePSCmdLet(computerName, cmdlet, waitForFinish);
-
-            //-----notify ui
-            notifyStatus("Task Kill Completed");
-            //-----end
+            RunRemotePSCmdLet(computerName, cmdlet, waitForFinish);         
         }
 
         public void ShutdownComputers(List<LabClient> clients)

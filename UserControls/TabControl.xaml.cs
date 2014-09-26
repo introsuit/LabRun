@@ -13,7 +13,7 @@ namespace UserControls
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
-    public partial class TabControl : UserControl, ControlUnit, INotifyPropertyChanged
+    public partial class TabControl : UserControl, ControlUnit
     {
         private MainUI parent = null;
         private TestApp testApp = null;
@@ -37,30 +37,6 @@ namespace UserControls
                 ztreeControls.Children.Add(ztreeCtrl);
                 btnDelResults.IsEnabled = true;
                 btnGetResults.IsEnabled = true;
-            }
-        }
-
-        private bool active;
-        public bool Active
-        {
-            get { return active; }
-            set
-            {
-                if (value != active)
-                {
-                    active = value;
-                    OnPropertyChanged("Active");
-                }
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnPropertyChanged(string p)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
             }
         }
 

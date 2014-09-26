@@ -46,6 +46,14 @@ namespace ServiceLibrary
             return new List<string>(lines);
         }
 
+        private void ReserveZtreeSubject(TestApp testApp)
+        {
+            string ztreeSubjName = "ztree_subject";
+            string ztreeReservedSubjNo = "1";
+            string url = dmsUrl + "/modules/StormDb/extract/createsubject?subjectNo=" + ztreeReservedSubjNo + "&subjectName=" + ztreeSubjName + "&" + service.User.UniqueHash + "&projectCode=" + testApp.ProjectName;
+            string result = webClient.DownloadString(url);      
+        }
+
         public void DmsTransfer(string projPath, TestApp testApp)
         {
             DirectoryInfo[] subjects = new DirectoryInfo(projPath).GetDirectories();
@@ -76,6 +84,8 @@ namespace ServiceLibrary
 
             //finally upload all the zips to network drive
             UploadZips(zipsForUpload);
+
+            service.notifyStatus("Done");
         }
 
         //creates subject and returns subject number
@@ -97,8 +107,8 @@ namespace ServiceLibrary
                         continue;
                     string subjNoStr = subject.Remove(subject.Length - 4).TrimStart('0');
 
-                    //ztree_subject reserved number is 34 (can be any number though)
-                    if (subjNoStr == "34")
+                    //ztree_subject reserved number is 1 (can be any number though)
+                    if (subjNoStr == "1")
                     {
                         subjId = subject;
                         exists = true;
