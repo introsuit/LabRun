@@ -8,9 +8,9 @@ namespace ServiceLibrary
 {
     public class CustomRunTestApp : TestApp
     {
-        string applicationName = "CustomRun";
+        string applicationName = "Custom Run";
         public CustomRunTestApp(List<string> extensions)
-            : base("CustomRun")
+            : base("Custom Run")
         {
             foreach (String ext in extensions) {
                 resultExts.Add(ext);
