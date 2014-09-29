@@ -7,9 +7,15 @@ namespace ServiceLibrary
 {
     public class PsychoPy : TestApp
     {
+        //script should be in the same location where binaries are
+        public string RunWithLogsScript { get; set; }
+
         public PsychoPy()
-            : base("Psychopy")
+            : base("PsychoPy")
         {
+            ApplicationExecutableName = service.Config.Psychopy;
+            RunWithLogsScript = "run_with_logs.py";
+
             Extension = "py";
             ExtensionDescription = "Python files (*.py)|*.py|PsychoPy Test Files (*.psyexp)|*.psyexp";
 

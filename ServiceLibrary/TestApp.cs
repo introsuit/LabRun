@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 
 namespace ServiceLibrary
@@ -45,6 +46,7 @@ namespace ServiceLibrary
         protected TestApp(string applicationName/*, string applicationExecutableName, string testFilePath*/)
         {
             this.applicationName = applicationName;
+            this.testFolder = service.TestFolder;
             resultsFolderName = service.ResultsFolderName;
             //this.applicationExecutableName = applicationExecutableName;
         }
@@ -52,7 +54,6 @@ namespace ServiceLibrary
         //must be called before "Run" action!
         public void Initialize(string testFilePath)
         {
-            this.testFolder = service.TestFolder;
             this.testFilePath = testFilePath;
             this.testFileName = Path.GetFileName(testFilePath);
             testFolderName = Path.GetFileName(Path.GetDirectoryName(testFilePath));
@@ -95,6 +96,11 @@ namespace ServiceLibrary
 
                 string line = @"xcopy """ + srcDir + @""" """ + dstDir + @""" " + args;
                 file.WriteLine(line);
+                if (this is PsychoPy)
+                {
+                    line = @"xcopy """ + Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), ((PsychoPy)this).RunWithLogsScript) + @""" """ + Path.Combine(service.SharedNetworkTempFolder, applicationName) + @""" " + args;
+                    file.WriteLine(line);
+                }
             }
             service.ExecuteCommandNoOutput(copyPath, true);
             //-----end
@@ -122,7 +128,9 @@ namespace ServiceLibrary
                     string runCmd = @"""" + Path.Combine(dstDir, Path.GetFileName(testFilePath)) + @"""";
                     if (this is PsychoPy)
                     {
-                        runCmd = @"""" + ApplicationExecutableName + @""" " + runCmd;
+                        //runCmd = @"""" + ApplicationExecutableName + @""" " + runCmd;
+                        string runWithLogs = Path.Combine(service.SharedNetworkTempFolder, applicationName, ((PsychoPy)this).RunWithLogsScript);
+                        runCmd = ApplicationExecutableName + " " + runWithLogs + " " + @" " + runCmd;
                     }
                     Debug.WriteLine(runCmd + " arun cmd");
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& cd """ + dstDir + @""" ^& start """" " + runCmd + @")";
@@ -211,7 +219,7 @@ namespace ServiceLibrary
                     string resultFiles = "";
                     foreach (string resultExt in resultExts)
                     {
-                        resultFiles += @"xcopy """ + Path.Combine(src, "" + resultExt) + @""" """ + dst + @""" /V /E /Y /Q /I ^& ";
+                        resultFiles += @"xcopy """ + Path.Combine(src, "*." + resultExt) + @""" """ + dst + @""" /V /E /Y /Q /I ^& ";
                     }
                     resultFiles = resultFiles.Substring(0, resultFiles.Length - 4);
 
