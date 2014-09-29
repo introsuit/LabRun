@@ -205,7 +205,7 @@ namespace UserControls
             {
                 crTestApp = new CustomRunTestApp(this.extensions);
                 this.SetProject(parent.getProject());
-                crTestApp.testFolder = @"C:\Cobe Lab\Custom Run\";
+                crTestApp.testFolder = @"C:\Cobe Lab\";
                 crTestApp.TransferResults(this.parent.getSelectedClients());
             }
             else
