@@ -1030,7 +1030,7 @@ Add-FirewallRule
                 {
                     file.WriteLine("@echo off");
 
-                    string deleteCmd = @"rmdir /S /Q C:\Cobe Lab\Custom Run\";
+                    string deleteCmd = @"rmdir " + @"""C:\Cobe Lab\Custom Run\""" + @" /S /Q";
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + deleteCmd + @")";
                     file.WriteLine(line);
                 }
@@ -1051,7 +1051,7 @@ Add-FirewallRule
         /// Then runs selected file using same PSExec batch.
         /// </summary>
         /// <returns>Nothing</returns>
-        public void CopyEntireFolder(List<LabClient> clients, string folderPath, string filePath, string parameter)
+        public void CopyEntireFolder(List<LabClient> clients, string folderPath, string filePath, string parameter, string timestamp)
         {
 
             //Get folder name without path
@@ -1075,7 +1075,7 @@ Add-FirewallRule
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
                 file.WriteLine("@echo off");
-                string dstDir = @"\\BSSFILES2\Dept\adm\labrun\temp\" + folderName;
+                string dstDir = @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + folderName;
                 string line = @"xcopy """ + folderPath + @""" """ + dstDir + @""" /i /s /e /V /Y /Q";
                 file.WriteLine(line);
             }
@@ -1089,15 +1089,41 @@ Add-FirewallRule
                 {
                     file.WriteLine("@echo off");
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
-                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\" + folderName + @"""" + @" ""C:\labrun\temp\" + folderName + @"""" + @" /i /s /e /V /Y /Q ";
-                    // Build runcommand to embed in bat also
-                    string runCmd = @"""" + @"C:\labrun\temp\" + folderName + filePath + @""" """ + parameter + @"""";
+                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + folderName + @"""" + @" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + @"""" + @" /i /s /e /V /Y /Q ";
+                    // Build run command to embed in bat also
+                    string runCmd = @"""" +@"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + filePath + @""" """ + parameter + @"""";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);
             }
+        }
+
+        /// <summary>
+        /// Deletes the temp directory on the network drive
+        /// </summary>
+        /// <returns>Nothing</returns> 
+        public void deleteNetworkTempFiles()
+        {
+                string batFileName = Path.Combine(tempPath, "DeleteNetworkTemp" + ".bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
+                {
+                    file.WriteLine("@echo off");
+                    string deleteCmd = @"rmdir " + @"""\\BSSFILES2\Dept\adm\labrun\temp\""" + @" /S /Q";
+                    file.WriteLine(deleteCmd);
+                }
+                service.StartNewCmdThread(batFileName);
+
+
+                string copyPath = Path.Combine("DeleteNetworkTemp" + ".bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+                {
+                    file.WriteLine("@echo off");
+                    string line = @"rmdir /s /q """ + Path.Combine(@"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\") + @"""";
+                    file.WriteLine(line);
+                }
+                service.ExecuteCommandNoOutput(copyPath, true);
         }
     }
 }

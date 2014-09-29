@@ -12,6 +12,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ServiceLibrary;
+using System.IO;
+using System.Reflection;
+
 
 namespace UserControls
 {
@@ -38,6 +41,20 @@ namespace UserControls
         private void btnRunAdminZTree_Click(object sender, RoutedEventArgs e)
         {
             ztree.RunAdminZTree();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                path = System.IO.Path.Combine(path, "merge.exe");
+                System.Diagnostics.Process.Start(path);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
     }
 }

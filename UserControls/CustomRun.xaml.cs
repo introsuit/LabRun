@@ -45,6 +45,8 @@ namespace UserControls
 
         public void ButtonClickable(bool enabled)
         {
+            btnCleanCustomDir.IsEnabled = enabled;
+            btnGetResults.IsEnabled = enabled;
             if ((isEnabledSingle) && (enabled))
             {
                 btnTransferSingleFile.IsEnabled = true;
@@ -188,8 +190,7 @@ namespace UserControls
             string param = "";
             if (this.Parameter != null)
                 param = this.Parameter;
-            MessageBox.Show(this.DirFileName);
-            Service.getInstance().CopyEntireFolder(parent.getSelectedClients(), this.DirPath, this.DirFileNameWithExtraDir, param);
+            Service.getInstance().CopyEntireFolder(parent.getSelectedClients(), this.DirPath, this.DirFileNameWithExtraDir, param, this.TimeStamp);
         }
 
         private void btnDefineExtensions_Click(object sender, RoutedEventArgs e)

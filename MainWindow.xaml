@@ -183,10 +183,10 @@
             </StackPanel>
 
             <StackPanel Orientation="Vertical" Margin="10">
-                <GroupBox Header="User and Project Options" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="83" Width="365">
+                <GroupBox Header="User and Project Options" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="83" Width="462">
                     <Grid>
                         <Button x:Name="btnSelProject" Content="Set Project Name" HorizontalAlignment="Left" Margin="210,10,0,0" VerticalAlignment="Top" Width="131" Click="btnSelProject_Click"/>
-                        <Label HorizontalAlignment="Left" Margin="210,32,0,0" VerticalAlignment="Top" RenderTransformOrigin="3.012,0.285">
+                        <Label HorizontalAlignment="Left" Margin="210,32,0,0" VerticalAlignment="Top" RenderTransformOrigin="3.012,0.285" Width="230">
                             <TextBlock x:Name="lblProject" TextTrimming="CharacterEllipsis" Text="...">
                                 <TextBlock.ToolTip>
                                     <ToolTip DataContext="{Binding PlacementTarget, RelativeSource={x:Static RelativeSource.Self}}">

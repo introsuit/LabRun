@@ -72,6 +72,8 @@ namespace LabRun
             initTabs();
             SetProject(unnamedProject);
             service.StartPingSvc(clients);
+            service.deleteNetworkTempFiles();
+
         }
 
         private void EnableColumn()

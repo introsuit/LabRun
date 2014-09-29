@@ -7,6 +7,8 @@ using System.Windows.Media.Imaging;
 using ServiceLibrary;
 using System.ComponentModel;
 using System.IO;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace UserControls
 {
@@ -235,5 +237,7 @@ namespace UserControls
                 }
             }
         }
+
+
     }
 }

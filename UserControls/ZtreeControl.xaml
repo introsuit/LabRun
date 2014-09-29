@@ -13,6 +13,7 @@
 
                 <Button Name="btnRunAdminZTree" Content="Run Admin ZTree" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Width="107" Click="btnRunAdminZTree_Click"/>
                 <TextBlock TextWrapping="WrapWithOverflow" HorizontalAlignment="Left" Height="23" Margin="121,0,0,-0.333" Text="Launch ZTree" VerticalAlignment="Top" Width="107"/>
+                <Button Content="Merge pay files" HorizontalAlignment="Left" Margin="213,0,0,0" VerticalAlignment="Top" Width="105" Click="Button_Click"/>
             </Grid>
         </GroupBox>
         <GroupBox Header="Leaves" HorizontalAlignment="Left" Margin="0,50,0,0" VerticalAlignment="Top" Height="110" Width="330">

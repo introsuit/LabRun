@@ -27,7 +27,7 @@
                 <TextBlock>Copy all other files from the directory where run test file is selected</TextBlock>
             </CheckBox.ToolTip>
         </CheckBox>
-        <GroupBox Header="Results" HorizontalAlignment="Left" Margin="9,190,0,0" VerticalAlignment="Top" Height="100" Width="204">
+        <GroupBox Header="Results" HorizontalAlignment="Left" Margin="9,155,0,0" VerticalAlignment="Top" Height="135" Width="216">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="125*"/>
@@ -48,15 +48,13 @@
                         <TextBlock>Delete test results from lab and admin computers</TextBlock>
                     </Button.ToolTip>
                 </Button>
-                <Button Name="btnOpenRes" Content="Open Results" Margin="101,10,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Click="btnOpenRes_Click" Height="22" Width="89">
+                <Button Name="btnOpenRes" Content="Open Results" Margin="101,10,14,0" VerticalAlignment="Top" Click="btnOpenRes_Click" Height="22" Width="89" Grid.ColumnSpan="2">
                     <Button.ToolTip>
                         <TextBlock>Open directory of transferred project's test results</TextBlock>
                     </Button.ToolTip>
                 </Button>
             </Grid>
         </GroupBox>
-        <Grid Name="ztreeControls" Margin="0,-10,0,10">
-
-        </Grid>
+        <Grid Name="ztreeControls" Margin="0,-10,0,10"/>
     </Grid>
 </UserControl>
