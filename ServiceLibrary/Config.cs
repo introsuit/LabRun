@@ -58,6 +58,7 @@ namespace ServiceLibrary
                     {
                         DmsUpload = line.Remove(0, "dmsupload".Length + 1);
                     }
+                   
                 }
             }
         }
@@ -69,5 +70,6 @@ namespace ServiceLibrary
         public string Ztreedump { get; set; }
         public string Chrome { get; set; }
         public string DmsUpload { get; set; }
+        public string CustomRun { get; set; }
     }
 }

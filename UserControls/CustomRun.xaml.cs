@@ -17,32 +17,79 @@ namespace UserControls
     /// <summary>
     /// Interaction logic for CustomRun.xaml
     /// </summary>
-    public partial class CustomRun : UserControl, ControlUnit
+    public partial class CustomRun : UserControl, ControlUnit 
     {
         private MainUI parent = null;
         private Service service = Service.getInstance();
+        CustomRunTestApp crTestApp;
         public string filePath { get; set; }
         public string fileName { get; set; }
         public string DirPath { get; set; }
         public string DirFileName { get; set; }
         public string DirFileNameWithExtraDir { get; set; }
-        public Boolean isEnabled { get; set; }
+        public Boolean isEnabledSingle { get; set; }
+        public Boolean isEnabledDir { get; set; }
+        public List<string> extensions { get; set; }
+        public string TimeStamp { get; set; }
+        public string Parameter { get; set; }
+
         public CustomRun(MainUI parent)
         {
-            InitializeComponent();
-            
-            isEnabled = false;
+            InitializeComponent();            
+            isEnabledSingle = false;
+            isEnabledDir = false;
             this.parent = parent;
+            this.TimeStamp = Service.getInstance().GetCurrentTimestamp();
+            this.lblTimestmp.Content = "Timestamp: " + this.TimeStamp;
         }
 
-        private void browse_Btn_Click(object sender, RoutedEventArgs e)
+        public void ButtonClickable(bool enabled)
+        {
+            if ((isEnabledSingle) && (enabled))
+            {
+                btnTransferSingleFile.IsEnabled = true;
+                btnTransfernRunSingleFile.IsEnabled = true;
+            }
+            if ((isEnabledDir) && (enabled))
+            {
+                btnTransfernRunDir.IsEnabled = true;
+            }
+            if ((isEnabledSingle == false) || (enabled == false)) {
+                btnTransferSingleFile.IsEnabled = false;
+                btnTransfernRunSingleFile.IsEnabled = false;
+            }
+            if ((isEnabledDir == false) || (enabled == false))
+            {
+                
+                btnTransfernRunDir.IsEnabled = false;
+            }
+
+        }
+
+        public void SetProject(string projectName)
+        {
+            if (crTestApp != null)
+            {
+                crTestApp.ProjectName = projectName;
+            }
+        }
+
+        private void btnTimestmp_Click(object sender, RoutedEventArgs e)
+        {
+            this.TimeStamp = Service.getInstance().GetCurrentTimestamp();
+            this.lblTimestmp.Content = "Timestamp: " + this.TimeStamp;
+        }
+
+        private void btnSetParameter_Click(object sender, RoutedEventArgs e)
+        {
+            this.Parameter = txtParameter.Text;
+            this.lblParameter.Content = "Current parameter: " + this.Parameter;
+        }
+
+        private void btnBrowseSingleFile_Click(object sender, RoutedEventArgs e)
         {
             // Create OpenFileDialog 
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
-
-            // OpSet filter for file extension and default file extension 
-            //dlg.DefaultExt = testApp.Extension;
-            //dlg.Filter = testApp.ExtensionDescription;
 
             // Display OpenFileDialog by calling ShowDialog method 
             Nullable<bool> result = dlg.ShowDialog();
@@ -56,72 +103,51 @@ namespace UserControls
                 {
                     this.fileName = word;
                 }
-                this.isEnabled = true;
-                if (parent.getSelectedClients().Count != 0) {
-                    btnTransfer.IsEnabled = true;
-                    btnRun.IsEnabled = true;
+                this.isEnabledSingle = true;
+                if (parent.getSelectedClients().Count != 0)
+                {
+                    btnTransferSingleFile.IsEnabled = true;
+                    btnTransfernRunSingleFile.IsEnabled = true;
                 }
-                
-                lblPath.Content = this.filePath;
-                //MessageBox.Show(this.filePath + " | " + this.fileName);
+
+                lblFilePath.Content = this.filePath;
             }
         }
 
-        public void ButtonClickable(bool enabled)
+       
+        private void btnTransferSingleFile_Click(object sender, RoutedEventArgs e)
+        {  
+            Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
+            Service.getInstance().CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, parent.getSelectedClients(), this.TimeStamp);
+        }
+
+        private void btnTransfernRunSingleFile_Click(object sender, RoutedEventArgs e)
         {
-            if ((isEnabled) && (enabled))
-            {
-                btnTransfer.IsEnabled = true;
-                btnRun.IsEnabled = true;
-            }
-            btnDelete.IsEnabled = enabled;
+            string param = "";
+            if (this.Parameter != null)
+                param = this.Parameter;
 
+
+            Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
+            Service.getInstance().CopyAndRunFilesFromNetworkShareToClients(this.filePath, this.fileName, parent.getSelectedClients(), param, this.TimeStamp);
         }
 
-        public void SetProject(string projectName)
-        {
-            //not relevant
-        }
-
-        private void btnTransfer_Click(object sender, RoutedEventArgs e)
-        {
-            Service.getInstance().CopyFilesToNetworkShare(this.filePath);
-            Service.getInstance().CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, parent.getSelectedClients());
-
-            btnDelete.IsEnabled = true;
-            
-        }
-
-        private void btnDelete_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBoxResult result = MessageBox.Show(@"Are you sure you want to delete the entire ""Transferred files"" directory? Verify that result files are backed up and that nothing of value remains in the directory! Do you wish to continue?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.Yes)
-            {
-                service.deleteFiles(parent.getSelectedClients());
-            }
-        }
-
-        private void btnRun_Click(object sender, RoutedEventArgs e)
-        {   string param = "";
-            if (txtboxParam.Text != null)
-                param = txtboxParam.Text;
-
-            Service.getInstance().CopyFilesToNetworkShare(this.filePath);
-            Service.getInstance().CopyAndRunFilesFromNetworkShareToClients(this.filePath,this.fileName,parent.getSelectedClients(), param);
-            btnDelete.IsEnabled = true;
-        }
-
-        private void dirBrowse_Btn_Click(object sender, RoutedEventArgs e)
+        private void btnBrowseDir_Click(object sender, RoutedEventArgs e)
         {
             System.Windows.Forms.FolderBrowserDialog browse = new System.Windows.Forms.FolderBrowserDialog();
             System.Windows.Forms.DialogResult result = browse.ShowDialog();
-            if (result != null){
+            if (result != null)
+            {
                 this.DirPath = browse.SelectedPath;
-                lblDirectoryPath.Content = "Folder to copy: "+this.DirPath;
-            }   
+                lblDirPath.Content = "Folder: " + this.DirPath;
+                {
+                    btnBrowseDirFileToRun.IsEnabled = true;
+                }
+
+            }
         }
 
-        private void dirFileBrowse_Btn_Click(object sender, RoutedEventArgs e)
+        private void btnBrowseDirFileToRun_Click(object sender, RoutedEventArgs e)
         {
             // Create OpenFileDialog 
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
@@ -141,27 +167,58 @@ namespace UserControls
                 string subFileName = "";
                 foreach (string word in file)
                 {
-                    if (i > directory.Length-1)
+                    if (i > directory.Length - 1)
                     {
-                        subFileName += "\\"+file[i];
+                        subFileName += "\\" + file[i];
                     }
                     i++;
                 }
-                lblFileToLaunch.Content ="File to launch: " + subFileName;
+                lblDirFilePath.Content = "File: " + subFileName;
                 this.DirFileNameWithExtraDir = subFileName;
+                this.isEnabledDir = true;
+                if (parent.getSelectedClients().Count != 0) {
+                    this.btnTransfernRunDir.IsEnabled = true;
+                }
+
             }
-               
         }
 
-        private void launchDirectory_Click(object sender, RoutedEventArgs e)
+        private void btnTransfernRunDir_Click(object sender, RoutedEventArgs e)
         {
             string param = "";
-            if (txtboxParam != null)
-                param = txtboxParam.Text;
+            if (this.Parameter != null)
+                param = this.Parameter;
             MessageBox.Show(this.DirFileName);
             Service.getInstance().CopyEntireFolder(parent.getSelectedClients(), this.DirPath, this.DirFileNameWithExtraDir, param);
         }
 
+        private void btnDefineExtensions_Click(object sender, RoutedEventArgs e)
+        {
+            Window WindowResultsExtensions = new ResultsExtensionWindow(this, this.extensions);
+            WindowResultsExtensions.Show();
+        }
 
+        private void btnGetResults_Click(object sender, RoutedEventArgs e)
+        {
+
+            if (extensions != null)
+            {
+                crTestApp = new CustomRunTestApp(this.extensions);
+                this.SetProject(parent.getProject());
+                crTestApp.testFolder = @"C:\Cobe Lab\Custom Run\";
+                crTestApp.TransferResults(this.parent.getSelectedClients());
+            }
+            else
+                MessageBox.Show("Define some extensions to retrieve!");
+        }
+
+        private void btnCleanCustomDir_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show(@"Are you sure you want to delete the entire ""Transferred files"" directory? Verify that result files are backed up and that nothing of value remains in the directory! Do you wish to continue?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                service.deleteFiles(parent.getSelectedClients());
+            }
+        }
     }
 }

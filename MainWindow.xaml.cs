@@ -37,6 +37,10 @@ namespace LabRun
         private readonly string unnamedProject = "UnnamedProject";
         private string project = "";
 
+        public string getProject(){
+            return project;           
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -173,9 +177,9 @@ namespace LabRun
             };
 
             UserControls.CustomRun tC5 = new UserControls.CustomRun(this);
-
             tabCustom.Content = tC5;
             tabControls.Add(tC5);
+            
         }
 
         private void SetColumnVisibility(DataGridColumn column, bool visible)

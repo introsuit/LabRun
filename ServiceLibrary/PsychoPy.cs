@@ -8,9 +8,8 @@ namespace ServiceLibrary
     public class PsychoPy : TestApp
     {
         public PsychoPy()
-            : base("PsychoPy")
+            : base("Psychopy")
         {
-            ApplicationExecutableName = service.Config.Psychopy;
             Extension = "py";
             ExtensionDescription = "Python files (*.py)|*.py|PsychoPy Test Files (*.psyexp)|*.psyexp";
 

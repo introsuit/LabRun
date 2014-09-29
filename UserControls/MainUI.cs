@@ -15,6 +15,7 @@ namespace UserControls
         void SetProject(string projectName);
         void SetTabActivity(TabItem tabItem, List<LabClient> selectedClients, bool active);
         void SetFeatureActivity(Feature feature, List<LabClient> selectedClients, bool active);
+        string getProject();
     }
 
     public enum Feature

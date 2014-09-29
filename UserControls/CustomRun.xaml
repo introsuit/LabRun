@@ -6,21 +6,50 @@
              mc:Ignorable="d" 
 
              Width="Auto">
-    <Grid Background="#FFE5E5E5" Margin="0,0,0,0">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+    <Grid Background="#FFE5E5E5" Margin="0,0,0,0" Height="607" Width="428">
+        <GroupBox Header="Set parameter (for file to run, applies for both directory or single file)" HorizontalAlignment="Left" VerticalAlignment="Top" Height="157" Width="418" Margin="0,86,0,0">
+            <Grid VerticalAlignment="Top" Height="114" Margin="0,0,0,-13.333">
+                <Label Content="Define a parameter with which to launch transferred files:" HorizontalAlignment="Left" Margin="7,0,0,0" Name="lblWindowSize" Tag="ztree" VerticalAlignment="Top" RenderTransformOrigin="0.546,0.718" />
+                <TextBox Name="txtParameter" HorizontalAlignment="Left" Height="23" Margin="10,26,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="298"/>
+                <Button Name="btnSetParameter" Content="Update parameter!" HorizontalAlignment="Left" Margin="10,88,0,4" Width="113" Click="btnSetParameter_Click"/>
+                <Label  Name="lblParameter" Content="Current parameter: none" HorizontalAlignment="Left" Margin="10,57,0,0" VerticalAlignment="Top" Width="298"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="Set timestamp to use for custom runs" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Height="71" Width="418">
+            <Grid>
+                <Button Name="btnTimestmp" Content="Update timestamp!" HorizontalAlignment="Left" Height="26" Margin="10,10,0,0" VerticalAlignment="Top" Width="113" RenderTransformOrigin="0.24,0" Click="btnTimestmp_Click"/>
+                <Label Name="lblTimestmp" Content="Timestamp: none" HorizontalAlignment="Left" Margin="128,10,0,13.333" Width="214" />
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="Single file custom run" HorizontalAlignment="Left" Margin="0,252,0,0" VerticalAlignment="Top" Height="182" Width="207">
+            <Grid>
+                    <Button Name="btnBrowseSingleFile" Content="Browse file to transfer" Margin="10,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180" Click="btnBrowseSingleFile_Click"/>
+                    <Button Name="btnTransferSingleFile"  IsEnabled='False'  Content="Transfer selected file" HorizontalAlignment="Left" Margin="10,37,0,0" VerticalAlignment="Top" Width="180" Click="btnTransferSingleFile_Click"/>
+                    <Button Name="btnTransfernRunSingleFile"  IsEnabled='False' Content="Transfer and run!" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top" Width="180" Click="btnTransfernRunSingleFile_Click"/>
+                <Label Name="lblFilePath" Content="File path: (not set)" HorizontalAlignment="Left" Margin="10,123,0,0" VerticalAlignment="Top" Width="175"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="Entire directory custom run" HorizontalAlignment="Left" Margin="212,252,0,0" VerticalAlignment="Top" Height="182" Width="207">
+            <Grid>
+                <Button Name="btnBrowseDir" Content="Browse directory to transfer" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="177" Click="btnBrowseDir_Click"/>
+                    <Button Name="btnBrowseDirFileToRun"  IsEnabled='False' Content="Browse file to run in directory" HorizontalAlignment="Left" Margin="10,37,0,0" VerticalAlignment="Top" Width="177" Click="btnBrowseDirFileToRun_Click"/>
+                    <Button Name="btnTransfernRunDir"  IsEnabled='False' Content="Transfer and run!" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top" Width="177" Click="btnTransfernRunDir_Click"/>
+                <Label Name="lblDirFilePath" Content="File path: (not set)" HorizontalAlignment="Left" Margin="10,123,0,0" VerticalAlignment="Top"/>
+                <Label Name="lblDirPath" Content="Directory path: (not set)" HorizontalAlignment="Left" Margin="10,97,0,0" VerticalAlignment="Top"/>
 
-        <Button  IsEnabled='False' Content="Transfer" Height="22" HorizontalAlignment="Left" Margin="96,81,0,0" Name="btnTransfer" VerticalAlignment="Top" Width="54" Click="btnTransfer_Click" />
-        <Label Content="Browse file to copy to clients:" HorizontalAlignment="Left" Margin="10,22,0,0" VerticalAlignment="Top"/>
-        <Button IsEnabled='False' x:Name="btnDelete" Content="Delete transferred files" HorizontalAlignment="Left" Margin="10,348,0,0" VerticalAlignment="Top" Width="140" Height="27" Click="btnDelete_Click"/>
-        <Button x:Name = "browse_Btn" Content="Browse" HorizontalAlignment="Left" Margin="10,81,0,0" VerticalAlignment="Top" Width="75" Click="browse_Btn_Click"/>
-        <Label x:Name ="lblPath" Content="" HorizontalAlignment="Left" Margin="10,48,0,0" VerticalAlignment="Top"/>
-        <Button  IsEnabled='False' Content="Transfer and Launch" Height="22" HorizontalAlignment="Left" Margin="155,81,0,0" x:Name="btnRun" VerticalAlignment="Top" Width="115" Click="btnRun_Click" />
-        <Label Content="Browse directory to copy to clients:" HorizontalAlignment="Left" Margin="10,121,0,0" VerticalAlignment="Top"/>
-        <Label x:Name ="lblDirectoryPath" Content="" HorizontalAlignment="Left" Margin="20,151,0,0" VerticalAlignment="Top"/>
-        <Button x:Name = "dirBrowse_Btn" Content="Browse" HorizontalAlignment="Left" Margin="10,213,0,0" VerticalAlignment="Top" Width="75" Click="dirBrowse_Btn_Click"/>
-        <Button x:Name = "dirFileBrowse_Btn" Content="Browse file to launch in directory" HorizontalAlignment="Left" Margin="90,213,0,0" VerticalAlignment="Top" Width="193" Click="dirFileBrowse_Btn_Click"/>
-        <Label x:Name = "lblFileToLaunch" Content="" HorizontalAlignment="Left" Margin="20,182,0,0" VerticalAlignment="Top"/>
-        <Button x:Name = "launchDirectory" Content="Launch" HorizontalAlignment="Left" Margin="10,239,0,0" VerticalAlignment="Top" Width="75" Click="launchDirectory_Click"/>
-        <TextBox x:Name = "txtboxParam" HorizontalAlignment="Left" Height="23" Margin="115,4,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="177"/>
-        <Label Content="Add parameter:" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="Getting results" HorizontalAlignment="Left" Margin="28,439,0,0" VerticalAlignment="Top" Height="158" Width="370">
+            <Grid>
+                <Button Name="btnDefineExtensions" Content="Define result extensions" HorizontalAlignment="Left" Margin="31,24,0,0" VerticalAlignment="Top" Width="208" RenderTransformOrigin="-0.062,0.583" Click="btnDefineExtensions_Click"/>
+                <Button Name="btnGetResults" Content="Get results!" HorizontalAlignment="Left" Margin="31,51,0,0" VerticalAlignment="Top" Width="208" Click="btnGetResults_Click"/>
+                <Button Name="btnTransferToDMS" Content="Transfer to DMS" HorizontalAlignment="Left" Margin="31,78,0,0" VerticalAlignment="Top" Width="208"/>
+                <Button Name="btnCleanCustomDir" Content="Clean custom run directory on clients" HorizontalAlignment="Left" Margin="31,103,0,0" VerticalAlignment="Top" Width="208" Click="btnCleanCustomDir_Click"/>
+
+            </Grid>
+        </GroupBox>
+
     </Grid>
+    </ScrollViewer>
 </UserControl>

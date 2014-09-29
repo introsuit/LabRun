@@ -419,14 +419,14 @@ namespace ServiceLibrary
 
         }
 
-        public void CopyFilesToNetworkShare(string srcDir)
+        public void CopyFilesToNetworkShare(string srcDir, string timestamp)
         {
             //Copies a selected file to shared drive for distribution
             string copyPath = Path.Combine(tempPath, "localCopy.bat");
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
             {
                 file.WriteLine("@echo off");
-                string dstDir = @"\\BSSFILES2\Dept\adm\labrun\temp";
+                string dstDir = @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\";
                 string line = @"xcopy """ + srcDir + @""" """ + dstDir + @""" /V  /Y /Q";
                 file.WriteLine(line);
             }
@@ -438,7 +438,7 @@ namespace ServiceLibrary
         /// Transfers a file from the shared drive to each selected lab client.
         /// </summary>
         /// <returns>Nothing</returns>
-        public void CopyFilesFromNetworkShareToClients(string srcPath, string fileName, List<LabClient> clients)
+        public void CopyFilesFromNetworkShareToClients(string srcPath, string fileName, List<LabClient> clients, string timestamp)
         {
             //
             foreach (LabClient client in clients)
@@ -448,7 +448,7 @@ namespace ServiceLibrary
                 {
                     file.WriteLine("@echo off");
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
-                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\" + fileName + "" + @""" ""C:\labrun\temp"" /V /Y /Q ";
+                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + fileName + "" + @""" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + @""" /V /Y /Q ";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @")";
                     file.WriteLine(line);
@@ -461,7 +461,7 @@ namespace ServiceLibrary
         /// Transfers and runs a file from the shared drive to each selected lab client.
         /// </summary>
         /// <returns>Nothing</returns>
-        public void CopyAndRunFilesFromNetworkShareToClients(string srcPath, string fileName, List<LabClient> clients, string param)
+        public void CopyAndRunFilesFromNetworkShareToClients(string srcPath, string fileName, List<LabClient> clients, string param, string timestamp)
         {
             foreach (LabClient client in clients)
             {
@@ -470,9 +470,10 @@ namespace ServiceLibrary
                 {
                     file.WriteLine("@echo off");
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
-                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\" + fileName + "" + @""" ""C:\labrun\temp"" /V /Y /Q ";
+                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + fileName + "" + @""" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\""  V /Y /Q ";
+
                     // Run file on client after copied to local drive
-                    string runCmd = @"""" + @"C:\labrun\temp\" + fileName + @""" """ + param + @"""";
+                    string runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + fileName + @""" """ + param + @"""";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);
@@ -509,7 +510,7 @@ namespace ServiceLibrary
         /// Runs previously transferred file on selectedm clients.
         /// </summary>
         /// <returns>Nothing</returns> 
-        public void RunCustomFileOnClients(List<LabClient> clients, string filename)
+        public void RunCustomFileOnClients(List<LabClient> clients, string filename, string timestamp)
         {
             foreach (LabClient client in clients)
             {
@@ -517,7 +518,8 @@ namespace ServiceLibrary
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
                 {
                     file.WriteLine("@echo off");
-                    string runCmd = @"""" + @"C:\labrun\temp\" + filename + @"""";
+
+                    string runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + filename + @"""";
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + runCmd + @")";
                     file.WriteLine(line);
                 }
@@ -985,12 +987,19 @@ Add-FirewallRule
                 {
                     file.WriteLine("@echo off");
 
-                    string deleteCmd = @"rmdir /S /Q C:\labrun\temp";
+                    string deleteCmd = @"rmdir /S /Q C:\Cobe Lab\Custom Run\";
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + deleteCmd + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);
             }
+        }
+
+        //returns timestamp in yyyyMMdd_HHmmss format
+        public string GetCurrentTimestamp()
+        {
+            DateTime timeStamp = DateTime.Now;
+            return String.Format("{0:yyyyMMdd_HHmmss}", timeStamp);
         }
 
         /// <summary>

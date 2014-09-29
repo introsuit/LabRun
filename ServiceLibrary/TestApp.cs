@@ -23,6 +23,7 @@ namespace ServiceLibrary
         public string Extension { get; set; }
         public string ExtensionDescription { get; set; }
         private string timePrint = "";
+        public string testFolder { get; set; }
 
         protected string projectName = "";
         public string ProjectName { get { return projectName; } set { this.projectName = value; } }
@@ -55,6 +56,7 @@ namespace ServiceLibrary
         //must be called before "Run" action!
         public void Initialize(string testFilePath)
         {
+            this.testFolder = service.TestFolder;
             this.testFilePath = testFilePath;
             this.testFileName = Path.GetFileName(testFilePath);
             testFolderName = Path.GetFileName(Path.GetDirectoryName(testFilePath));
@@ -63,8 +65,7 @@ namespace ServiceLibrary
         //returns timestamp in yyyyMMdd_HHmmss format
         public string GetCurrentTimestamp()
         {
-            DateTime timeStamp = DateTime.Now;
-            return String.Format("{0:yyyyMMdd_HHmmss}", timeStamp);
+            return Service.getInstance().GetCurrentTimestamp();
         }
 
         public virtual Thread TransferAndRun(List<LabClient> selectedClients, bool copyAll)
@@ -205,7 +206,7 @@ namespace ServiceLibrary
                 string copyPathRemote = Path.Combine(tempPath, "remoteResultOne" + client.ComputerName + ".bat");
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                 {
-                    string src = Path.Combine(service.TestFolder, applicationName);
+                    string src = Path.Combine(this.testFolder, applicationName);
 
                     file.WriteLine("@echo off");
 
@@ -214,7 +215,7 @@ namespace ServiceLibrary
                     string resultFiles = "";
                     foreach (string resultExt in resultExts)
                     {
-                        resultFiles += @"xcopy """ + Path.Combine(src, "*." + resultExt) + @""" """ + dst + @""" /V /E /Y /Q /I ^& ";
+                        resultFiles += @"xcopy """ + Path.Combine(src, "" + resultExt) + @""" """ + dst + @""" /V /E /Y /Q /I ^& ";
                     }
                     resultFiles = resultFiles.Substring(0, resultFiles.Length - 4);
 
@@ -229,7 +230,7 @@ namespace ServiceLibrary
 
             //check to make sure transfer is completed from all clients
             waitForTransferCompletion(clients);
-
+            
             //-----copy from network to local
             copyPath = Path.Combine(tempPath, "networkResultsCopy.bat");
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
