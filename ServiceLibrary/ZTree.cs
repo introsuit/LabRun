@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.IO;
-using System.Diagnostics;
 
 namespace ServiceLibrary
 {
@@ -55,7 +51,7 @@ namespace ServiceLibrary
                     line = @"start """" " + Path.GetFileName(ztreeAdminExe) + @" /language en /privdir " + resultsFolder + @" /datadir " + resultsFolder + @" /gsfdir " + resultsFolder;
                     file.WriteLine(line);
                 }
-                service.ExecuteCommandNoOutput(copyPath, true);
+                service.StartNewCmdThread(copyPath);
             }).Start();
         }
 
@@ -136,6 +132,9 @@ namespace ServiceLibrary
             new Thread(delegate()
             {
                 //----del results from local
+                //kill ztree.exe first to avoid "files are being using" error
+                service.KillLocalProcess("ztree.exe");
+
                 string pathDel = Path.Combine(tempPath, "delResultsFromLocal.bat");
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(pathDel))
                 {

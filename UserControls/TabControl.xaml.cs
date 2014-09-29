@@ -1,18 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using ServiceLibrary;
-using System.Reflection;
 using System.ComponentModel;
 using System.IO;
 
@@ -21,7 +13,7 @@ namespace UserControls
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
-    public partial class TabControl : UserControl, ControlUnit, INotifyPropertyChanged
+    public partial class TabControl : UserControl, ControlUnit
     {
         private MainUI parent = null;
         private TestApp testApp = null;
@@ -48,37 +40,14 @@ namespace UserControls
             }
         }
 
-        private bool active;
-        public bool Active
-        {
-            get { return active; }
-            set
-            {
-                if (value != active)
-                {
-                    active = value;
-                    OnPropertyChanged("Active");
-                }
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnPropertyChanged(string p)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(p));
-            }
-        }
-
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             // Create OpenFileDialog 
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
 
             // Set filter for file extension and default file extension 
-            dlg.DefaultExt = testApp.Extension;
+            //dlg.DefaultExt = testApp.Extension;
+
             dlg.Filter = testApp.ExtensionDescription;
 
             // Display OpenFileDialog by calling ShowDialog method 
@@ -196,14 +165,14 @@ namespace UserControls
             {
                 msg = "Make sure you have selected all lab computers that you want results to be deleted from!\n\n" + msg;
             }
+            else
+            {
+                msg = msg + "\n\nIf you have a running ztree application it will be closed!";
+            }
 
             MessageBoxResult result = MessageBox.Show(msg, "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
-                if (testApp is ZTree)
-                {
-                    MessageBox.Show("Make sure that ZTree admin application is not running!", "Are you sure?", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
                 testApp.DeleteResults(parent.getSelectedClients());
             }
         }

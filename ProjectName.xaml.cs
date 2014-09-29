@@ -1,16 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ServiceLibrary;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace LabRun
 {
@@ -19,6 +9,7 @@ namespace LabRun
     /// </summary>
     public partial class ProjectName : Window
     {
+        private Service service = Service.getInstance();
         private MainWindow parent = null;
         private string project = "";
 
@@ -26,6 +17,7 @@ namespace LabRun
         {
             InitializeComponent();
             this.parent = parent;
+            this.Owner = parent;
             this.project = project;
             txbProjectName.Text = project;
             txbProjectName.Focus();
@@ -35,7 +27,7 @@ namespace LabRun
         private void btnOk_Click(object sender, RoutedEventArgs e)
         {
             string projectName = txbProjectName.Text;
-            parent.SetProject(projectName);
+            parent.SetProject(projectName, true);
             this.Close();
         }
 

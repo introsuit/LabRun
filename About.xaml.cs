@@ -19,9 +19,10 @@ namespace LabRun
     /// </summary>
     public partial class About : Window
     {
-        public About()
+        public About(MainWindow parent)
         {
             InitializeComponent();
+            this.Owner = parent;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

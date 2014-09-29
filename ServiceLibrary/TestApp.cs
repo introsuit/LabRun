@@ -2,11 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace ServiceLibrary
@@ -17,7 +12,7 @@ namespace ServiceLibrary
         protected string applicationName;
         public string ApplicationName { get { return applicationName; } }
         protected string ApplicationExecutableName { get; set; }
-        protected string resultsFolderName = "Results";
+        protected string resultsFolderName;
         protected string completionFileName = "DONE";
         protected string tempPath = Path.GetTempPath();
         public string Extension { get; set; }
@@ -50,6 +45,7 @@ namespace ServiceLibrary
         protected TestApp(string applicationName/*, string applicationExecutableName, string testFilePath*/)
         {
             this.applicationName = applicationName;
+            resultsFolderName = service.ResultsFolderName;
             //this.applicationExecutableName = applicationExecutableName;
         }
 
@@ -271,7 +267,7 @@ namespace ServiceLibrary
 
         public virtual void DeleteResults(List<LabClient> clients)
         {
-            new Thread(delegate()
+            ThreadStart ts = delegate()
             {
                 //----del tests files from client computers
                 int i = 0;
@@ -321,9 +317,10 @@ namespace ServiceLibrary
                 //----end
 
                 //-----notify ui
-                service.notifyStatus("Local Cleaning Complete. Request sent to delete from labclients");
+                service.notifyStatus("Local cleaning complete. Request sent to delete from Labclients");
                 //-----end
-            }).Start();
+            };
+            service.RunInNewThread(ts);
         }
 
         public void CreateProjectDir()
@@ -349,8 +346,9 @@ namespace ServiceLibrary
             {
                 throw new DirectoryNotFoundException(projPath);
             }
-            Dms dms = new Dms(this);
-            service.RunInNewThread(() => dms.DmsTransfer(projPath));
+            service.notifyStatus("Uploading...");
+            Dms dms = new Dms();
+            service.RunInNewThread(() => dms.DmsTransfer(projPath, this));
         }
 
     }

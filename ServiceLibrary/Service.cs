@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.DirectoryServices;
 using System.Diagnostics;
 using System.Management.Automation;
-using System.Management;
 using System.IO;
 using System.Threading;
 using System.Reflection;
-using System.Collections;
-using System.Text.RegularExpressions;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.IO.Compression;
 
 namespace ServiceLibrary
 {
@@ -33,6 +26,7 @@ namespace ServiceLibrary
         private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
         private static readonly string configFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"config.ini");
         private readonly string tempPath = System.IO.Path.GetTempPath();
+        public string ResultsFolderName { get; set; }
 
         private List<WindowSize> windowSizes = new List<WindowSize>();
         public List<WindowSize> WindowSizes { get { return windowSizes; } }
@@ -78,8 +72,9 @@ namespace ServiceLibrary
                     string domainName = file.ReadLine();
                     string userName = file.ReadLine();
                     string userPassword = file.ReadLine();
-
                     Credentials = new Credentials(domainName, userName, userPassword);
+
+                    ResultsFolderName = "Results";
                     AppActive = true;
 
                     windowSizes.Add(new WindowSize("Full Screen", null, null));
@@ -201,6 +196,34 @@ namespace ServiceLibrary
             return newClients;
         }
 
+        private int GetNextAvailBoothNo(List<LabClient> clients, int boothNo)
+        {
+            int maxNo = 0;
+            bool found = false;
+            foreach (LabClient client in clients)
+            {
+                //look for if given booth no already exists
+                if (client.BoothNo == boothNo)
+                {
+                    found = true;
+                }
+                //keep track of max booth no
+                if (client.BoothNo > maxNo)
+                {
+                    maxNo = (int)client.BoothNo;
+                }
+            }
+            //if (!found)
+            //{
+            //    return boothNo;
+            //}
+            //else
+            //{
+            //    return maxNo+1;
+            //}
+            return found ? maxNo + 1 : boothNo;
+        }
+
         /// <summary>
         /// Downloads the bridge's list of computers which have MAC and booth number.
         /// Then connects MACs to IP-s using local ARP pool, and looks up computer names using NBTSTAT from IP address.
@@ -240,6 +263,7 @@ namespace ServiceLibrary
                     mac = mac.Replace(":", String.Empty);
                     mac = mac.Replace("\u0009", String.Empty);
                     boothNo = Int32.Parse(line.Substring(2, 2).Trim());
+                    boothNo = GetNextAvailBoothNo(clientlist, boothNo);
                     LabClient client = new LabClient(roomNo, "", boothNo, mac, "");
                     clientlist.Add(client);
                 }
@@ -578,7 +602,7 @@ namespace ServiceLibrary
             t.Start();
         }
 
-        public void RunRemotePSCmdLet(string computerName, string cmdLet)
+        public void RunRemotePSCmdLet(string computerName, string cmdLet, bool waitForFinish = false)
         {
             Thread t = new Thread(delegate()
             {
@@ -614,8 +638,11 @@ namespace ServiceLibrary
                 }
             });
 
+
             t.IsBackground = true;
             t.Start();
+            if (waitForFinish)
+                t.Join();
         }
 
         public void InputEnable(List<LabClient> clients)
@@ -747,6 +774,24 @@ namespace ServiceLibrary
             t.Start();
         }
 
+        public void KillLocalProcess(string processName)
+        {
+            using (PowerShell powershell = PowerShell.Create())
+            {
+                powershell.AddScript(@"$a = Taskkill /IM " + processName + @" /F");
+                powershell.AddScript(@"echo $a");
+                var results = powershell.Invoke();
+                foreach (var item in results)
+                {
+                    Debug.WriteLine(item);
+                }
+                if (powershell.Streams.Error.Count > 0)
+                {
+                    Debug.WriteLine("{0} errors", powershell.Streams.Error.Count);
+                }
+            }
+        }
+
         public void RunInNewThread(ThreadStart ts)
         {
             Thread t = new Thread(ts);
@@ -754,32 +799,27 @@ namespace ServiceLibrary
             t.Start();
         }
 
-        public void killRemoteProcess(string computerName, string processName)
+        public void killRemoteProcess(string computerName, string processName, bool waitForFinish = false)
         {
-            new Thread(() => KillProcThread(computerName, processName)).Start();
+            KillProcThread(computerName, processName, waitForFinish);
         }
 
-        public void killRemoteProcess(List<LabClient> computers, string processName)
+        public void killRemoteProcess(List<LabClient> computers, string processName, bool waitForFinish = false)
         {
-            Thread t = new Thread(() =>
-                {
-                    foreach (LabClient client in computers)
-                    {
-                        service.killRemoteProcess(client.ComputerName, processName);
-                    }
-                });
-            t.IsBackground = true;
-            t.Start();
-        }
-
-        private void KillProcThread(string computerName, string processName)
-        {
-            string cmdlet = "Taskkill /IM " + processName + " /F";
-            RunRemotePSCmdLet(computerName, cmdlet);
+            foreach (LabClient client in computers)
+            {
+                service.killRemoteProcess(client.ComputerName, processName, waitForFinish);
+            }
 
             //-----notify ui
             notifyStatus("Task Kill Completed");
             //-----end
+        }
+
+        public void KillProcThread(string computerName, string processName, bool waitForFinish = false)
+        {
+            string cmdlet = "Taskkill /IM " + processName + " /F";
+            RunRemotePSCmdLet(computerName, cmdlet, waitForFinish);         
         }
 
         public void ShutdownComputers(List<LabClient> clients)
@@ -934,14 +974,8 @@ Add-FirewallRule
 
         public User Login(string username, string password)
         {
-            User user = null;
-            WebClient webClient = new WebClient();
-            string userHash = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/login?username=" + username + "&password=" + password);
-            if (userHash.Contains("templogin"))
-            {
-                user = new User(username, password);
-                user.UniqueHash = userHash;
-            }
+            Dms dms = new Dms();
+            User user = dms.Login(username, password);
             this.user = user;
             return user;
         }
@@ -960,10 +994,7 @@ Add-FirewallRule
         {
             Thread t = new Thread(() =>
                 {
-                    WebClient webClient = new WebClient();
-                    string projectsStr = webClient.DownloadString("https://cobelab.au.dk/modules/StormDb/extract/projects?" + user.UniqueHash);
-                    string[] lines = projectsStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-                    projects = new List<string>(lines);
+                    projects = new Dms().GetProjects();
                 });
             t.IsBackground = true;
             t.Start();
@@ -972,6 +1003,18 @@ Add-FirewallRule
         public List<string> GetProjects()
         {
             return projects;
+        }
+
+        public bool LocalProjectExists(string projectName)
+        {
+            string path = Path.Combine(testFolder, ResultsFolderName, projectName);
+            return Directory.Exists(path);
+        }
+
+        public void MoveProject(string oldProject, string newProject)
+        {
+            string resPath = Path.Combine(testFolder, ResultsFolderName);
+            Directory.Move(Path.Combine(resPath, oldProject), Path.Combine(resPath, newProject));
         }
 
         /// <summary>
@@ -1055,6 +1098,6 @@ Add-FirewallRule
                 }
                 service.StartNewCmdThread(batFileName);
             }
-        }    
+        }
     }
 }

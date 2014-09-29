@@ -2,24 +2,59 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace ServiceLibrary
 {
     class Dms
     {
         private Service service = Service.getInstance();
-        private TestApp testApp;
+        private string dmsUrl = "https://cobelab.au.dk";
+        private MyWebClient webClient;
 
-        public Dms(TestApp testApp){
-            this.testApp = testApp;
+        public Dms()
+        {
+            webClient = new MyWebClient();
         }
 
-        public void DmsTransfer(string projPath)
+        //returns User if logged in successful, else returns null
+        public User Login(string username, string password)
+        {
+            User user = null;
+            string userHash = webClient.DownloadString(dmsUrl + "/modules/StormDb/extract/login?username=" + username + "&password=" + password);
+            if (userHash.Contains("templogin"))
+            {
+                user = new User(username, password);
+                user.UniqueHash = userHash;
+            }
+            return user;
+        }
+
+        public List<string> GetProjects()
+        {
+            string projectsStr = webClient.DownloadString(dmsUrl + "/modules/StormDb/extract/projects?" + service.User.UniqueHash);
+            string[] lines = projectsStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            return new List<string>(lines);
+        }
+
+        //get all subjects from project
+        private List<string> GetAllSubjects(TestApp testApp)
+        {         
+            string subjStr = webClient.DownloadString(dmsUrl + "/modules/StormDb/extract/subjectswithcode?" + service.User.UniqueHash + "&projectCode=" + testApp.ProjectName);
+            string[] lines = subjStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            return new List<string>(lines);
+        }
+
+        private void ReserveZtreeSubject(TestApp testApp)
+        {
+            string ztreeSubjName = "ztree_subject";
+            string ztreeReservedSubjNo = "1";
+            string url = dmsUrl + "/modules/StormDb/extract/createsubject?subjectNo=" + ztreeReservedSubjNo + "&subjectName=" + ztreeSubjName + "&" + service.User.UniqueHash + "&projectCode=" + testApp.ProjectName;
+            string result = webClient.DownloadString(url);      
+        }
+
+        public void DmsTransfer(string projPath, TestApp testApp)
         {
             DirectoryInfo[] subjects = new DirectoryInfo(projPath).GetDirectories();
             List<string> zipsForUpload = new List<string>();
@@ -35,7 +70,7 @@ namespace ServiceLibrary
                         {
                             continue;
                         }
-                        string subjId = CreateSubject(subject.Name);
+                        string subjId = CreateSubject(subject.Name, testApp);
 
                         string dirToZip = Path.Combine(projPath, subject.Name, timeline.Name, testApp.ApplicationName);
                         string zipFileName = testApp.ProjectName + "." + subjId + "." + timeline.Name + "." + testApp.ApplicationName + ".zip";
@@ -49,29 +84,55 @@ namespace ServiceLibrary
 
             //finally upload all the zips to network drive
             UploadZips(zipsForUpload);
+
+            service.notifyStatus("Done");
         }
 
-         //creates subject and returns subject number
-        private string CreateSubject(string boothNo, List<string> subjects = null)
+        //creates subject and returns subject number
+        private string CreateSubject(string boothNo, TestApp testApp)
         {
             string subjId = "";
             string subjectName = "Booth" + boothNo;
 
             if (testApp is ZTree)
             {
+                bool exists = false;
                 subjectName = "ztree_subject";
                 //TODO check if ztree_subject exists and if it does - use its existing subj number
-                
+                List<string> subjects = GetAllSubjects(testApp);
+                foreach (string subject in subjects)
+                {
+                    //subject number structure: "0001_ABC"
+                    if (subject.Length != 8)
+                        continue;
+                    string subjNoStr = subject.Remove(subject.Length - 4).TrimStart('0');
+
+                    //ztree_subject reserved number is 1 (can be any number though)
+                    if (subjNoStr == "1")
+                    {
+                        subjId = subject;
+                        exists = true;
+                        break;
+                    }
+                }
+
+                if (exists)
+                {
+                    return subjId;
+                }
             }
 
-            WebClient webClient = new WebClient();
-            string url = "https://cobelab.au.dk/modules/StormDb/extract/createsubject?subjectName=" + subjectName + "&" + service.User.UniqueHash + "&projectCode=" + testApp.ProjectName;
+            //Creates subject in DMS. If successful returns new subject's id,
+            //else returns a string containing "error" keyword
+            string url = dmsUrl + "/modules/StormDb/extract/createsubject?subjectName=" + subjectName + "&" + service.User.UniqueHash + "&projectCode=" + testApp.ProjectName;
             string result = webClient.DownloadString(url);
+
             //cut "\n" - new line seperators from result
             result = Regex.Replace(result, @"\n", String.Empty);
             subjId = result;
             if (subjId.Contains("error"))
                 throw new Exception("Failed to create new subject for BoothNo " + boothNo);
+
             return subjId;
         }
 
@@ -114,5 +175,15 @@ namespace ServiceLibrary
             if (File.Exists(copyPath))
                 File.Delete(copyPath);
         }
-    }
+
+        private class MyWebClient : WebClient
+        {
+            protected override WebRequest GetWebRequest(Uri uri)
+            {
+                WebRequest w = base.GetWebRequest(uri);
+                w.Timeout = 10 * 1000;
+                return w;
+            }
+        }
+    } 
 }

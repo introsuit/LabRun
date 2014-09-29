@@ -48,9 +48,10 @@
                     <ComboBoxItem x:Name="both" Tag="both" Content="Both labs"/>
                 </ComboBox>
 
-                <Label Content="Lab Clients:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"/>
+                <Label Content="Lab Clients:" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top"/>
 
-                <DataGrid ColumnWidth="Auto" IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" x:Name="dgrClients" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="332" Width="Auto" SelectionChanged="dgrClients_SelectionChanged" MouseLeftButtonDown="dgrClients_MouseLeftButtonDown" MouseLeftButtonUp="dgrClients_MouseLeftButtonUp_1" MouseUp="dgrClients_MouseUp_1" Loaded="dgrClients_Loaded">
+
+                <DataGrid ColumnWidth="Auto" IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="false" Name="dgrClients" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="332" Width="Auto" SelectionChanged="dgrClients_SelectionChanged" MouseLeftButtonDown="dgrClients_MouseLeftButtonDown" MouseLeftButtonUp="dgrClients_MouseLeftButtonUp_1" MouseUp="dgrClients_MouseUp_1">
                     <DataGrid.CellStyle>
                         <Style TargetType="{x:Type DataGridCell}">
                             <Style.Triggers>
@@ -161,7 +162,7 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <Label Content="Select Lab Clients:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"/>
+                <Label Content="Select Lab Clients:" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top"/>
 
                 <ComboBox SelectedIndex="0" x:Name="cmbSelectionClients" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Width="168" SelectionChanged="cmbSelectionClients_SelectionChanged">
                     <ComboBoxItem Tag="none" Content="None"/>
@@ -199,8 +200,10 @@
                     </Grid>
                 </GroupBox>
 
+
                 <TabControl x:Name="tabControl1"  HorizontalAlignment="Left" Height="332" Margin="0,0,0,0" VerticalAlignment="Top" Width="465" >
                     <TabItem Header="PsychoPy" x:Name="tabPsy">
+
                         <Grid Background="#FFE5E5E5" />
                     </TabItem>
                     <TabItem Header="E-Prime" x:Name="tabEPrime">
