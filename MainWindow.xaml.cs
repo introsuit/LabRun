@@ -57,6 +57,16 @@ namespace LabRun
                     MessageBox.Show(msg, "File not found", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
+                if (message.Contains("run_with_logs.py"))
+                {
+                    string msg = "File run_with_logs.py was not found! PsychoPy might not function properly.";
+                    MessageBox.Show(msg, "File not found", MessageBoxButton.OK, MessageBoxImage.Error);                 
+                }
+            }
+            if (!service.FileExists())
+            {
+                string msg = "File run_with_logs.py was not found! PsychoPy might not function properly.";
+                MessageBox.Show(msg, "File not found", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             service.ProgressUpdate += (s, e) =>
@@ -73,7 +83,6 @@ namespace LabRun
             SetProject(unnamedProject);
             service.StartPingSvc(clients);
             service.deleteNetworkTempFiles();
-
         }
 
         private void EnableColumn()

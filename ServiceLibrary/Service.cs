@@ -25,6 +25,7 @@ namespace ServiceLibrary
         private static readonly string clientsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"clients.ini");
         private static readonly string authFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"auth.ini");
         private static readonly string configFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"config.ini");
+        private static readonly string pythonLaunch = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"run_with_logs.py");
         private readonly string tempPath = System.IO.Path.GetTempPath();
         public string ResultsFolderName { get; set; }
 
@@ -98,6 +99,19 @@ namespace ServiceLibrary
             {
                 Config = new Config(configFile);
             }
+
+            if (!File.Exists(configFile))
+            {
+                throw new FileNotFoundException("config.ini");
+            }
+            else
+            {
+                Config = new Config(configFile);
+            }
+        }
+        public bool FileExists()
+        {
+            return File.Exists(pythonLaunch);
         }
 
         public void StopAndClean()

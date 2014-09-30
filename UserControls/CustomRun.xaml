@@ -6,7 +6,7 @@
              mc:Ignorable="d" 
 
              Width="Auto">
-    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+    <ScrollViewer Background="#FFE5E5E5" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
     <Grid Background="#FFE5E5E5" Margin="0,0,0,0" Height="607" Width="428">
         <GroupBox Header="Set parameter (for file to run, applies for both directory or single file)" HorizontalAlignment="Left" VerticalAlignment="Top" Height="157" Width="418" Margin="0,86,0,0">
             <Grid VerticalAlignment="Top" Height="114" Margin="0,0,0,-13.333">

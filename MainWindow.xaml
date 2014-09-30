@@ -183,10 +183,10 @@
             </StackPanel>
 
             <StackPanel Orientation="Vertical" Margin="10">
-                <GroupBox Header="User and Project Options" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Height="83" Width="462">
+                <GroupBox Header="User and Project Options" HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Top" Height="83" Width="Auto">
                     <Grid>
                         <Button x:Name="btnSelProject" Content="Set Project Name" HorizontalAlignment="Left" Margin="210,10,0,0" VerticalAlignment="Top" Width="131" Click="btnSelProject_Click"/>
-                        <Label HorizontalAlignment="Left" Margin="210,32,0,0" VerticalAlignment="Top" RenderTransformOrigin="3.012,0.285" Width="230">
+                        <Label HorizontalAlignment="Left" Margin="210,32,0,0" VerticalAlignment="Top" RenderTransformOrigin="3.012,0.285" Width="Auto">
                             <TextBlock x:Name="lblProject" TextTrimming="CharacterEllipsis" Text="...">
                                 <TextBlock.ToolTip>
                                     <ToolTip DataContext="{Binding PlacementTarget, RelativeSource={x:Static RelativeSource.Self}}">
@@ -201,7 +201,7 @@
                 </GroupBox>
 
 
-                <TabControl x:Name="tabControl1"  HorizontalAlignment="Left" Height="332" Margin="0,0,0,0" VerticalAlignment="Top" Width="465" >
+                <TabControl x:Name="tabControl1"  HorizontalAlignment="Stretch" Height="332" Margin="0,0,0,0" VerticalAlignment="Top" Width="Auto" >
                     <TabItem Header="PsychoPy" x:Name="tabPsy">
 
                         <Grid Background="#FFE5E5E5" />

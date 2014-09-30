@@ -53,7 +53,7 @@ namespace UserControls
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                MessageBox.Show("The program for merging the pay file into a Word doument was not found! \n\n" + ex.ToString(), "File not found!", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
