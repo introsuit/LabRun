@@ -21,7 +21,7 @@
             </TextBlock>
         <Button IsEnabled='False' Content="Run" Height="28" HorizontalAlignment="Left" Margin="10,60,0,0" Name="btnRun" VerticalAlignment="Top" Width="75" Click="btnRun_Click" />
         <Button IsEnabled='False' Content="Kill" Height="28" HorizontalAlignment="Left" Margin="91,60,0,0" Name="btnKill" VerticalAlignment="Top" Width="75" Click="btnKill_Click" />
-        <Image Name="imgTest" HorizontalAlignment="Left" Height="100" Margin="230,190,0,0" VerticalAlignment="Top" Width="100"/>
+        <Image Name="imgTest" HorizontalAlignment="Right" Height="100" VerticalAlignment="Bottom" Width="100" Margin="10"/>
         <CheckBox Name="cbxCopyAll" Content="Transfer all files from selected directory" HorizontalAlignment="Left" Margin="10,95,0,0" VerticalAlignment="Top">
             <CheckBox.ToolTip>
                 <TextBlock>Copy all other files from the directory where run test file is selected</TextBlock>
