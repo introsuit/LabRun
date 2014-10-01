@@ -98,7 +98,7 @@ namespace ServiceLibrary
                 file.WriteLine(line);
                 if (this is PsychoPy)
                 {
-                    line = @"xcopy """ + Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), ((PsychoPy)this).RunWithLogsScript) + @""" """ + Path.Combine(service.SharedNetworkTempFolder, applicationName) + @""" " + args;
+                    line = @"xcopy """ + Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), ((PsychoPy)this).RunWithLogsScript) + @""" """ + dstDir + @""" " + args;
                     file.WriteLine(line);
                 }
             }
@@ -129,8 +129,8 @@ namespace ServiceLibrary
                     if (this is PsychoPy)
                     {
                         //runCmd = @"""" + ApplicationExecutableName + @""" " + runCmd;
-                        string runWithLogs = Path.Combine(service.SharedNetworkTempFolder, applicationName, ((PsychoPy)this).RunWithLogsScript);
-                        runCmd = ApplicationExecutableName + " " + runWithLogs + " " + @" " + runCmd;
+                        string runWithLogs = Path.Combine(dstDir, ((PsychoPy)this).RunWithLogsScript);
+                        runCmd = ApplicationExecutableName + @" """ + runWithLogs + @""" " + @" " + runCmd;
                     }
                     string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
                     file.WriteLine(line);
