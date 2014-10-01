@@ -1,6 +1,7 @@
 ﻿using ServiceLibrary;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -219,6 +220,31 @@ namespace UserControls
             if (result == MessageBoxResult.Yes)
             {
                 service.deleteFiles(parent.getSelectedClients());
+            }
+        }
+
+        private void btnTransferToDMS_Click(object sender, RoutedEventArgs e)
+        {
+            if (service.User == null)
+            {
+                MessageBox.Show(@"You must be logged in to do that.", "Login required", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                return;
+            }
+            MessageBoxResult result = MessageBox.Show("All results data from your project will be copied to DMS\nTo see what will be transferred, click \"Open Results\" to view your project folder.\n\nAre you sure you want to continue?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    crTestApp.ToDms();
+                }
+                catch (DirectoryNotFoundException ex)
+                {
+                    MessageBox.Show("Project folder: \"" + ex.Message + "\" was not found! Make sure that you have transferred results to this project.", "Directory Not Found", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }

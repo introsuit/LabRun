@@ -44,7 +44,7 @@
             <Grid>
                 <Button Name="btnDefineExtensions" Content="Define result extensions" HorizontalAlignment="Left" Margin="31,24,0,0" VerticalAlignment="Top" Width="208" RenderTransformOrigin="-0.062,0.583" Click="btnDefineExtensions_Click"/>
                     <Button Name="btnGetResults" IsEnabled="false" Content="Get results!" HorizontalAlignment="Left" Margin="31,51,0,0" VerticalAlignment="Top" Width="208" Click="btnGetResults_Click"/>
-                    <Button Name="btnTransferToDMS" IsEnabled="false" Content="Transfer to DMS" HorizontalAlignment="Left" Margin="31,78,0,0" VerticalAlignment="Top" Width="208"/>
+                    <Button Name="btnTransferToDMS" IsEnabled="false" Content="Transfer to DMS" HorizontalAlignment="Left" Margin="31,78,0,0" VerticalAlignment="Top" Width="208" Click="btnTransferToDMS_Click"/>
                 <Button Name="btnCleanCustomDir" IsEnabled="false" Content="Clean custom run directory on clients" HorizontalAlignment="Left" Margin="31,103,0,0" VerticalAlignment="Top" Width="208" Click="btnCleanCustomDir_Click"/>
 
             </Grid>
