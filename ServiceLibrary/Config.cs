@@ -58,7 +58,11 @@ namespace ServiceLibrary
                     {
                         DmsUpload = line.Remove(0, "dmsupload".Length + 1);
                     }
-                   
+
+                    if (line.StartsWith("adminid"))
+                    {
+                        AdminId = line.Remove(0, "adminid".Length + 1);
+                    }
                 }
             }
         }
@@ -71,5 +75,6 @@ namespace ServiceLibrary
         public string Chrome { get; set; }
         public string DmsUpload { get; set; }
         public string CustomRun { get; set; }
+        public string AdminId { get; set; }
     }
 }

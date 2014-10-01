@@ -7,6 +7,7 @@ using System.Threading;
 using System.Reflection;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
 
 namespace ServiceLibrary
 {
@@ -511,7 +512,7 @@ namespace ServiceLibrary
                     file.WriteLine(line);
 
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
-                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + fileName + "" + @""" ""C:\Cobe Lab\Custom Run\" + timestamp  + @"\Custom Run\""  /V /Y /Q ";
+                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + fileName + "" + @""" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\Custom Run\""  /V /Y /Q ";
 
                     // Run file on client after copied to local drive
                     string runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + fileName + @""" """ + param + @"""";
@@ -559,9 +560,11 @@ namespace ServiceLibrary
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
                 {
                     file.WriteLine("@echo off");
+                    string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
+                    file.WriteLine(line);
 
                     string runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + filename + @"""";
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + runCmd + @")";
+                    line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + runCmd + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);
@@ -677,7 +680,7 @@ namespace ServiceLibrary
             }
         }
 
-        public void runRemoteProgram(List<LabClient> compList, string path, string param = "")
+        public void runRemoteProgram(List<LabClient> compList, string path, string param = "", bool cmdWithQuotes = true)
         {
             foreach (LabClient client in compList)
             {
@@ -690,7 +693,12 @@ namespace ServiceLibrary
                     string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
                     file.WriteLine(line);
 
-                    string runCmd = @"""" + path + @"""" + " " + param;
+                    string runCmd = path;
+                    if (cmdWithQuotes)
+                    {
+                        runCmd = @"""" + runCmd + @"""";
+                    }
+                    runCmd = runCmd + " " + param;
                     line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + compName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + " " + runCmd;
                     file.WriteLine(line);
                 }
@@ -841,7 +849,7 @@ namespace ServiceLibrary
         public void KillProcThread(string computerName, string processName, bool waitForFinish = false)
         {
             string cmdlet = "Taskkill /IM " + processName + " /F";
-            RunRemotePSCmdLet(computerName, cmdlet, waitForFinish);         
+            RunRemotePSCmdLet(computerName, cmdlet, waitForFinish);
         }
 
         public void ShutdownComputers(List<LabClient> clients)
@@ -965,6 +973,58 @@ Add-FirewallRule
                     ProgressUpdate(this, new StatusEventArgs("Net Access (http(s)) was disabled!"));
                 //-----end
             }
+        }
+
+        private string GetCurrentMachineIp()
+        {
+            IPHostEntry host;
+            string localIP = "?";
+            host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (IPAddress ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    localIP = ip.ToString();
+                }
+            }
+            return localIP;
+        }
+
+        //adds fw rule to labclients to allow psexec from given ip
+        public void UpdateFirewallRules(List<LabClient> clients)
+        {
+            //-----notify ui
+            if (ProgressUpdate != null)
+                ProgressUpdate(this, new StatusEventArgs("Working..."));
+
+            //gets admin id for admin pc unique fw rule
+            string adminPcId = Config.AdminId;
+            string ruleName = "PsExec" + adminPcId;
+
+            //gets ip of this machine
+            string ip = GetCurrentMachineIp();
+            if (ip == "?")
+                throw new Exception("Unable to retrieve IP of this machine!");
+
+            ThreadStart threadStart = delegate()
+            {
+                //remove previous unused fw rules from all labclients
+                string script = @"$ruleName = """ + ruleName + @"""
+                            $fw = New-Object -ComObject hnetcfg.fwpolicy2 
+                            foreach ($rule in ($fw.Rules | where-object {$_.name -eq $ruleName } )) {
+                                $fw.Rules.Remove($ruleName)
+                            }";
+                clients.ForEach(client => RunRemotePSCmdLet(client.ComputerName, script, true));
+
+                //add new fw rule
+                string cmd = @"cmd /c (netsh AdvFirewall firewall add rule name=" + ruleName + @" dir=in action=allow protocol=TCP localport=RPC RemoteIP=" + ip + @" profile=domain,private program=%WinDir%\system32\services.exe service=any)";
+                runRemoteProgram(clients, cmd, "", false);
+
+                //-----notify ui
+                if (ProgressUpdate != null)
+                    ProgressUpdate(this, new StatusEventArgs("FW rules update request sent"));
+            };
+            RunInNewThread(threadStart);
         }
 
         public void NetEnable(List<LabClient> clients)
@@ -1117,7 +1177,7 @@ Add-FirewallRule
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
                     string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + folderName + @"""" + @" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + @"""" + @" /i /s /e /V /Y /Q ";
                     // Build run command to embed in bat also
-                    string runCmd = @"""" +@"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + filePath + @""" """ + parameter + @"""";
+                    string runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + filePath + @""" """ + parameter + @"""";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);
@@ -1132,24 +1192,24 @@ Add-FirewallRule
         /// <returns>Nothing</returns> 
         public void deleteNetworkTempFiles()
         {
-                string batFileName = Path.Combine(tempPath, "DeleteNetworkTemp" + ".bat");
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
-                {
-                    file.WriteLine("@echo off");
-                    string deleteCmd = @"rmdir " + @"""\\BSSFILES2\Dept\adm\labrun\temp\""" + @" /S /Q";
-                    file.WriteLine(deleteCmd);
-                }
-                service.StartNewCmdThread(batFileName);
+            string batFileName = Path.Combine(tempPath, "DeleteNetworkTemp" + ".bat");
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
+            {
+                file.WriteLine("@echo off");
+                string deleteCmd = @"rmdir " + @"""\\BSSFILES2\Dept\adm\labrun\temp\""" + @" /S /Q";
+                file.WriteLine(deleteCmd);
+            }
+            service.StartNewCmdThread(batFileName);
 
 
-                string copyPath = Path.Combine("DeleteNetworkTemp" + ".bat");
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
-                {
-                    file.WriteLine("@echo off");
-                    string line = @"rmdir /s /q """ + Path.Combine(@"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\") + @"""";
-                    file.WriteLine(line);
-                }
-                service.ExecuteCommandNoOutput(copyPath, true);
+            string copyPath = Path.Combine("DeleteNetworkTemp" + ".bat");
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                string line = @"rmdir /s /q """ + Path.Combine(@"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\") + @"""";
+                file.WriteLine(line);
+            }
+            service.ExecuteCommandNoOutput(copyPath, true);
         }
     }
 }

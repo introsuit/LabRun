@@ -696,6 +696,24 @@ namespace LabRun
         {
             Process.Start("http://bss.au.dk/research/research-labs/cognition-and-behavior-lab/");
         }
+
+        private void btnFwUpdate(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("This will update firewall rules for lab computers to allow speedy remote launches. Make sure that all lab computers are turned on.\n\nAre you sure you want to continue?", "Are you sure?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            try
+            {
+                service.UpdateFirewallRules(clients);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Unable to get IP Address", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
     }
 }
 
