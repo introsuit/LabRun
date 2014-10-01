@@ -486,7 +486,7 @@ namespace ServiceLibrary
                 {
                     file.WriteLine("@echo off");
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
-                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + fileName + "" + @""" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + @""" /V /Y /Q ";
+                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + fileName + "" + @""" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\Custom Run\" + @""" /V /Y /Q ";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @")";
                     file.WriteLine(line);
@@ -511,7 +511,7 @@ namespace ServiceLibrary
                     file.WriteLine(line);
 
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
-                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + fileName + "" + @""" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\""  V /Y /Q ";
+                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + fileName + "" + @""" ""C:\Cobe Lab\Custom Run\" + timestamp  + @"\Custom Run\""  /V /Y /Q ";
 
                     // Run file on client after copied to local drive
                     string runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + fileName + @""" """ + param + @"""";
