@@ -27,8 +27,8 @@
             </MenuItem>
             <MenuItem Header="_Useful websites">
                 <MenuItem Header="_Participant pool" Click="AURPS_Click"/>
-                <MenuItem Header="_Lab homepage" Click="AUCBL_Click"/>
-                <MenuItem Header="_DMS, Booking System, Wiki" Click="COBELAB_Click"/>
+                <MenuItem Header="_Lab homepage" Click="COBELAB_Click"/>
+                <MenuItem Header="_DMS, Booking System, Wiki" Click="AUCBL_Click"/>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About LabRun" Click="About_Click"/>

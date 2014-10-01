@@ -253,5 +253,10 @@ namespace UserControls
                 }
             }
         }
+
+        private void btnTransferDir_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

@@ -690,7 +690,7 @@ namespace LabRun
 
         private void AUCBL_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start("https://aucobe.sona-systems.com/");
+            Process.Start("https://cobelab.au.dk/");
         }
 
         private void COBELAB_Click(object sender, RoutedEventArgs e)
