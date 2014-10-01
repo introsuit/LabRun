@@ -66,7 +66,7 @@
                     </DataGrid.CellStyle>
 
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Booth No"  Binding="{Binding BoothNo}"/>
+                        <DataGridTextColumn Header="Booth No"  Binding="{Binding BoothNoDisplay}"/>
                         <DataGridTextColumn Header="Comp. Name" Binding="{Binding ComputerName}"/>
 
                         <DataGridTemplateColumn Header="Psy.Py" Visibility="Hidden">

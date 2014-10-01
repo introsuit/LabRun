@@ -137,6 +137,7 @@ namespace ServiceLibrary
         public int RoomNo { get; set; }
         public string ComputerName { get; set; }
         public int? BoothNo { get; set; }
+        public string BoothNoDisplay { get; set; }
         public string Mac { get; set; }
         public string Ip { get; set; }
 
@@ -150,11 +151,36 @@ namespace ServiceLibrary
             }
         }
 
+        private string GetBoothNoDisplay(int? boothNo)
+        {
+            string result = "";
+
+            if (this.BoothNo == null)
+            {
+                return result;
+            }
+           
+            if (this.BoothNo <= 24)
+            {
+                result = ((int)this.BoothNo) + "";
+            }
+            else
+            {
+                //start at letter before A (A is 65), so any subsequent numbers will be at range [A-*]
+                int startCharValue = 64;
+                int numericValue = startCharValue + ((int)this.BoothNo - 24);
+                result = ((char)numericValue).ToString();
+            }
+
+            return result;
+        }
+
         public LabClient(int RoomNo, string computerName, int? boothNo, string mac, string ip)
         {
             this.RoomNo = RoomNo;
             this.ComputerName = computerName;
             this.BoothNo = boothNo;
+            this.BoothNoDisplay = GetBoothNoDisplay(this.BoothNo);
             this.Mac = mac;
             this.Ip = ip;
             active = false;

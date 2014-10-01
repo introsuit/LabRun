@@ -104,7 +104,6 @@ namespace LabRun
                 MessageBox.Show(ex.Message);
             }
             List<LabClient> selectedClients = service.filterForRoom(clients, labNo);
-            //dgrClients.ItemsSource = selectedClients;
             updateClientsGrid();
         }
 
