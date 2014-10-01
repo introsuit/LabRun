@@ -507,13 +507,16 @@ namespace ServiceLibrary
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
                 {
                     file.WriteLine("@echo off");
+                    string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
+                    file.WriteLine(line);
+
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
                     string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + fileName + "" + @""" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\""  V /Y /Q ";
 
                     // Run file on client after copied to local drive
                     string runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + fileName + @""" """ + param + @"""";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+                    line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);
@@ -593,6 +596,8 @@ namespace ServiceLibrary
                         using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                         {
                             file.WriteLine("@echo off");
+                            string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
+                            file.WriteLine(line);
 
                             string srcDir = Path.Combine(service.SharedNetworkTempFolder, blockerDirName);
                             string dstDir = Path.Combine(service.TestFolder, Path.GetFileName(Path.GetDirectoryName(inputBlockApp)));
@@ -600,7 +605,7 @@ namespace ServiceLibrary
 
                             string runLocation = Path.Combine(dstDir, Path.GetFileName(inputBlockApp));
                             string runCmd = @"start """" """ + runLocation + @"""";
-                            string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+                            line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
 
                             file.WriteLine(line);
                         }
@@ -682,8 +687,11 @@ namespace ServiceLibrary
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
                 {
                     file.WriteLine("@echo off");
+                    string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
+                    file.WriteLine(line);
+
                     string runCmd = @"""" + path + @"""" + " " + param;
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + compName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + " " + runCmd;
+                    line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + compName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + " " + runCmd;
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(copyPathRemote);
@@ -912,10 +920,12 @@ namespace ServiceLibrary
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
                 {
                     file.WriteLine("@echo off");
+                    string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
+                    file.WriteLine(line);
 
                     string copyCmd = @"xcopy ""\\BSSFILES2\dept\adm\labrun\scr-viewer"" ""C:\labrun\scr-viewer"" /V /E /Y /Q /I";
                     string runCmd = @"""" + @"C:\labrun\scr-viewer\scr-viewer.exe" + @"""";
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+                    line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);
@@ -1043,9 +1053,11 @@ Add-FirewallRule
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
                 {
                     file.WriteLine("@echo off");
+                    string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
+                    file.WriteLine(line);
 
                     string deleteCmd = @"rmdir " + @"""C:\Cobe Lab\Custom Run\""" + @" /S /Q";
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + deleteCmd + @")";
+                    line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + deleteCmd + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);

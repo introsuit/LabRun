@@ -10,6 +10,8 @@ import os
 
 
 try:
+    dir = os.path.dirname(sys.argv[1])
+    os.chdir(dir)
     # Run the file
     execfile(sys.argv[1])
 except Exception:

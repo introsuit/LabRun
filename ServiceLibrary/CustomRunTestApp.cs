@@ -8,7 +8,6 @@ namespace ServiceLibrary
 {
     public class CustomRunTestApp : TestApp
     {
-        string applicationName = "Custom Run";
         public CustomRunTestApp(List<string> extensions)
             : base("Custom Run")
         {

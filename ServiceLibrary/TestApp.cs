@@ -132,9 +132,10 @@ namespace ServiceLibrary
                         string runWithLogs = Path.Combine(service.SharedNetworkTempFolder, applicationName, ((PsychoPy)this).RunWithLogsScript);
                         runCmd = ApplicationExecutableName + " " + runWithLogs + " " + @" " + runCmd;
                     }
-                    Debug.WriteLine(runCmd + " arun cmd");
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& cd """ + dstDir + @""" ^& start """" " + runCmd + @")";
+                    string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
+                    file.WriteLine(line);
 
+                    line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& cd """ + dstDir + @""" ^& start """" " + runCmd + @")";
                     file.WriteLine(line);
 
                 }
@@ -209,11 +210,12 @@ namespace ServiceLibrary
             {
                 string copyPathRemote = Path.Combine(tempPath, "remoteResultOne" + client.ComputerName + ".bat");
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPathRemote))
-                {
-                    string src = Path.Combine(this.testFolder, applicationName);
-
+                {                  
                     file.WriteLine("@echo off");
+                    string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
+                    file.WriteLine(line);
 
+                    string src = Path.Combine(this.testFolder, applicationName);
                     string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, client.BoothNo + "");
 
                     string resultFiles = "";
@@ -224,7 +226,7 @@ namespace ServiceLibrary
                     resultFiles = resultFiles.Substring(0, resultFiles.Length - 4);
 
                     string completionNotifyFile = @"copy NUL " + Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, completionFileName + client.ComputerName);
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + resultFiles + @" ^& " + completionNotifyFile + @")";
+                    line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + resultFiles + @" ^& " + completionNotifyFile + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(copyPathRemote);
