@@ -59,15 +59,6 @@
     <Compile Include="Credentials.cs" />
     <Compile Include="EPrime.cs" />
     <Compile Include="PsychoPy.cs" />
-    <Compile Include="Resources\MailMerge\MailMergeMainWindow.cs" />
-    <Compile Include="Resources\MailMerge\MailMergeParticipant.cs" />
-    <Compile Include="Resources\ScrViewer\Program.cs" />
-    <Compile Include="Resources\ScrViewer\Form1.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Resources\ScrViewer\Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
-    </Compile>
     <Compile Include="ScreenShare.cs" />
     <Compile Include="StatusEventArgs.cs" />
     <Compile Include="LabClient.cs" />
@@ -91,9 +82,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\run_with_logs.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Resources\MailMerge\MailMergeMainWindow.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
