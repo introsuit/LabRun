@@ -23,15 +23,16 @@ namespace LabRun
         private Service service;
         private List<LabClient> clients = new List<LabClient>();
         private List<ControlUnit> tabControls = new List<ControlUnit>();
-        public int labNo = 1;
+        public int labNo = 2;
         private Boolean isSelectionByCmbbx = false;
         private readonly string unnamedProject = "UnnamedProject";
         private string project = "";
         public string Project { get { return this.project; } }
         private Login login;
 
-        public string getProject(){
-            return project;           
+        public string getProject()
+        {
+            return project;
         }
 
         public MainWindow()
@@ -60,7 +61,7 @@ namespace LabRun
                 if (message.Contains("run_with_logs.py"))
                 {
                     string msg = "File run_with_logs.py was not found! PsychoPy might not function properly.";
-                    MessageBox.Show(msg, "File not found", MessageBoxButton.OK, MessageBoxImage.Error);                 
+                    MessageBox.Show(msg, "File not found", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             if (!service.FileExists())
@@ -92,20 +93,6 @@ namespace LabRun
             else dgrClients.Columns[2].Visibility = Visibility.Hidden;
         }
 
-        private void FitToContent()
-        {
-            // where dg is my data grid's name...
-            foreach (DataGridColumn column in dgrClients.Columns)
-            {
-                //if you want to size ur column as per the cell content
-                column.Width = new DataGridLength(1.0, DataGridLengthUnitType.SizeToCells);
-                //if you want to size ur column as per the column header
-                column.Width = new DataGridLength(1.0, DataGridLengthUnitType.SizeToHeader);
-                //if you want to size ur column as per both header and cell content
-                column.Width = new DataGridLength(1.0, DataGridLengthUnitType.Auto);
-            }
-        }
-
         public void initClients()
         {
             try
@@ -117,7 +104,8 @@ namespace LabRun
                 MessageBox.Show(ex.Message);
             }
             List<LabClient> selectedClients = service.filterForRoom(clients, labNo);
-            dgrClients.ItemsSource = selectedClients;
+            //dgrClients.ItemsSource = selectedClients;
+            updateClientsGrid();
         }
 
         public void updateClientsGrid()

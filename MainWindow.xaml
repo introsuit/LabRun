@@ -43,8 +43,8 @@
 
                 <ComboBox x:Name="cmbBxLabSelect" SelectedIndex="0" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Width="168" SelectionChanged="cmbBxLabSelect_SelectionChanged">
 
-                    <ComboBoxItem x:Name="lab1" Tag="lab1" Content="Computer lab no. 1"/>
-                    <ComboBoxItem x:Name="lab2" Tag="lab2" Content="Computer lab no. 2"/>
+                    <ComboBoxItem x:Name="lab2" Tag="lab2" Content="Computer lab no. 1a"/>
+                    <ComboBoxItem x:Name="lab1" Tag="lab1" Content="Computer lab no. 1b"/>
                     <ComboBoxItem x:Name="both" Tag="both" Content="Both labs"/>
                 </ComboBox>
 
