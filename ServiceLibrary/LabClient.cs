@@ -64,6 +64,20 @@ namespace ServiceLibrary
             }
         }
 
+        private bool custom { get; set; }
+        public bool Custom
+        {
+            get { return custom; }
+            set
+            {
+                if (value != custom)
+                {
+                    custom = value;
+                    OnPropertyChanged("Custom");
+                }
+            }
+        }
+
         private bool chrome { get; set; }
         public bool Chrome
         {
@@ -147,6 +161,11 @@ namespace ServiceLibrary
             PsychoPy = false;
             EPrime = false;
             ZTree = false;
+            Custom = false;
+            chrome = false;
+            web = false;
+            input = false;
+            shareScr = false;
         }
 
         public override bool Equals(System.Object obj)

@@ -182,8 +182,12 @@ namespace LabRun
 
             UserControls.CustomRun tC5 = new UserControls.CustomRun(this);
             tabCustom.Content = tC5;
+            tC5.TabItem = tabCustom;
             tabControls.Add(tC5);
-            
+            tabCustom.Header = new TextBlock
+            {
+                Text = tabCustom.Header.ToString(),
+            };
         }
 
         private void SetColumnVisibility(DataGridColumn column, bool visible)
@@ -242,6 +246,11 @@ namespace LabRun
                     selectedClients.ForEach(i => i.ZTree = active);
                     exists = clients.Exists(i => i.ZTree == true);
                     column = dgrClients.Columns[4];
+                    break;
+                case "tabCustom":
+                    selectedClients.ForEach(i => i.Custom = active);
+                    exists = clients.Exists(i => i.Custom == true);
+                    column = dgrClients.Columns[9];
                     break;
                 case "tabChrome":
                     selectedClients.ForEach(i => i.Chrome = active);
