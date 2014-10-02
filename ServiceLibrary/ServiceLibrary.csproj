@@ -81,6 +81,8 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\auth.ini" />
+    <None Include="Resources\config.ini" />
     <None Include="Resources\run_with_logs.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
