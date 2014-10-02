@@ -487,7 +487,16 @@ namespace ServiceLibrary
                     string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + fileName + "" + @""" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\Custom Run\""  /V /Y /Q ";
 
                     // Run file on client after copied to local drive
-                    string runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + fileName + @""" """ + param + @"""";
+                    string runCmd = "";
+                    if (param == "")
+                    {
+                         runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + fileName + @"""";
+                    }
+                    else 
+                    {
+                         runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + fileName + @""" """ + param + @"""";
+                    }
+
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);
@@ -1137,7 +1146,12 @@ Add-FirewallRule
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
                     string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + folderName + @"""" + @" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + @"""" + @" /i /s /e /V /Y /Q ";
                     // Build run command to embed in bat also
-                    string runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + filePath + @""" """ + parameter + @"""";
+                    string runCmd = "";
+                    if (parameter != "")
+                        runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + filePath + @""" """ + parameter + @"""";
+                    else
+                        runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + filePath + @"""";
+                    
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);
@@ -1220,5 +1234,21 @@ Add-FirewallRule
             }
             service.ExecuteCommandNoOutput(copyPath, true);
         }
+
+        public void CloseCustomProcess(List<LabClient> computers, string exename)
+        {
+            Thread t = new Thread(() =>
+            {
+                string processName = exename;
+                foreach (LabClient computer in computers)
+                {
+                    string cmdlet = @"Taskkill /IM " + processName + @" /F";
+                    RunRemotePSCmdLet(computer.ComputerName, cmdlet);
+                }
+            });
+            t.IsBackground = true;
+            t.Start();
+        }
+
     }
 }

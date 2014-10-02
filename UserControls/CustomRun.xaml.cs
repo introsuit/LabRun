@@ -24,6 +24,7 @@ namespace UserControls
         private MainUI parent = null;
         private Service service = Service.getInstance();
         private CustomRunTestApp crTestApp;
+        public List<CompAndProcesses> procList { get; set; }
         public string filePath { get; set; }
         public string fileName { get; set; }
         public string DirPath { get; set; }
@@ -38,7 +39,7 @@ namespace UserControls
         public TabItem TabItem { get; set; }
 
 
-        public CustomRun(MainUI parent)
+        public CustomRun(MainUI parent, List<LabClient> clients)
         {
             InitializeComponent();
             isEnabledSingle = false;
@@ -47,6 +48,23 @@ namespace UserControls
             this.TimeStamp = service.GetCurrentTimestamp();
             this.lblTimestmp.Content = "Timestamp: " + this.TimeStamp;
             this.extensions = new List<string>();
+            InitProcList(clients);
+        }
+
+        public void InitProcList(List<LabClient> clients)
+        {
+            this.procList = new List<CompAndProcesses>();
+            foreach (LabClient client in clients)
+            {
+                CompAndProcesses ComProc = new CompAndProcesses();
+                ComProc.computer = client;
+                ComProc.processes = new List<string>();
+                this.procList.Add(ComProc);
+            }
+        }
+
+        public MainUI getParent() {
+            return this.parent;
         }
 
         public void ButtonClickable(bool enabled)
@@ -64,7 +82,7 @@ namespace UserControls
             }
             if ((isEnabledDir) && (enabled))
             {
-               
+
                 btnTransferDir.IsEnabled = true;
                 btnBrowseDirFileToRun.IsEnabled = true;
             }
@@ -119,9 +137,10 @@ namespace UserControls
                     this.fileName = word;
                 }
                 this.isEnabledSingle = true;
+                this.isEnabledDir = true;
                 if (parent.getSelectedClients().Count != 0)
                 {
-                    this.isEnabledDir = true;
+                    btnTransfernRunSingleFile.IsEnabled = true;
                 }
 
                 lblFilePath.Content = this.filePath;
@@ -143,13 +162,46 @@ namespace UserControls
 
         private void btnTransfernRunSingleFile_Click(object sender, RoutedEventArgs e)
         {
+            // Check file name and extension for keeping track of running processes
+            string filename = "";
+            string[] split = this.filePath.Split('\\');
+            foreach (string temp in split)
+            {
+                filename = temp;
+            }
+            string extname = "";
+            string[] extSplit = this.filePath.Split('.');
+            foreach (string temp in extSplit)
+            {
+                extname = temp;
+            }
+
+            // If launched file is an exe, add it to the process list
+            if (extname == "exe")
+            {
+
+                    foreach (LabClient client in parent.getSelectedClients())
+                    {
+                        foreach (CompAndProcesses proc_client in this.procList)
+                        {
+                            if (client.Equals(proc_client.computer))
+                            {
+                                {proc_client.processes.Add(filename); }
+                            }
+                        }
+                    }
+            }
+
+            // Check if param is not null
             string param = "";
             if (this.Parameter != null)
                 param = this.Parameter;
 
+            // Set Custom tab as "Running"
             List<LabClient> clients = parent.getSelectedClients();
             parent.SetTabActivity(TabItem, clients, true);
 
+            // Start Custom Running in new thread
             ThreadStart ts = delegate()
             {
                 Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
@@ -296,6 +348,12 @@ namespace UserControls
         {
             List<LabClient> clients = parent.getSelectedClients();
             service.CopyFolder(clients, this.DirPath, this.TimeStamp);
+        }
+
+        private void btnKill_Click(object sender, RoutedEventArgs e)
+        {
+            Window KillProcessWindow = new KillProcessWindow(this);
+            KillProcessWindow.Show();
         }
     }
 }

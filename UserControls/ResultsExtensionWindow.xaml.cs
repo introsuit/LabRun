@@ -32,8 +32,7 @@ namespace UserControls
             }
             dgrExtensions.ItemsSource = extensions;
             this.parent = parent;
-
-            
+     
         }
 
         private void btnAdd_Click(object sender, RoutedEventArgs e)

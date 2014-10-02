@@ -59,6 +59,11 @@
 
                     </GroupBox>
                 </StackPanel>
+                <GroupBox Header="Kill processes"  Width="auto" HorizontalAlignment="Stretch" Margin="0,20,0,10" >
+                    <Grid>
+                        <Button Name="btnKill" Content="Kill processes" HorizontalAlignment="Center" Margin="31,10,0,0" VerticalAlignment="Top" Width="208" Click="btnKill_Click"/>
+                    </Grid>
+                </GroupBox>
                 <GroupBox Header="Getting results"  Width="auto" HorizontalAlignment="Stretch" Margin="0,20,0,10" >
                     <Grid>
                         <Button Name="btnDefineExtensions" Content="Define result extensions" HorizontalAlignment="Center" Margin="31,24,0,0" VerticalAlignment="Top" Width="208" RenderTransformOrigin="-0.062,0.583" Click="btnDefineExtensions_Click"/>

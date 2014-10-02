@@ -167,7 +167,7 @@ namespace LabRun
                 Text = tabChrome.Header.ToString(),
             };
 
-            UserControls.CustomRun tC5 = new UserControls.CustomRun(this);
+            UserControls.CustomRun tC5 = new UserControls.CustomRun(this, this.clients);
             tabCustom.Content = tC5;
             tC5.TabItem = tabCustom;
             tabControls.Add(tC5);

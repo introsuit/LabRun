@@ -56,6 +56,9 @@
     <Compile Include="CustomRun.xaml.cs">
       <DependentUpon>CustomRun.xaml</DependentUpon>
     </Compile>
+    <Compile Include="KillProcessWindow.xaml.cs">
+      <DependentUpon>KillProcessWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ResultsExtensionWindow.xaml.cs">
       <DependentUpon>ResultsExtensionWindow.xaml</DependentUpon>
     </Compile>
@@ -70,6 +73,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="CustomRun.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="KillProcessWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
