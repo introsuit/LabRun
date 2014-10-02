@@ -12,6 +12,7 @@ namespace ServiceLibrary
         private Service service = Service.getInstance();
         private string dmsUrl = "https://cobelab.au.dk";
         private MyWebClient webClient;
+        private readonly string customRunDmsModality = "Other";
 
         public Dms()
         {
@@ -72,8 +73,14 @@ namespace ServiceLibrary
                         }
                         string subjId = CreateSubject(subject.Name, testApp);
 
+                        string appName = testApp.ApplicationName;
+                        //special name for dms custom run modality
+                        if (testApp is CustomRunTestApp)
+                        {
+                            appName = customRunDmsModality;
+                        }
                         string dirToZip = Path.Combine(projPath, subject.Name, timeline.Name, testApp.ApplicationName);
-                        string zipFileName = testApp.ProjectName + "." + subjId + "." + timeline.Name + "." + testApp.ApplicationName + ".zip";
+                        string zipFileName = testApp.ProjectName + "." + subjId + "." + timeline.Name + "." + appName + ".zip";
                         string zipPath = Path.Combine(projPath, zipFileName);
 
                         ZipDirectory(dirToZip, zipPath);

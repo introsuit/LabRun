@@ -22,7 +22,7 @@ namespace UserControls
     {
         private MainUI parent = null;
         private Service service = Service.getInstance();
-        CustomRunTestApp crTestApp;
+        private CustomRunTestApp crTestApp;
         public string filePath { get; set; }
         public string fileName { get; set; }
         public string DirPath { get; set; }
@@ -43,6 +43,7 @@ namespace UserControls
             this.parent = parent;
             this.TimeStamp = Service.getInstance().GetCurrentTimestamp();
             this.lblTimestmp.Content = "Timestamp: " + this.TimeStamp;
+            this.extensions = new List<string>();
         }
 
         public void ButtonClickable(bool enabled)
@@ -208,7 +209,6 @@ namespace UserControls
 
         private void btnGetResults_Click(object sender, RoutedEventArgs e)
         {
-
             if (extensions != null)
             {
                 crTestApp = new CustomRunTestApp(this.extensions);
@@ -241,6 +241,12 @@ namespace UserControls
             {
                 try
                 {
+                    if (crTestApp == null)
+                    {
+                        crTestApp = new CustomRunTestApp(this.extensions);
+                        this.SetProject(parent.getProject());
+                        crTestApp.testFolder = service.TestFolder;
+                    }
                     crTestApp.ToDms();
                 }
                 catch (DirectoryNotFoundException ex)
