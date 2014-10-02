@@ -42,7 +42,7 @@ namespace ServiceLibrary
         public Config Config;
 
         public static Service getInstance()
-        {         
+        {
             if (service == null)
                 service = new Service();
             return service;
@@ -207,7 +207,7 @@ namespace ServiceLibrary
                     newClients.Add(client);
             }
             return newClients;
-        }     
+        }
 
         /// <summary>
         /// Downloads the bridge's list of computers which have MAC and booth number.
@@ -1050,7 +1050,8 @@ Add-FirewallRule
             string oldPath = Path.Combine(resPath, oldProject);
             string newPath = Path.Combine(resPath, newProject);
             //if the new project already exists, rename it with its timestamp
-            if(Directory.Exists(newPath)){
+            if (Directory.Exists(newPath))
+            {
                 string timestamp = String.Format("{0:yyyyMMdd_HHmmss}", Directory.GetLastWriteTime(newPath));
                 Directory.Move(newPath, Path.Combine(resPath, newProject + "_" + timestamp));
             }
@@ -1096,7 +1097,6 @@ Add-FirewallRule
         /// <returns>Nothing</returns>
         public void CopyAndRunFolder(List<LabClient> clients, string folderPath, string filePath, string parameter, string timestamp)
         {
-
             //Get folder name without path
             string folderName = "";
             string[] words = folderPath.Split('\\');

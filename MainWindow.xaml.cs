@@ -639,7 +639,14 @@ namespace LabRun
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    service.MoveProject(project, projectName);
+                    try
+                    {
+                        service.MoveProject(project, projectName);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Unable to rename the folder. Make sure that there are no open files or explorer windows from that directory.\n\n" + ex.Message, "Failed to rename", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
             }
 

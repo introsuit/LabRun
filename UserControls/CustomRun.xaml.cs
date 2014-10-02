@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -22,7 +23,7 @@ namespace UserControls
     {
         private MainUI parent = null;
         private Service service = Service.getInstance();
-        CustomRunTestApp crTestApp;
+        private CustomRunTestApp crTestApp;
         public string filePath { get; set; }
         public string fileName { get; set; }
         public string DirPath { get; set; }
@@ -45,6 +46,7 @@ namespace UserControls
             this.parent = parent;
             this.TimeStamp = service.GetCurrentTimestamp();
             this.lblTimestmp.Content = "Timestamp: " + this.TimeStamp;
+            this.extensions = new List<string>();
         }
 
         public void ButtonClickable(bool enabled)
@@ -129,8 +131,14 @@ namespace UserControls
 
         private void btnTransferSingleFile_Click(object sender, RoutedEventArgs e)
         {
-            service.CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
-            service.CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, parent.getSelectedClients(), this.TimeStamp);
+
+            ThreadStart ts = delegate()
+            {
+                Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
+                Service.getInstance().CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, parent.getSelectedClients(), this.TimeStamp);
+            };
+            service.RunInNewThread(ts);
+
         }
 
         private void btnTransfernRunSingleFile_Click(object sender, RoutedEventArgs e)
@@ -141,8 +149,14 @@ namespace UserControls
 
             List<LabClient> clients = parent.getSelectedClients();
             parent.SetTabActivity(TabItem, clients, true);
-            service.CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
-            service.CopyAndRunFilesFromNetworkShareToClients(this.filePath, this.fileName, clients, param, this.TimeStamp);
+
+            ThreadStart ts = delegate()
+            {
+                Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
+                Service.getInstance().CopyAndRunFilesFromNetworkShareToClients(this.filePath, this.fileName, clients, param, this.TimeStamp);
+            };
+            service.RunInNewThread(ts);
+
         }
 
         private void btnBrowseDir_Click(object sender, RoutedEventArgs e)
@@ -210,7 +224,12 @@ namespace UserControls
                 param = this.Parameter;
             List<LabClient> clients = parent.getSelectedClients();
             parent.SetTabActivity(TabItem, clients, true);
-            service.CopyAndRunFolder(clients, this.DirPath, this.DirFileNameWithExtraDir, param, this.TimeStamp);
+
+            ThreadStart ts = delegate()
+            {
+                Service.getInstance().CopyAndRunFolder(clients, this.DirPath, this.DirFileNameWithExtraDir, param, this.TimeStamp);
+            };
+
         }
 
         private void btnDefineExtensions_Click(object sender, RoutedEventArgs e)
@@ -221,8 +240,7 @@ namespace UserControls
 
         private void btnGetResults_Click(object sender, RoutedEventArgs e)
         {
-
-            if (extensions != null)
+            if (extensions.Count != 0)
             {
                 crTestApp = new CustomRunTestApp(this.extensions);
                 this.SetProject(parent.getProject());
@@ -254,6 +272,12 @@ namespace UserControls
             {
                 try
                 {
+                    if (crTestApp == null)
+                    {
+                        crTestApp = new CustomRunTestApp(this.extensions);
+                        this.SetProject(parent.getProject());
+                        crTestApp.testFolder = service.TestFolder;
+                    }
                     crTestApp.ToDms();
                 }
                 catch (DirectoryNotFoundException ex)

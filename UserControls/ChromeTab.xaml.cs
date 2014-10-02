@@ -73,7 +73,7 @@ namespace UserControls
                     }
                 case "2":
                     {
-                        param += " -fullscreen";
+                        param += " -start-fullscreen";
                         break;
                     }
                 case "3":
