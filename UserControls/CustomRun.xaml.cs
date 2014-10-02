@@ -30,10 +30,12 @@ namespace UserControls
         public string DirFileNameWithExtraDir { get; set; }
         public Boolean isEnabledSingle { get; set; }
         public Boolean isEnabledDir { get; set; }
+        public Boolean IsEnabledDirTransfernRun { get; set; }
         public List<string> extensions { get; set; }
         public string TimeStamp { get; set; }
         public string Parameter { get; set; }
         public TabItem TabItem { get; set; }
+
 
         public CustomRun(MainUI parent)
         {
@@ -41,7 +43,7 @@ namespace UserControls
             isEnabledSingle = false;
             isEnabledDir = false;
             this.parent = parent;
-            this.TimeStamp = Service.getInstance().GetCurrentTimestamp();
+            this.TimeStamp = service.GetCurrentTimestamp();
             this.lblTimestmp.Content = "Timestamp: " + this.TimeStamp;
         }
 
@@ -49,6 +51,10 @@ namespace UserControls
         {
             btnCleanCustomDir.IsEnabled = enabled;
             btnGetResults.IsEnabled = enabled;
+            if ((IsEnabledDirTransfernRun) && (enabled))
+            {
+                btnTransfernRunDir.IsEnabled = true;
+            }
             if ((isEnabledSingle) && (enabled))
             {
                 btnTransferSingleFile.IsEnabled = true;
@@ -56,7 +62,9 @@ namespace UserControls
             }
             if ((isEnabledDir) && (enabled))
             {
-                btnTransfernRunDir.IsEnabled = true;
+               
+                btnTransferDir.IsEnabled = true;
+                btnBrowseDirFileToRun.IsEnabled = true;
             }
             if ((isEnabledSingle == false) || (enabled == false))
             {
@@ -65,10 +73,10 @@ namespace UserControls
             }
             if ((isEnabledDir == false) || (enabled == false))
             {
-
                 btnTransfernRunDir.IsEnabled = false;
+                btnTransferDir.IsEnabled = false;
+                btnBrowseDirFileToRun.IsEnabled = false;
             }
-
         }
 
         public void SetProject(string projectName)
@@ -81,7 +89,7 @@ namespace UserControls
 
         private void btnTimestmp_Click(object sender, RoutedEventArgs e)
         {
-            this.TimeStamp = Service.getInstance().GetCurrentTimestamp();
+            this.TimeStamp = service.GetCurrentTimestamp();
             this.lblTimestmp.Content = "Timestamp: " + this.TimeStamp;
         }
 
@@ -111,8 +119,7 @@ namespace UserControls
                 this.isEnabledSingle = true;
                 if (parent.getSelectedClients().Count != 0)
                 {
-                    btnTransferSingleFile.IsEnabled = true;
-                    btnTransfernRunSingleFile.IsEnabled = true;
+                    this.isEnabledDir = true;
                 }
 
                 lblFilePath.Content = this.filePath;
@@ -122,8 +129,8 @@ namespace UserControls
 
         private void btnTransferSingleFile_Click(object sender, RoutedEventArgs e)
         {
-            Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
-            Service.getInstance().CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, parent.getSelectedClients(), this.TimeStamp);
+            service.CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
+            service.CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, parent.getSelectedClients(), this.TimeStamp);
         }
 
         private void btnTransfernRunSingleFile_Click(object sender, RoutedEventArgs e)
@@ -134,8 +141,8 @@ namespace UserControls
 
             List<LabClient> clients = parent.getSelectedClients();
             parent.SetTabActivity(TabItem, clients, true);
-            Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
-            Service.getInstance().CopyAndRunFilesFromNetworkShareToClients(this.filePath, this.fileName, clients, param, this.TimeStamp);
+            service.CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
+            service.CopyAndRunFilesFromNetworkShareToClients(this.filePath, this.fileName, clients, param, this.TimeStamp);
         }
 
         private void btnBrowseDir_Click(object sender, RoutedEventArgs e)
@@ -146,10 +153,14 @@ namespace UserControls
             {
                 this.DirPath = browse.SelectedPath;
                 lblDirPath.Content = "Folder: " + this.DirPath;
+                this.isEnabledDir = true;
+                if (parent.getSelectedClients().Count != 0)
                 {
                     btnBrowseDirFileToRun.IsEnabled = true;
+                    btnTransferDir.IsEnabled = true;
+                    btnBrowseDirFileToRun.IsEnabled = true;
+                    this.isEnabledDir = true;
                 }
-
             }
         }
 
@@ -184,7 +195,9 @@ namespace UserControls
                 this.isEnabledDir = true;
                 if (parent.getSelectedClients().Count != 0)
                 {
+                    this.IsEnabledDirTransfernRun = true;
                     this.btnTransfernRunDir.IsEnabled = true;
+                    this.btnTransferDir.IsEnabled = true;
                 }
 
             }
@@ -197,7 +210,7 @@ namespace UserControls
                 param = this.Parameter;
             List<LabClient> clients = parent.getSelectedClients();
             parent.SetTabActivity(TabItem, clients, true);
-            Service.getInstance().CopyEntireFolder(clients, this.DirPath, this.DirFileNameWithExtraDir, param, this.TimeStamp);
+            service.CopyAndRunFolder(clients, this.DirPath, this.DirFileNameWithExtraDir, param, this.TimeStamp);
         }
 
         private void btnDefineExtensions_Click(object sender, RoutedEventArgs e)
@@ -256,7 +269,8 @@ namespace UserControls
 
         private void btnTransferDir_Click(object sender, RoutedEventArgs e)
         {
-
+            List<LabClient> clients = parent.getSelectedClients();
+            service.CopyFolder(clients, this.DirPath, this.TimeStamp);
         }
     }
 }

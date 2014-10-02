@@ -495,30 +495,7 @@ namespace ServiceLibrary
                 service.StartNewCmdThread(batFileName);
             }
         }
-
-        /// <summary>
-        /// Deletes the files contained in supplied hashset on the supplied clients.
-        /// </summary>
-        /// <returns>Nothing</returns> 
-        public void deleteFiles(HashSet<string> files, List<LabClient> clients)
-        {
-            //foreach (LabClient client in clients)
-            //{
-
-            //        string batFileName = Path.Combine(tempPath, "CustomCopy" + client.ComputerName + ".bat");
-            //        using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
-            //        {
-            //            file.WriteLine("@echo off");
-            //            foreach (string fileLine in files)
-            //            {
-            //                string deleteCmd = @"delete C:\labrun\temp" + fileLine +" /Q ";
-            //            }
-            //            string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
-            //            file.WriteLine(line);
-            //        }
-            //        service.StartNewCmdThread(batFileName);
-            //}
-        }
+      
 
         /// <summary>
         /// Runs previously transferred file on selectedm clients.
@@ -1117,7 +1094,7 @@ Add-FirewallRule
         /// Then runs selected file using same PSExec batch.
         /// </summary>
         /// <returns>Nothing</returns>
-        public void CopyEntireFolder(List<LabClient> clients, string folderPath, string filePath, string parameter, string timestamp)
+        public void CopyAndRunFolder(List<LabClient> clients, string folderPath, string filePath, string parameter, string timestamp)
         {
 
             //Get folder name without path
@@ -1163,6 +1140,55 @@ Add-FirewallRule
                     string runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + filePath + @""" """ + parameter + @"""";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
                     line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+                    file.WriteLine(line);
+                }
+                service.StartNewCmdThread(batFileName);
+            }
+        }
+
+        /// <summary>
+        /// Transfers a folder first to the shared drive then to each selected labclient.
+        /// Uses PSExec delegated batch files, running on each client.
+        /// Then runs selected file using same PSExec batch.
+        /// </summary>
+        /// <returns>Nothing</returns>
+        public void CopyFolder(List<LabClient> clients, string folderPath, string timestamp)
+        {
+
+            //Get folder name without path
+            string folderName = "";
+            string[] words = folderPath.Split('\\');
+            foreach (string word in words)
+            {
+                folderName = word;
+            }      
+
+            // Copy to network drive
+            string copyPath = Path.Combine(tempPath, "localCopy.bat");
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(copyPath))
+            {
+                file.WriteLine("@echo off");
+                string dstDir = @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + folderName;
+                string line = @"xcopy """ + folderPath + @""" """ + dstDir + @""" /i /s /e /V /Y /Q";
+                file.WriteLine(line);
+            }
+            service.ExecuteCommandNoOutput(copyPath, true);
+
+            // From Network drive, to clients
+            foreach (LabClient client in clients)
+            {
+                string batFileName = Path.Combine(tempPath, "CopyFolder" + client.ComputerName + ".bat");
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
+                {
+                    file.WriteLine("@echo off");
+                    string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
+                    file.WriteLine(line);
+
+                    // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
+                    string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + folderName + @"""" + @" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + @"""" + @" /i /s /e /V /Y /Q ";
+
+                    // Deploy and run batfile FROM Server TO labclient using PSTools
+                    line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);

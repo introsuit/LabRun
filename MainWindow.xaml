@@ -223,10 +223,10 @@
                     <TabItem Header="E-Prime" x:Name="tabEPrime">
                         <Grid Background="#FFE5E5E5"/>
                     </TabItem>
-                    <TabItem Header="z-tree" x:Name="tabZTree">
+                    <TabItem Header="Z-Tree" x:Name="tabZTree">
                         <Grid Background="#FFE5E5E5"/>
                     </TabItem>
-                    <TabItem Header="Custom program" x:Name="tabCustom">
+                    <TabItem Header="Custom" x:Name="tabCustom">
                         <Grid Background="#FFE5E5E5"/>
                     </TabItem>
                     <TabItem Header="Chrome" x:Name="tabChrome">
