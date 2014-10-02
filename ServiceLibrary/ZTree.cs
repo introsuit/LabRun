@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.IO;
+using System;
 
 namespace ServiceLibrary
 {
@@ -119,8 +120,6 @@ namespace ServiceLibrary
                 string dst = Path.Combine(service.TestFolder, resultsFolderName, projectName, "ZTreeSubject");
                 string line = @"xcopy """ + src + @""" """ + dst + @""" /V /E /Y /Q /I";
                 file.WriteLine(line);
-                //line = @"del /s /q " + Path.Combine(dst, completionFileName + @"*");
-                //file.WriteLine(line);
             }
             service.ExecuteCommandNoOutput(copyPath, true);
             //-----end

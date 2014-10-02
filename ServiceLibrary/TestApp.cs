@@ -216,7 +216,7 @@ namespace ServiceLibrary
                     file.WriteLine(line);
 
                     string src = Path.Combine(this.testFolder, applicationName);
-                    string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, client.BoothNo + "");
+                    string dst = Path.Combine(service.SharedNetworkTempFolder, resultsFolderName, projectName, client.BoothName + "");
 
                     string resultFiles = "";
                     foreach (string resultExt in resultExts)

@@ -137,7 +137,7 @@ namespace ServiceLibrary
         public int RoomNo { get; set; }
         public string ComputerName { get; set; }
         public int? BoothNo { get; set; }
-        public string BoothNoDisplay { get; set; }
+        public string BoothName { get; set; }
         public string Mac { get; set; }
         public string Ip { get; set; }
 
@@ -151,28 +151,29 @@ namespace ServiceLibrary
             }
         }
 
-        private string GetBoothNoDisplay(int? boothNo)
+        //converts booth no from bridge cfg value to expected booth name value
+        private string GetDisplayBoothName(int? boothNo)
         {
-            string result = "";
+            string name = "";
 
             if (this.BoothNo == null)
             {
-                return result;
+                return name;
             }
-           
+
             if (this.BoothNo <= 24)
             {
-                result = ((int)this.BoothNo) + "";
+                name = ((int)this.BoothNo) + "";
             }
             else
             {
                 //start at letter before A (A is 65), so any subsequent numbers will be at range [A-*]
                 int startCharValue = 64;
                 int numericValue = startCharValue + ((int)this.BoothNo - 24);
-                result = ((char)numericValue).ToString();
+                name = ((char)numericValue).ToString();
             }
 
-            return result;
+            return name;
         }
 
         public LabClient(int RoomNo, string computerName, int? boothNo, string mac, string ip)
@@ -180,7 +181,7 @@ namespace ServiceLibrary
             this.RoomNo = RoomNo;
             this.ComputerName = computerName;
             this.BoothNo = boothNo;
-            this.BoothNoDisplay = GetBoothNoDisplay(this.BoothNo);
+            this.BoothName = GetDisplayBoothName(boothNo);
             this.Mac = mac;
             this.Ip = ip;
             active = false;

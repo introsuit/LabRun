@@ -19,7 +19,6 @@ namespace ServiceLibrary
         private User user = null;
         public User User { get { return this.user; } }
 
-        //private readonly string sharedNetworkTempFolder = @"\\Win2008\shared\";
         private readonly string sharedNetworkTempFolder = @"\\asb.local\staff\users\labclient\";
         private readonly string inputBlockApp = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "InputBlocker", "InputBlocker.exe");
         private static readonly string testFolder = @"C:\Cobe Lab\";
@@ -43,8 +42,7 @@ namespace ServiceLibrary
         public Config Config;
 
         public static Service getInstance()
-        {
-            //ZipFile.CreateFromDirectory(@"C:\\Cobe Lab\\zippy", "C:\\Cobe Lab\\DM_test.0025_SI9.20140916_000000.BIOPAC.zip");
+        {         
             if (service == null)
                 service = new Service();
             return service;
@@ -209,35 +207,7 @@ namespace ServiceLibrary
                     newClients.Add(client);
             }
             return newClients;
-        }
-
-        private int GetNextAvailBoothNo(List<LabClient> clients, int boothNo)
-        {
-            int maxNo = 0;
-            bool found = false;
-            foreach (LabClient client in clients)
-            {
-                //look for if given booth no already exists
-                if (client.BoothNo == boothNo)
-                {
-                    found = true;
-                }
-                //keep track of max booth no
-                if (client.BoothNo > maxNo)
-                {
-                    maxNo = (int)client.BoothNo;
-                }
-            }
-            //if (!found)
-            //{
-            //    return boothNo;
-            //}
-            //else
-            //{
-            //    return maxNo+1;
-            //}
-            return found ? maxNo + 1 : boothNo;
-        }
+        }     
 
         /// <summary>
         /// Downloads the bridge's list of computers which have MAC and booth number.
@@ -278,7 +248,6 @@ namespace ServiceLibrary
                     mac = mac.Replace(":", String.Empty);
                     mac = mac.Replace("\u0009", String.Empty);
                     boothNo = Int32.Parse(line.Substring(2, 2).Trim());
-                    boothNo = GetNextAvailBoothNo(clientlist, boothNo);
                     LabClient client = new LabClient(roomNo, "", boothNo, mac, "");
                     clientlist.Add(client);
                 }
