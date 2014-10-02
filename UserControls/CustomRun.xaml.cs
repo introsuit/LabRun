@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -123,8 +124,12 @@ namespace UserControls
 
         private void btnTransferSingleFile_Click(object sender, RoutedEventArgs e)
         {
-            Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
-            Service.getInstance().CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, parent.getSelectedClients(), this.TimeStamp);
+            ThreadStart ts = delegate()
+            {
+                Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
+                Service.getInstance().CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, parent.getSelectedClients(), this.TimeStamp);
+            };
+            service.RunInNewThread(ts);
         }
 
         private void btnTransfernRunSingleFile_Click(object sender, RoutedEventArgs e)
@@ -135,8 +140,12 @@ namespace UserControls
 
             List<LabClient> clients = parent.getSelectedClients();
             parent.SetTabActivity(TabItem, clients, true);
-            Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
-            Service.getInstance().CopyAndRunFilesFromNetworkShareToClients(this.filePath, this.fileName, clients, param, this.TimeStamp);
+            ThreadStart ts = delegate()
+            {
+                Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
+                Service.getInstance().CopyAndRunFilesFromNetworkShareToClients(this.filePath, this.fileName, clients, param, this.TimeStamp);
+            };
+            service.RunInNewThread(ts);
         }
 
         private void btnBrowseDir_Click(object sender, RoutedEventArgs e)
@@ -198,7 +207,10 @@ namespace UserControls
                 param = this.Parameter;
             List<LabClient> clients = parent.getSelectedClients();
             parent.SetTabActivity(TabItem, clients, true);
-            Service.getInstance().CopyEntireFolder(clients, this.DirPath, this.DirFileNameWithExtraDir, param, this.TimeStamp);
+            ThreadStart ts = delegate()
+            {
+                Service.getInstance().CopyEntireFolder(clients, this.DirPath, this.DirFileNameWithExtraDir, param, this.TimeStamp);
+            };
         }
 
         private void btnDefineExtensions_Click(object sender, RoutedEventArgs e)
