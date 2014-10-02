@@ -455,10 +455,13 @@ namespace ServiceLibrary
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
                 {
                     file.WriteLine("@echo off");
+                    string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
+                    file.WriteLine(line);
+
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
                     string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + fileName + "" + @""" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\Custom Run\" + @""" /V /Y /Q ";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @")";
+                    line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);
@@ -1067,7 +1070,15 @@ Add-FirewallRule
         public void MoveProject(string oldProject, string newProject)
         {
             string resPath = Path.Combine(testFolder, ResultsFolderName);
-            Directory.Move(Path.Combine(resPath, oldProject), Path.Combine(resPath, newProject));
+            string oldPath = Path.Combine(resPath, oldProject);
+            string newPath = Path.Combine(resPath, newProject);
+            //if the new project already exists, rename it with its timestamp
+            if(Directory.Exists(newPath)){
+                string timestamp = String.Format("{0:yyyyMMdd_HHmmss}", Directory.GetLastWriteTime(newPath));
+                Directory.Move(newPath, Path.Combine(resPath, newProject + "_" + timestamp));
+            }
+            //rename old projects name
+            Directory.Move(oldPath, newPath);
         }
 
         /// <summary>
@@ -1143,12 +1154,15 @@ Add-FirewallRule
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(batFileName))
                 {
                     file.WriteLine("@echo off");
+                    string line = @"cmdkey.exe /add:" + client.ComputerName + @" /user:" + service.Credentials.DomainSlashUser + @" /pass:" + service.Credentials.Password;
+                    file.WriteLine(line);
+
                     // Embed xcopy command to transfer ON labclient FROM shared drive TO labclient
                     string copyCmd = @"xcopy """ + @"\\BSSFILES2\Dept\adm\labrun\temp\Custom Run\" + timestamp + @"\Custom Run\" + folderName + @"""" + @" ""C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + @"""" + @" /i /s /e /V /Y /Q ";
                     // Build run command to embed in bat also
                     string runCmd = @"""" + @"C:\Cobe Lab\Custom Run\" + timestamp + @"\" + @"\Custom Run\" + folderName + filePath + @""" """ + parameter + @"""";
                     // Deploy and run batfile FROM Server TO labclient using PSTools
-                    string line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
+                    line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + copyCmd + @" ^& " + runCmd + @")";
                     file.WriteLine(line);
                 }
                 service.StartNewCmdThread(batFileName);
