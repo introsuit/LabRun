@@ -150,14 +150,12 @@ namespace UserControls
 
         private void btnTransferSingleFile_Click(object sender, RoutedEventArgs e)
         {
-
             ThreadStart ts = delegate()
             {
                 Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
                 Service.getInstance().CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, parent.getSelectedClients(), this.TimeStamp);
             };
             service.RunInNewThread(ts);
-
         }
 
         private void btnTransfernRunSingleFile_Click(object sender, RoutedEventArgs e)
@@ -215,7 +213,8 @@ namespace UserControls
         {
             System.Windows.Forms.FolderBrowserDialog browse = new System.Windows.Forms.FolderBrowserDialog();
             System.Windows.Forms.DialogResult result = browse.ShowDialog();
-            if (result != null)
+
+            if (browse.SelectedPath != "")
             {
                 this.DirPath = browse.SelectedPath;
                 lblDirPath.Content = "Folder: " + this.DirPath;
