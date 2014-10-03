@@ -22,7 +22,9 @@ namespace UserControls
     {
         private CustomRun parent = null;
         private Service service = Service.getInstance();
+        private HashSet<string> procList;
         public KillProcessWindow(CustomRun parent)
+        
         {
             InitializeComponent();
             this.parent = parent;
@@ -34,7 +36,7 @@ namespace UserControls
                     allProcList.AddRange(temp.processes);
                 }
             }
-            HashSet<string> procList = new HashSet<string>(allProcList);
+            procList = new HashSet<string>(allProcList);
             lstbxProcesses.ItemsSource = procList;
         }
 
@@ -43,6 +45,11 @@ namespace UserControls
             btnKill.IsEnabled = true;
             string exename = (string)lstbxProcesses.SelectedValue;
             service.CloseCustomProcess(parent.getParent().getSelectedClients(), exename);
+            procList.Remove(exename);
+            lstbxProcesses.ItemsSource = null;
+            lstbxProcesses.ItemsSource = procList;
+            parent.ProcessStopped(exename);
+
         }
 
         private void lstbxProcesses_SelectionChanged(object sender, SelectionChangedEventArgs e)

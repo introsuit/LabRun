@@ -137,10 +137,10 @@ namespace UserControls
                     this.fileName = word;
                 }
                 this.isEnabledSingle = true;
-                this.isEnabledDir = true;
                 if (parent.getSelectedClients().Count != 0)
                 {
                     btnTransfernRunSingleFile.IsEnabled = true;
+                    btnTransferSingleFile.IsEnabled = true;
                 }
 
                 lblFilePath.Content = this.filePath;
@@ -150,12 +150,15 @@ namespace UserControls
 
         private void btnTransferSingleFile_Click(object sender, RoutedEventArgs e)
         {
-            ThreadStart ts = delegate()
+            List<LabClient> clients = parent.getSelectedClients();
+            ThreadStart tssingle = delegate()
             {
+                
                 Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
-                Service.getInstance().CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, parent.getSelectedClients(), this.TimeStamp);
+                Service.getInstance().CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, clients, this.TimeStamp);
             };
-            service.RunInNewThread(ts);
+            service.RunInNewThread(tssingle);
+            
         }
 
         private void btnTransfernRunSingleFile_Click(object sender, RoutedEventArgs e)
@@ -281,6 +284,8 @@ namespace UserControls
             {
                 Service.getInstance().CopyAndRunFolder(clients, this.DirPath, this.DirFileNameWithExtraDir, param, this.TimeStamp);
             };
+            service.RunInNewThread(ts);
+
 
         }
 
@@ -345,6 +350,7 @@ namespace UserControls
 
         private void btnTransferDir_Click(object sender, RoutedEventArgs e)
         {
+
             List<LabClient> clients = parent.getSelectedClients();
             service.CopyFolder(clients, this.DirPath, this.TimeStamp);
         }
@@ -353,6 +359,16 @@ namespace UserControls
         {
             Window KillProcessWindow = new KillProcessWindow(this);
             KillProcessWindow.Show();
+        }
+
+        public void ProcessStopped(string procName) {
+            foreach (LabClient client in parent.getSelectedClients()) {
+                foreach (CompAndProcesses compProc in this.procList) {
+                    if (compProc.computer == client) {
+                        compProc.processes.Remove(procName);
+                    }
+                }
+            }
         }
     }
 }

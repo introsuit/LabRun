@@ -104,6 +104,7 @@ namespace LabRun
                 MessageBox.Show(ex.Message);
             }
             List<LabClient> selectedClients = service.filterForRoom(clients, labNo);
+            //dgrClients.ItemsSource = selectedClients;
             updateClientsGrid();
         }
 
@@ -720,6 +721,16 @@ namespace LabRun
             {
                 MessageBox.Show(ex.Message, "Unable to get IP Address", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void BRIDGE_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("http://cobelab.au.dk:8000");
+        }
+
+        private void btnConfEdit(object sender, RoutedEventArgs e)
+        {
+            Process.Start("config.ini");
         }
     }
 }

@@ -137,7 +137,9 @@ namespace ServiceLibrary
         public int RoomNo { get; set; }
         public string ComputerName { get; set; }
         public int? BoothNo { get; set; }
-        public string BoothName { get; set; }
+
+public string BoothName { get; set; }
+
         public string Mac { get; set; }
         public string Ip { get; set; }
 
@@ -150,6 +152,7 @@ namespace ServiceLibrary
                 PropertyChanged(this, new PropertyChangedEventArgs(p));
             }
         }
+
 
         //converts booth no from bridge cfg value to expected booth name value
         private string GetDisplayBoothName(int? boothNo)
@@ -176,12 +179,15 @@ namespace ServiceLibrary
             return name;
         }
 
+
         public LabClient(int RoomNo, string computerName, int? boothNo, string mac, string ip)
         {
             this.RoomNo = RoomNo;
             this.ComputerName = computerName;
             this.BoothNo = boothNo;
+
             this.BoothName = GetDisplayBoothName(boothNo);
+
             this.Mac = mac;
             this.Ip = ip;
             active = false;

@@ -26,10 +26,13 @@
                 <MenuItem Header="_Participant pool" Click="AURPS_Click"/>
                 <MenuItem Header="_Lab homepage" Click="COBELAB_Click"/>
                 <MenuItem Header="_DMS, Booking System, Wiki" Click="AUCBL_Click"/>
+                <MenuItem Header="_The network bridge" Click="BRIDGE_Click"/>
+                
             </MenuItem>
-            <MenuItem Header="_Tools">
+            <MenuItem Header="_Admin tools">
                 <MenuItem Header="_Update Lab Client List" Click="Button_Click_1"/>
                 <MenuItem Header="_Update firewall rules for Lab Clients" Click="btnFwUpdate"/>
+                <MenuItem Header="_Edit configuration files" Click="btnConfEdit"/>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About LabRun" Click="About_Click"/>
@@ -67,7 +70,8 @@
                     </DataGrid.CellStyle>
 
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Booth No"  Binding="{Binding BoothName}"/>
+                     <DataGridTextColumn Header="Booth No"  Binding="{Binding BoothName}"/>
+
                         <DataGridTextColumn Header="Comp. Name" Binding="{Binding ComputerName}"/>
 
                         <DataGridTemplateColumn Header="Psy.Py" Visibility="Hidden">
@@ -220,10 +224,10 @@
 
                         <Grid Background="#FFE5E5E5" />
                     </TabItem>
-                    <TabItem Header="E-Prime" x:Name="tabEPrime">
+                    <TabItem Header="e-Prime" x:Name="tabEPrime">
                         <Grid Background="#FFE5E5E5"/>
                     </TabItem>
-                    <TabItem Header="Z-Tree" x:Name="tabZTree">
+                    <TabItem Header="z-Tree" x:Name="tabZTree">
                         <Grid Background="#FFE5E5E5"/>
                     </TabItem>
                     <TabItem Header="Custom" x:Name="tabCustom">
