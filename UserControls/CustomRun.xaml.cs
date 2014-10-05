@@ -268,12 +268,42 @@ namespace UserControls
                     this.btnTransfernRunDir.IsEnabled = true;
                     this.btnTransferDir.IsEnabled = true;
                 }
-
             }
         }
 
         private void btnTransfernRunDir_Click(object sender, RoutedEventArgs e)
         {
+            // Check file name and extension for keeping track of running processes
+            string filename = "";
+            string[] split = this.DirFileName.Split('\\');
+            foreach (string temp in split)
+            {
+                filename = temp;
+            }
+            string extname = "";
+            string[] extSplit = this.DirFileName.Split('.');
+            foreach (string temp in extSplit)
+            {
+                extname = temp;
+            }
+
+            // If launched file is an exe, add it to the process list
+            if (extname == "exe")
+            {
+
+                foreach (LabClient client in parent.getSelectedClients())
+                {
+                    foreach (CompAndProcesses proc_client in this.procList)
+                    {
+                        if (client.Equals(proc_client.computer))
+                        {
+                            { proc_client.processes.Add(filename); }
+                        }
+                    }
+                }
+            }
+
+            
             string param = "";
             if (this.Parameter != null)
                 param = this.Parameter;
