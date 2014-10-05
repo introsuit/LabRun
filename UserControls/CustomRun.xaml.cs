@@ -58,7 +58,7 @@ namespace UserControls
             {
                 CompAndProcesses ComProc = new CompAndProcesses();
                 ComProc.computer = client;
-                ComProc.processes = new List<string>();
+                ComProc.processes = new HashSet<string>();
                 this.procList.Add(ComProc);
             }
         }
@@ -153,9 +153,9 @@ namespace UserControls
             List<LabClient> clients = parent.getSelectedClients();
             ThreadStart tssingle = delegate()
             {
-                
-                Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
-                Service.getInstance().CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, clients, this.TimeStamp);
+                service.CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
+                service.CopyFilesFromNetworkShareToClients(this.filePath, this.fileName, clients, this.TimeStamp);
+
             };
             service.RunInNewThread(tssingle);
             
@@ -205,8 +205,8 @@ namespace UserControls
             // Start Custom Running in new thread
             ThreadStart ts = delegate()
             {
-                Service.getInstance().CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
-                Service.getInstance().CopyAndRunFilesFromNetworkShareToClients(this.filePath, this.fileName, clients, param, this.TimeStamp);
+                service.CopyFilesToNetworkShare(this.filePath, this.TimeStamp);
+                service.CopyAndRunFilesFromNetworkShareToClients(this.filePath, this.fileName, clients, param, this.TimeStamp);
             };
             service.RunInNewThread(ts);
 
@@ -282,11 +282,9 @@ namespace UserControls
 
             ThreadStart ts = delegate()
             {
-                Service.getInstance().CopyAndRunFolder(clients, this.DirPath, this.DirFileNameWithExtraDir, param, this.TimeStamp);
+                service.CopyAndRunFolder(clients, this.DirPath, this.DirFileNameWithExtraDir, param, this.TimeStamp);
             };
             service.RunInNewThread(ts);
-
-
         }
 
         private void btnDefineExtensions_Click(object sender, RoutedEventArgs e)
@@ -353,6 +351,7 @@ namespace UserControls
 
             List<LabClient> clients = parent.getSelectedClients();
             service.CopyFolder(clients, this.DirPath, this.TimeStamp);
+
         }
 
         private void btnKill_Click(object sender, RoutedEventArgs e)

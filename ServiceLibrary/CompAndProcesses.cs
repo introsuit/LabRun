@@ -9,6 +9,6 @@ namespace ServiceLibrary
     public class CompAndProcesses
     {
         public LabClient computer { get; set; }
-        public List<String> processes { get; set; }
+        public HashSet<String> processes { get; set; }
     }
 }
