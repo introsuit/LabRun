@@ -229,7 +229,7 @@ namespace ServiceLibrary
                     line = @"C:\PSTools\PsExec.exe -d -i 1 \\" + client.ComputerName + @" -u " + service.Credentials.DomainSlashUser + @" -p " + service.Credentials.Password + @" cmd /c (" + resultFiles + @" ^& " + completionNotifyFile + @")";
                     file.WriteLine(line);
                 }
-                service.StartNewCmdThread(copyPathRemote);
+                service.ExecuteCommandNoOutput(copyPathRemote, true);
                 i++;
             }
             //----end
