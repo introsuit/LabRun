@@ -366,6 +366,12 @@ namespace UserControls
                 foreach (CompAndProcesses compProc in this.procList) {
                     if (compProc.computer == client) {
                         compProc.processes.Remove(procName);
+                        if (compProc.processes.Count() == 0)
+                        {
+                            List<LabClient> clients = new List<LabClient>();
+                            clients.Add(client);
+                            parent.SetTabActivity(TabItem, clients, false);
+                        }
                     }
                 }
             }
