@@ -164,7 +164,7 @@ public string BoothName { get; set; }
                 return name;
             }
 
-            if (this.BoothNo <= 24)
+            if (this.RoomNo == 1)
             {
                 name = ((int)this.BoothNo) + "";
             }
@@ -172,7 +172,7 @@ public string BoothName { get; set; }
             {
                 //start at letter before A (A is 65), so any subsequent numbers will be at range [A-*]
                 int startCharValue = 64;
-                int numericValue = startCharValue + ((int)this.BoothNo - 24);
+                int numericValue = startCharValue + ((int)this.BoothNo);
                 name = ((char)numericValue).ToString();
             }
 
